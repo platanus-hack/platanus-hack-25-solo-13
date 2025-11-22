@@ -1,7 +1,7 @@
 # Lumera App - Makefile de Desarrollo
 # Comandos rápidos para acelerar desarrollo
 
-.PHONY: help up down logs restart ps clean db-shell db-query db-reset db-seed migrate-create migrate-up migrate-down migrate-version backend-logs frontend-logs postgres-logs backend-shell test-api docs
+.PHONY: help up down logs restart ps clean db-shell db-query db-reset db-seed migrate-create migrate-up migrate-down migrate-version backend-logs frontend-logs landing-logs postgres-logs backend-shell test-api docs
 
 # Default target
 .DEFAULT_GOAL := help
@@ -21,6 +21,7 @@ help:
 	@echo "  make logs            - Ver logs de todos los servicios"
 	@echo "  make backend-logs    - Ver logs del backend"
 	@echo "  make frontend-logs   - Ver logs del frontend"
+	@echo "  make landing-logs    - Ver logs del landing"
 	@echo "  make postgres-logs   - Ver logs de PostgreSQL"
 	@echo ""
 	@echo "🗄️  Base de Datos:"
@@ -49,8 +50,9 @@ up:
 	docker compose up -d
 	@echo "✅ Servicios levantados"
 	@echo ""
-	@echo "Frontend:  http://localhost:5173"
-	@echo "Backend:   http://localhost:8080"
+	@echo "Landing:   http://localhost:4321  (Astro)"
+	@echo "Frontend:  http://localhost:5173  (Svelte)"
+	@echo "Backend:   http://localhost:8080  (Go API)"
 	@echo "Adminer:   http://localhost:8081  (DB GUI)"
 	@echo "Database:  localhost:5432"
 	@echo ""
@@ -156,6 +158,10 @@ backend-logs:
 ## frontend-logs: Ver logs del frontend
 frontend-logs:
 	docker compose logs -f frontend
+
+## landing-logs: Ver logs del landing
+landing-logs:
+	docker compose logs -f landing
 
 ## postgres-logs: Ver logs de PostgreSQL
 postgres-logs:

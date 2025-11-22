@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Lumera App is a hackathon project (Platanus Hack 25) optimized for **rapid development** (33.5 hours)
 
-**Stack:** Go 1.23 + Svelte 5 + PostgreSQL 16 + Docker Compose
+**Stack:** Go 1.23 + Svelte 5 + Astro 5 + PostgreSQL 16 + Docker Compose
 
 ## Development Commands
 
@@ -44,9 +44,11 @@ make up
 ```
 
 **Services started:**
+- Landing (Astro): `http://localhost:4321`
+- Frontend (Svelte): `http://localhost:5173`
+- Backend API (Go): `http://localhost:8080`
 - PostgreSQL: `localhost:5432`
-- Backend API: `http://localhost:8080`
-- Frontend: `http://localhost:5173`
+- Adminer (DB GUI): `http://localhost:8081`
 
 ### Viewing Logs
 
@@ -57,6 +59,7 @@ make logs
 # Specific service
 make backend-logs
 make frontend-logs
+make landing-logs
 make postgres-logs
 
 # Or directly:
@@ -193,11 +196,41 @@ const response = await fetch('/api/health');
 // Vite proxy → http://backend:8080/api/health
 ```
 
+### Landing Structure (Astro 5 + Tailwind)
+
+```
+landing/
+├── src/
+│   ├── pages/                     # Astro pages (file-based routing)
+│   ├── components/                # Reusable components
+│   └── layouts/                   # Page layouts
+├── public/                        # Static assets
+├── astro.config.mjs              # Astro configuration
+└── Dockerfile                    # Multi-stage build
+```
+
+**Key patterns:**
+- Astro 5 for static site generation
+- Tailwind 4.x for styling
+- File-based routing in `src/pages/`
+- Zero JavaScript by default (only when needed)
+- Optimized for marketing/landing pages
+
+**Development:**
+```bash
+cd landing
+npm install
+npm run dev          # Runs on http://localhost:4321
+```
+
+**Hot reload:** Astro dev server provides instant updates
+
 ### Docker Architecture
 
 **Development mode:**
 - Backend: Volume-mounted `/app` with Air hot reload
 - Frontend: Volume-mounted `/app` with Vite HMR
+- Landing: Volume-mounted `/app` with Astro dev server
 - PostgreSQL: Persistent volume `postgres_data`
 
 **Important:** Backend depends on PostgreSQL health check. If backend fails to start, check postgres is healthy:

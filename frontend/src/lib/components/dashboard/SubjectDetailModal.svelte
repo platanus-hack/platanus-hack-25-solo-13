@@ -92,7 +92,7 @@
               Completa una evaluación diagnóstica para conocer tu nivel en {subject.name}
             </p>
             <a
-              href="/diagnostico"
+              href="/diagnostico/{subject.id}"
               class="inline-block px-6 py-3 rounded-xl bg-lumera-600 hover:bg-lumera-700 text-white font-bold transition-all"
             >
               Iniciar Evaluación Diagnóstica

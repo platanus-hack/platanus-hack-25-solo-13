@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { auth } from '$lib/stores/auth.svelte';
+  import { dashboardStore } from '$lib/stores/dashboard.svelte';
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
   import { materiasToSubjects, type Subject } from '$lib/constants/subjects';
   import SubjectDetailModal from '$lib/components/dashboard/SubjectDetailModal.svelte';
-  import SubNavBar from '$lib/components/dashboard/SubNavBar.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
   import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
   import MissionBoardModal from '$lib/components/dashboard/MissionBoardModal.svelte';
@@ -16,7 +16,6 @@
   // State
   let activeTab = $state('daily');
   let userProfile = $state(null);
-  let subjects = $state<Subject[]>([]);
   let selectedSubject = $state<Subject | null>(null);
   let isModalOpen = $state(false);
   let selectedDomainLevel = $state(0);
@@ -60,40 +59,6 @@
     }
   ];
 
-  const missions = {
-    daily: [
-      { id: 1, subject: 'Math', title: 'Linear Equations Practice', time: '15 min', reward: '50 XP', state: 'start' },
-      { id: 2, subject: 'Language', title: 'Reading Comprehension', time: '10 min', reward: '30 XP', state: 'done' },
-      { id: 3, subject: 'History', title: 'Chilean Independence', time: '20 min', reward: '60 XP', state: 'start' }
-    ],
-    weekly: [
-      { id: 4, subject: 'Math', title: 'Complete Unit 3: Functions', time: '2 hrs', reward: '500 XP', state: 'progress' },
-      { id: 5, subject: 'Physics', title: 'Lab Report: Motion', time: '45 min', reward: '200 XP', state: 'start' }
-    ],
-    story: [
-      { id: 6, subject: 'Campaign', title: 'Chapter 2: The Algebra Realm', time: 'Ongoing', reward: 'Badge', state: 'progress' }
-    ],
-    side: [
-      { id: 7, subject: 'Challenge', title: 'Speed Math: Mental Calculation', time: '5 min', reward: '10 SP', state: 'start' }
-    ]
-  };
-
-  // Count active missions (not done)
-  const activeMissionCount = $derived(
-    Object.values(missions).flat().filter(m => m.state !== 'done').length
-  );
-
-  const events = [
-    { id: 1, title: 'Exam Sprint Week', subtitle: 'Boost your PAES score', color: 'from-indigo-600 to-violet-600' },
-    { id: 2, title: 'Math Boss Challenge', subtitle: 'Beat the Function Dragon', color: 'from-rose-600 to-orange-600' }
-  ];
-
-  const activities = [
-    { id: 1, text: "You unlocked 'Equation Explorer'", time: '2h ago', icon: '🏆' },
-    { id: 2, text: 'Teacher left feedback on essay', time: '4h ago', icon: '💬' },
-    { id: 3, text: 'New PAES simulator available', time: '1d ago', icon: '🆕' }
-  ];
-
   // Load user profile and subjects
   async function loadUserProfile() {
     if (auth.user?.id) {
@@ -104,10 +69,10 @@
         const courseName = result.profile.curso_actual || '1ro Medio';
         const cursoResult = await findCursoByName(courseName);
         if (cursoResult.success && cursoResult.curso?.materias) {
-          subjects = materiasToSubjects(cursoResult.curso.materias);
+          dashboardStore.updateSubjects(materiasToSubjects(cursoResult.curso.materias));
         } else {
           console.error('Failed to load subjects:', cursoResult.error);
-          subjects = [];
+          dashboardStore.updateSubjects([]);
         }
       }
     }
@@ -170,7 +135,7 @@
 <div class="min-h-screen bg-canvas-950 text-slate-200 font-sans pb-10">
   <!-- Top Player Bar -->
   <header class="sticky top-0 z-50 border-b border-white/5 bg-canvas-950/90 backdrop-blur-md">
-    <div class="px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="px-6 py-3 flex items-center justify-between gap-4">
       <!-- Profile -->
       <button
         onclick={() => isPlayerProfileOpen = true}
@@ -188,19 +153,8 @@
         </div>
       </button>
 
-      <!-- XP -->
-      <div class="flex-1 max-w-md px-2 hidden md:block">
-        <div class="flex justify-between text-xs mb-1">
-          <span class="text-achievement-400 font-medium">Level {student.level}</span>
-          <span class="text-slate-500">{student.xp}% XP</span>
-        </div>
-        <div class="h-2 w-full bg-canvas-900 rounded-full overflow-hidden">
-          <div class="h-full bg-gradient-to-r from-lumera-500 via-focus-500 to-achievement-400" style="width: {student.xp}%"></div>
-        </div>
-      </div>
-
-      <!-- Resources -->
-      <div class="flex items-center gap-3">
+      <!-- Center - Badges -->
+      <div class="flex items-center gap-2">
         <!-- Streak Badge -->
         <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas-900/50 border border-slate-800">
           <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
@@ -228,22 +182,97 @@
           </div>
         {/each}
       </div>
+
+      <!-- Right - Navigation Icons -->
+      <div class="flex items-center gap-2">
+        <!-- Quest Button -->
+        <button
+          onclick={() => isCurrentQuestOpen = true}
+          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
+          title="Current Quest"
+        >
+          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+        </button>
+
+        <!-- Missions Button -->
+        <button
+          onclick={() => isMissionBoardOpen = true}
+          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
+          title="Mission Board"
+        >
+          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+          {#if dashboardStore.activeMissionCount > 0}
+            <span class="absolute -top-1 -right-1 text-xs font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+              {dashboardStore.activeMissionCount}
+            </span>
+          {/if}
+        </button>
+
+        <!-- Activity Button -->
+        <button
+          onclick={() => isActivityModalOpen = true}
+          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
+          title="Actividad Reciente"
+        >
+          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          {#if dashboardStore.activities.length > 0}
+            <span class="absolute -top-1 -right-1 text-xs font-bold bg-rose-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+              {dashboardStore.activities.length}
+            </span>
+          {/if}
+        </button>
+
+        <!-- Events Button -->
+        <button
+          onclick={() => isLiveEventsOpen = true}
+          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
+          title="Live Events"
+        >
+          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+          </svg>
+          {#if dashboardStore.events.length > 0}
+            <span class="absolute -top-1 -right-1 text-xs font-bold bg-amber-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+              {dashboardStore.events.length}
+            </span>
+          {/if}
+        </button>
+
+        <!-- Progress Button -->
+        <button
+          onclick={() => isProgressPanelOpen = true}
+          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
+          title="Tu Progreso"
+        >
+          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          {#if dashboardStore.subjects.length > 0}
+            <span class="absolute -top-1 -right-1 text-xs font-bold bg-lumera-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
+              {dashboardStore.subjects.length}
+            </span>
+          {/if}
+        </button>
+
+        <!-- Logout Button -->
+        <button
+          onclick={() => auth.logout()}
+          class="relative p-2 rounded-lg hover:bg-red-900/60 transition-all duration-200 group"
+          title="Logout"
+        >
+          <svg class="w-6 h-6 text-slate-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
-
-  <!-- Sub Navigation Bar -->
-  <SubNavBar
-    onQuestClick={() => isCurrentQuestOpen = true}
-    onProgressClick={() => isProgressPanelOpen = true}
-    onActivityClick={() => isActivityModalOpen = true}
-    onMissionsClick={() => isMissionBoardOpen = true}
-    onEventsClick={() => isLiveEventsOpen = true}
-    onLogoutClick={() => auth.logout()}
-    subjectCount={subjects.length}
-    activityCount={activities.length}
-    missionCount={activeMissionCount}
-    eventCount={events.length}
-  />
 
   <!-- Main -->
   <main class="px-6 py-8 max-w-7xl mx-auto">
@@ -263,21 +292,21 @@
 <ProgressPanel
   isOpen={isProgressPanelOpen}
   onClose={() => isProgressPanelOpen = false}
-  {subjects}
+  subjects={dashboardStore.subjects}
   {userProfile}
   onSubjectClick={openSubjectDetail}
 />
 
 <!-- Recent Activity Modal -->
 <RecentActivityModal
-  {activities}
+  activities={dashboardStore.activities}
   isOpen={isActivityModalOpen}
   onClose={() => isActivityModalOpen = false}
 />
 
 <!-- Mission Board Modal -->
 <MissionBoardModal
-  {missions}
+  missions={dashboardStore.missions}
   {activeTab}
   onTabChange={(tab) => activeTab = tab}
   isOpen={isMissionBoardOpen}
@@ -293,7 +322,7 @@
 
 <!-- Live Events Modal -->
 <LiveEventsModal
-  {events}
+  events={dashboardStore.events}
   isOpen={isLiveEventsOpen}
   onClose={() => isLiveEventsOpen = false}
 />

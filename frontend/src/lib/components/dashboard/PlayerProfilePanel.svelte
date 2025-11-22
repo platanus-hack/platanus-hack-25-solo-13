@@ -105,7 +105,7 @@
       </div>
 
       <!-- Level Progress -->
-      <div class="bg-canvas-800/40 rounded-2xl border border-slate-700 p-6">
+      <div class="-mt-2 pt-2">
         <div class="mb-3">
           <span class="text-sm font-semibold text-achievement-400">Level {level}</span>
         </div>

@@ -61,6 +61,20 @@ services:
       - backend
     command: sh -c "npm install && npm run dev"
 
+  landing:
+    build:
+      context: ./landing
+      dockerfile: Dockerfile
+      target: development
+    container_name: lumera_landing
+    restart: unless-stopped
+    ports:
+      - "4321:4321"
+    volumes:
+      - ./landing:/app
+      - /app/node_modules
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+
   adminer:
     image: adminer:latest
     container_name: lumera_adminer

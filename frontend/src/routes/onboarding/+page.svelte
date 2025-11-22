@@ -189,14 +189,14 @@
     const result = await createProfile(profileData);
 
     if (result.success) {
-      // Success animation and redirect to diagnostic test
+      // Success animation and redirect to dashboard
       gsap.to('.onboarding-container', {
         duration: 0.5,
         scale: 0.95,
         opacity: 0,
         ease: 'power2.in',
         onComplete: () => {
-          goto('/diagnostico');
+          goto('/');
         }
       });
     } else {

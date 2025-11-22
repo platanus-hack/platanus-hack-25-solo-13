@@ -1,0 +1,132 @@
+---
+const stats = [
+  {
+    icon: '👥',
+    number: '10.234',
+    label: 'estudiantes activos',
+    description: 'y subiendo cada día'
+  },
+  {
+    icon: '📝',
+    number: '47.892',
+    label: 'clases completadas',
+    description: 'esta semana'
+  },
+  {
+    icon: '🎯',
+    number: '94%',
+    label: 'mejoran sus notas',
+    description: 'en el primer mes'
+  },
+  {
+    icon: '⚡',
+    number: '2.3min',
+    label: 'tiempo promedio',
+    description: 'para empezar'
+  }
+];
+---
+
+<section class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 relative overflow-hidden">
+  <!-- Decorative elements -->
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute top-10 left-10 w-64 h-64 bg-yellow-300 rounded-full filter blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-10 right-10 w-64 h-64 bg-white rounded-full filter blur-3xl animate-pulse" style="animation-delay: 1.5s;"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto relative z-10">
+    <div class="text-center mb-12">
+      <h2 class="text-3xl sm:text-4xl font-extrabold text-white mb-3 lowercase">
+        los números hablan solos
+      </h2>
+      <p class="text-cyan-100 text-lg">
+        esto es lo que pasa cuando estudias con Lumera
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+      {stats.map((stat, index) => (
+        <div
+          class="bg-white/10 backdrop-blur-lg rounded-2xl p-6 text-center hover:bg-white/20 transition-all duration-300 transform hover:scale-105 border border-white/20"
+          style={`animation-delay: ${index * 100}ms;`}
+        >
+          <div class="text-5xl mb-3">{stat.icon}</div>
+          <div class="text-3xl sm:text-4xl font-extrabold text-white mb-2 counter">
+            {stat.number}
+          </div>
+          <div class="text-sm font-bold text-yellow-300 mb-1 lowercase">
+            {stat.label}
+          </div>
+          <div class="text-xs text-cyan-100 lowercase">
+            {stat.description}
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Live activity feed -->
+    <div class="mt-12 bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-white font-bold flex items-center gap-2">
+          <span class="relative flex h-3 w-3">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+          </span>
+          actividad en vivo
+        </h3>
+        <span class="text-xs text-cyan-100">actualizándose ahora</span>
+      </div>
+
+      <div class="space-y-3">
+        <div class="flex items-center gap-3 text-white text-sm animate-fade-in">
+          <span class="text-lg">👨🏻</span>
+          <span class="opacity-90"><span class="font-semibold">Mateo</span> de Santiago completó "Ecuaciones Cuadráticas"</span>
+          <span class="ml-auto text-xs text-cyan-200">ahora</span>
+        </div>
+        <div class="flex items-center gap-3 text-white text-sm animate-fade-in" style="animation-delay: 1s;">
+          <span class="text-lg">👩🏽</span>
+          <span class="opacity-90"><span class="font-semibold">Catalina</span> de Valparaíso subió a nivel 12</span>
+          <span class="ml-auto text-xs text-cyan-200">hace 2 min</span>
+        </div>
+        <div class="flex items-center gap-3 text-white text-sm animate-fade-in" style="animation-delay: 2s;">
+          <span class="text-lg">👦🏻</span>
+          <span class="opacity-90"><span class="font-semibold">Diego</span> de Concepción obtuvo logro "Racha de 7 días"</span>
+          <span class="ml-auto text-xs text-cyan-200">hace 5 min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Social proof badges -->
+    <div class="mt-8 flex flex-wrap justify-center items-center gap-4">
+      <div class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-semibold border border-white/20">
+        ⭐ 4.9/5 rating
+      </div>
+      <div class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-semibold border border-white/20">
+        🏆 #1 en Chile
+      </div>
+      <div class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-semibold border border-white/20">
+        ✓ Verificado por MINEDUC
+      </div>
+      <div class="bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full text-white text-sm font-semibold border border-white/20">
+        🔒 100% Seguro
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+</style>

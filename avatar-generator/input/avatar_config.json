@@ -1,0 +1,626 @@
+{
+  "avatares": [
+    {
+      "nombre": "Perrito Aventurero",
+      "descripcion": "Un cachorro valiente listo para explorar nuevas historias",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": true,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute friendly puppy character, adventurous expression, small backpack, big bright eyes"
+    },
+    {
+      "nombre": "Gatito Curioso",
+      "descripcion": "Un gatito que adora descubrir nuevas palabras",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": true,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute curious kitten character, playful expression, holding a book, big inquisitive eyes"
+    },
+    {
+      "nombre": "Conejito Estudioso",
+      "descripcion": "Un conejito dedicado que disfruta aprender",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": true,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute studious bunny character, wearing small glasses, holding pencil, friendly smile"
+    },
+    {
+      "nombre": "Búho Sabio",
+      "descripcion": "Un búho inteligente que guía tu aprendizaje",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": true,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute wise owl character, graduation cap, holding an open book, kind expression"
+    },
+    {
+      "nombre": "Zorrito Lector",
+      "descripcion": "Un zorro que adora sumergirse en los libros",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute clever fox character, reading a book intently, cozy scarf, intelligent eyes"
+    },
+    {
+      "nombre": "Osito Pensador",
+      "descripcion": "Un osito reflexivo que analiza cada historia",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute thoughtful bear character, paw on chin, thinking pose, gentle expression"
+    },
+    {
+      "nombre": "Panda Alegre",
+      "descripcion": "Un panda que celebra cada logro de aprendizaje",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute cheerful panda character, celebrating pose, happy expression, bamboo stick"
+    },
+    {
+      "nombre": "Mapache Explorador",
+      "descripcion": "Un mapache que investiga cada detalle",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute explorer raccoon character, magnifying glass, detective vibe, curious expression"
+    },
+    {
+      "nombre": "Pingüino Curioso",
+      "descripcion": "Un pingüino que pregunta todo",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute curious penguin character, question mark nearby, inquisitive tilt, adorable expression"
+    },
+    {
+      "nombre": "Ardilla Energética",
+      "descripcion": "Una ardilla llena de energía para aprender",
+      "categoria": "inicio",
+      "tier": 1,
+      "rarity": "common",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "default"
+      },
+      "dalle_prompt": "cute energetic squirrel character, dynamic jumping pose, holding acorn, enthusiastic expression"
+    },
+    {
+      "nombre": "Dragón Poeta",
+      "descripcion": "Desbloquea dominando la poesía lírica",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_6",
+        "display_text": "Completa el OA: Leer y comprender poemas"
+      },
+      "dalle_prompt": "friendly dragon character reading poetry book, literary theme, quill pen, warm purple and gold colors, romantic aesthetic"
+    },
+    {
+      "nombre": "Fénix Narrador",
+      "descripcion": "Desbloquea completando narrativas",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_35",
+        "display_text": "Completa el OA: Analizar narraciones"
+      },
+      "dalle_prompt": "majestic phoenix character, storytelling theme, open book with magical pages, vibrant orange and red colors"
+    },
+    {
+      "nombre": "Unicornio Gramático",
+      "descripcion": "Desbloquea dominando la gramática",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_69",
+        "display_text": "Completa el OA: Usar correctamente la gramática"
+      },
+      "dalle_prompt": "elegant unicorn character, grammar book and sparkles, pastel purple and white, magical educational theme"
+    },
+    {
+      "nombre": "Lobo Argumentador",
+      "descripcion": "Desbloquea escribiendo textos argumentativos",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_43",
+        "display_text": "Completa el OA: Escribir textos argumentativos"
+      },
+      "dalle_prompt": "confident wolf character, debate theme, scroll with arguments, strong stance, blue and silver colors"
+    },
+    {
+      "nombre": "Lince Investigador",
+      "descripcion": "Desbloquea completando investigaciones",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_28",
+        "display_text": "Completa el OA: Escribir textos de investigación"
+      },
+      "dalle_prompt": "sharp-eyed lynx character, research theme, documents and magnifying glass, focused expression, teal and brown colors"
+    },
+    {
+      "nombre": "Ciervo Orador",
+      "descripcion": "Desbloquea completando exposiciones orales",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_138",
+        "display_text": "Completa el OA: Expresarse frente a una audiencia"
+      },
+      "dalle_prompt": "noble deer character, public speaking theme, microphone, confident pose, green and gold colors"
+    },
+    {
+      "nombre": "Tigre Dialogante",
+      "descripcion": "Desbloquea participando en debates",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_133",
+        "display_text": "Completa el OA: Dialogar constructivamente"
+      },
+      "dalle_prompt": "charismatic tiger character, dialogue theme, speech bubbles, engaging expression, orange and white colors"
+    },
+    {
+      "nombre": "Delfín Comprensivo",
+      "descripcion": "Desbloquea dominando la comprensión lectora",
+      "categoria": "logro",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "oa_complete",
+        "trigger_key": "oa_3",
+        "display_text": "Completa el OA: Comprender textos"
+      },
+      "dalle_prompt": "intelligent dolphin character, understanding theme, open book in water splash, bright blue and silver colors"
+    },
+    {
+      "nombre": "León Analítico",
+      "descripcion": "Desbloquea dominando 3 OAs en nivel Bloom Analizar",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "bloom_mastery",
+        "trigger_key": "bloom_4_x3",
+        "display_text": "Domina 3 OAs en nivel Bloom: Analizar",
+        "extra_data": {
+          "bloom_level": 4,
+          "count": 3
+        }
+      },
+      "dalle_prompt": "majestic lion character, analytical theme, diagrams and charts floating around, intelligent gaze, golden mane with subtle sparkles"
+    },
+    {
+      "nombre": "Águila Evaluadora",
+      "descripcion": "Desbloquea dominando 3 OAs en nivel Bloom Evaluar",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "bloom_mastery",
+        "trigger_key": "bloom_5_x3",
+        "display_text": "Domina 3 OAs en nivel Bloom: Evaluar",
+        "extra_data": {
+          "bloom_level": 5,
+          "count": 3
+        }
+      },
+      "dalle_prompt": "powerful eagle character, evaluation theme, scales of justice, critical eye, brown and gold with magical glowing eyes"
+    },
+    {
+      "nombre": "Pantera Creativa",
+      "descripcion": "Desbloquea dominando 3 OAs en nivel Bloom Crear",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "bloom_mastery",
+        "trigger_key": "bloom_6_x3",
+        "display_text": "Domina 3 OAs en nivel Bloom: Crear",
+        "extra_data": {
+          "bloom_level": 6,
+          "count": 3
+        }
+      },
+      "dalle_prompt": "sleek panther character, creative theme, artist palette and brush, imaginative sparkles, black with purple and cyan glowing accents"
+    },
+    {
+      "nombre": "Elefante Recordador",
+      "descripcion": "Desbloquea dominando 5 OAs en nivel Bloom Recordar",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "bloom_mastery",
+        "trigger_key": "bloom_1_x5",
+        "display_text": "Domina 5 OAs en nivel Bloom: Recordar",
+        "extra_data": {
+          "bloom_level": 1,
+          "count": 5
+        }
+      },
+      "dalle_prompt": "wise elephant character, memory theme, glowing brain symbol, gentle expression, grey with soft golden glow"
+    },
+    {
+      "nombre": "Halcón Aplicador",
+      "descripcion": "Desbloquea dominando 4 OAs en nivel Bloom Aplicar",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "bloom_mastery",
+        "trigger_key": "bloom_3_x4",
+        "display_text": "Domina 4 OAs en nivel Bloom: Aplicar",
+        "extra_data": {
+          "bloom_level": 3,
+          "count": 4
+        }
+      },
+      "dalle_prompt": "swift falcon character, application theme, tools and gears, action pose, brown and blue with energy trails"
+    },
+    {
+      "nombre": "Koala Comprensivo",
+      "descripcion": "Desbloquea dominando 5 OAs en nivel Bloom Comprender",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "bloom_mastery",
+        "trigger_key": "bloom_2_x5",
+        "display_text": "Domina 5 OAs en nivel Bloom: Comprender",
+        "extra_data": {
+          "bloom_level": 2,
+          "count": 5
+        }
+      },
+      "dalle_prompt": "peaceful koala character, comprehension theme, lightbulb moment, understanding expression, soft grey and green with warm glow"
+    },
+    {
+      "nombre": "Jaguar de Racha",
+      "descripcion": "Desbloquea alcanzando una racha de 7 días",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "streak",
+        "trigger_key": "streak_7",
+        "display_text": "Alcanza una racha de 7 días consecutivos"
+      },
+      "dalle_prompt": "determined jaguar character, streak theme, calendar with flame trail, focused expression, spotted pattern with fiery orange glow"
+    },
+    {
+      "nombre": "Búho Constante",
+      "descripcion": "Desbloquea alcanzando una racha de 30 días",
+      "categoria": "logro",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "streak",
+        "trigger_key": "streak_30",
+        "display_text": "Alcanza una racha de 30 días consecutivos"
+      },
+      "dalle_prompt": "dedicated owl character, persistence theme, crescent moon and stars, wise expression, midnight blue with glowing accents"
+    },
+    {
+      "nombre": "Grifo Maestro",
+      "descripcion": "Desbloquea completando el 80% de Lenguaje",
+      "categoria": "logro",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "multiple",
+        "trigger_key": "materia_80_lengua",
+        "display_text": "Completa el 80% de los OAs de Lengua y Literatura"
+      },
+      "dalle_prompt": "legendary griffin character, mastery theme, crown and scepter, majestic pose, golden and white with radiant aura, epic mythical presence"
+    },
+    {
+      "nombre": "Dragón Ancestral",
+      "descripcion": "Desbloquea alcanzando nivel 20",
+      "categoria": "logro",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "level",
+        "trigger_key": "level_20",
+        "display_text": "Alcanza el nivel 20"
+      },
+      "dalle_prompt": "ancient dragon character, legendary power theme, magical runes floating, wise and powerful, deep blue and silver with cosmic energy aura"
+    },
+    {
+      "nombre": "Fénix Eterno",
+      "descripcion": "Desbloquea completando todos los OAs de 2 materias",
+      "categoria": "logro",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "multiple",
+        "trigger_key": "complete_2_materias",
+        "display_text": "Completa todas las OAs de 2 materias diferentes"
+      },
+      "dalle_prompt": "eternal phoenix character, rebirth and mastery theme, flames and wings of light, triumphant pose, vibrant fire colors with brilliant golden aura"
+    },
+    {
+      "nombre": "Quetzal Supremo",
+      "descripcion": "Desbloquea alcanzando el máximo nivel en todos los niveles Bloom",
+      "categoria": "logro",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 0,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "multiple",
+        "trigger_key": "all_bloom_mastery",
+        "display_text": "Domina los 6 niveles de Bloom"
+      },
+      "dalle_prompt": "supreme quetzal character, complete mastery theme, six colored auras representing bloom levels, divine presence, emerald and rainbow colors with transcendent glow"
+    },
+    {
+      "nombre": "Caballero Medieval",
+      "descripcion": "Caballero valiente de las historias de antaño",
+      "categoria": "compra",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 250,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 250 monedas"
+      },
+      "dalle_prompt": "friendly knight character, medieval theme, shining armor and sword, heroic stance, silver and blue colors"
+    },
+    {
+      "nombre": "Princesa Cuentista",
+      "descripcion": "Princesa que narra maravillosos cuentos",
+      "categoria": "compra",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 250,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 250 monedas"
+      },
+      "dalle_prompt": "elegant princess character, storytelling theme, book of fairy tales, crown, pink and gold colors, magical sparkles"
+    },
+    {
+      "nombre": "Mago Místico",
+      "descripcion": "Mago que domina las palabras mágicas",
+      "categoria": "compra",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 300,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 300 monedas"
+      },
+      "dalle_prompt": "friendly wizard character, magic words theme, spell book and wand, mystical robes, purple and star patterns"
+    },
+    {
+      "nombre": "Ninja Silencioso",
+      "descripcion": "Ninja que lee entre líneas",
+      "categoria": "compra",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 280,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 280 monedas"
+      },
+      "dalle_prompt": "stealthy ninja character, reading comprehension theme, scroll and shuriken, focused eyes, black and red colors with shadow effects"
+    },
+    {
+      "nombre": "Vikingo Épico",
+      "descripcion": "Vikingo que cuenta sagas legendarias",
+      "categoria": "compra",
+      "tier": 3,
+      "rarity": "rare",
+      "precio_puntos": 300,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 300 monedas"
+      },
+      "dalle_prompt": "strong viking character, epic saga theme, helmet with horns, ancient runes, nordic aesthetic, red and bronze colors"
+    },
+    {
+      "nombre": "Detective Sherlock",
+      "descripcion": "Detective que analiza cada palabra",
+      "categoria": "compra",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 500,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 500 monedas"
+      },
+      "dalle_prompt": "brilliant detective character, investigation theme, magnifying glass and clues, deerstalker hat, brown and plaid with subtle mystery glow"
+    },
+    {
+      "nombre": "Capitán Pirata",
+      "descripcion": "Capitán que navega mares de historias",
+      "categoria": "compra",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 600,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 600 monedas"
+      },
+      "dalle_prompt": "charismatic pirate captain character, adventure theme, treasure map and spyglass, pirate hat, red coat with golden trim and compass glow"
+    },
+    {
+      "nombre": "Astronauta Soñador",
+      "descripcion": "Astronauta que explora universos literarios",
+      "categoria": "compra",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 550,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 550 monedas"
+      },
+      "dalle_prompt": "imaginative astronaut character, literary exploration theme, space helmet with book reflection, stars around, white suit with cosmic nebula effects"
+    },
+    {
+      "nombre": "Samurái Honorable",
+      "descripcion": "Samurái que honra el código de las letras",
+      "categoria": "compra",
+      "tier": 4,
+      "rarity": "epic",
+      "precio_puntos": 650,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 650 monedas"
+      },
+      "dalle_prompt": "noble samurai character, honor and literature theme, katana with calligraphy, traditional armor, black and red with honor kanji glow"
+    },
+    {
+      "nombre": "Emperador Galáctico",
+      "descripcion": "Emperador que gobierna reinos de palabras",
+      "categoria": "compra",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 1200,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 1200 monedas"
+      },
+      "dalle_prompt": "supreme galactic emperor character, cosmic power theme, crown of stars, commanding presence, royal robes with galaxy patterns and radiant cosmic aura"
+    },
+    {
+      "nombre": "Guardián del Tiempo",
+      "descripcion": "Guardián que preserva todas las historias",
+      "categoria": "compra",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 1500,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 1500 monedas"
+      },
+      "dalle_prompt": "ancient time keeper character, timeless wisdom theme, hourglass and ancient scrolls, ethereal presence, silver and blue with time distortion effects and mystical aura"
+    },
+    {
+      "nombre": "Arquitecto de Mundos",
+      "descripcion": "Creador de universos narrativos infinitos",
+      "categoria": "compra",
+      "tier": 5,
+      "rarity": "legendary",
+      "precio_puntos": 1800,
+      "is_default": false,
+      "unlock_trigger": {
+        "trigger_type": "coins",
+        "display_text": "Cuesta 1800 monedas"
+      },
+      "dalle_prompt": "divine world builder character, creation theme, floating miniature worlds and quill, god-like presence, white and gold with creation energy aura and reality-bending effects"
+    }
+  ]
+}
