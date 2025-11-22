@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -176,6 +177,7 @@ func main() {
 		r.Use(authmiddleware.AuthMiddleware)
 		r.Post("/", handlers.StartDiagnostic)                  // Start diagnostic session
 		r.Get("/{id}", handlers.GetSessionProgress)            // Get session progress
+		r.Get("/{id}/next-question", handlers.GetNextQuestion) // Get next adaptive question
 		r.Post("/{id}/answer", handlers.SubmitAnswer)          // Submit answer
 		r.Post("/{id}/complete", handlers.CompleteDiagnostic)  // Complete diagnostic
 		r.Get("/{id}/results", handlers.GetDiagnosticResults)  // Get diagnostic results
@@ -199,6 +201,11 @@ func main() {
 		r.Get("/notifications", handlers.GetUnlockNotifications)  // Get unlock notifications
 	})
 
+	// Static file server for avatars
+	workDir, _ := os.Getwd()
+	filesDir := http.Dir(workDir + "/static")
+	FileServer(r, "/static", filesDir)
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -212,4 +219,21 @@ func main() {
 	if err := http.ListenAndServe(addr, r); err != nil {
 		log.Fatal(err)
 	}
+}
+
+// FileServer conveniently sets up a http.FileServer handler to serve
+// static files from a http.FileSystem.
+func FileServer(r chi.Router, path string, root http.FileSystem) {
+	if path != "/" && path[len(path)-1] != '/' {
+		r.Get(path, http.RedirectHandler(path+"/", 301).ServeHTTP)
+		path += "/"
+	}
+	path += "*"
+
+	r.Get(path, func(w http.ResponseWriter, r *http.Request) {
+		rctx := chi.RouteContext(r.Context())
+		pathPrefix := strings.TrimSuffix(rctx.RoutePattern(), "/*")
+		fs := http.StripPrefix(pathPrefix, http.FileServer(root))
+		fs.ServeHTTP(w, r)
+	})
 }

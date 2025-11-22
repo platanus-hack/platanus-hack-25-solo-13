@@ -5,39 +5,81 @@
   import gsap from 'gsap';
   import { auth } from '$lib/stores/auth.svelte';
   import { dashboardStore } from '$lib/stores/dashboard.svelte';
-  import { mergeProfileData } from '$lib/api/profiles';
   import {
-    PREGUNTAS_DIAGNOSTICO_LENGUA,
-    calcularNivelDiagnostico,
-    getFeedbackMensaje,
-    type PreguntaDiagnostica
-  } from '$lib/data/diagnostico-lengua';
+    startDiagnosticSession,
+    getNextQuestion,
+    submitAnswer,
+    completeSession,
+    getResults,
+    type DiagnosticSession,
+    type DiagnosticQuestion,
+    type DiagnosticResult
+  } from '$lib/api/diagnostic';
   import MultipleChoice from '$lib/components/activities/MultipleChoice.svelte';
   import TrueFalse from '$lib/components/activities/TrueFalse.svelte';
   import FillBlanks from '$lib/components/activities/FillBlanks.svelte';
+  import DragDropMatching from '$lib/components/activities/DragDropMatching.svelte';
+  import CompareContrast from '$lib/components/activities/CompareContrast.svelte';
+  import ConceptMapBuilder from '$lib/components/activities/ConceptMapBuilder.svelte';
+  import CriteriaEvaluation from '$lib/components/activities/CriteriaEvaluation.svelte';
+  import OpenEndedResponse from '$lib/components/activities/OpenEndedResponse.svelte';
+  import Sequencing from '$lib/components/activities/Sequencing.svelte';
   import PlayerProfilePanel from '$lib/components/dashboard/PlayerProfilePanel.svelte';
   import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
   import MissionBoardModal from '$lib/components/dashboard/MissionBoardModal.svelte';
   import CurrentQuestModal from '$lib/components/dashboard/CurrentQuestModal.svelte';
   import LiveEventsModal from '$lib/components/dashboard/LiveEventsModal.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
+  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
   import { materiasToSubjects, type Subject } from '$lib/constants/subjects';
-
-  // Mapeo de IDs de materias a claves de conocimiento_previo
-  const MATERIA_MAP: Record<string, { key: string; nombre: string; disponible: boolean }> = {
-    'lyl': { key: 'lectura', nombre: 'Lengua y Literatura', disponible: true },
-    'lenguaje': { key: 'lectura', nombre: 'Lengua y Literatura', disponible: true },
-    'lengua': { key: 'lectura', nombre: 'Lengua y Literatura', disponible: true },
-    'mat': { key: 'matematicas', nombre: 'Matemáticas', disponible: false },
-    'matematicas': { key: 'matematicas', nombre: 'Matemáticas', disponible: false }
-  };
+  import { getEquipment, type CustomizationItem } from '$lib/api/customization';
 
   // Obtener parámetro de URL
-  let materiaId = $state('');
-  let materiaInfo = $state<{ key: string; nombre: string; disponible: boolean } | null>(null);
-  let preguntas = $state<PreguntaDiagnostica[]>([]);
+  let materiaSlug = $state('');
+  let materiaInfo = $state<{ id: number; nombre: string; codigo: string } | null>(null);
+
+  // Fetch materia by slug/code from backend
+  async function fetchMateriaByCodigo(slug: string) {
+    try {
+      // Normalize slug to codigo (lyl -> LYL, mat -> MAT, etc)
+      const codigoMap: Record<string, string> = {
+        'lyl': 'LYL',
+        'lenguaje': 'LYL',
+        'lengua': 'LYL',
+        'mat': 'MAT',
+        'matematicas': 'MAT'
+      };
+
+      const codigo = codigoMap[slug.toLowerCase()] || slug.toUpperCase();
+
+      const response = await fetch('/api/materias', {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': auth.token ? `Bearer ${auth.token}` : ''
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error fetching materias');
+      }
+
+      const materias = await response.json();
+      const materia = materias.find((m: any) => m.codigo === codigo);
+
+      return materia || null;
+    } catch (error) {
+      console.error('Error fetching materia:', error);
+      return null;
+    }
+  }
+
+  // Diagnostic Session State
+  let session = $state<DiagnosticSession | null>(null);
+  let currentQuestion = $state<DiagnosticQuestion | null>(null);
+  let currentQuestionNumber = $state(0);
+  let totalQuestions = $state(5); // Always 5 questions
 
   // Dashboard State
   let isPlayerProfileOpen = $state(false);
@@ -48,6 +90,16 @@
   let isLiveEventsOpen = $state(false);
   let activeTab = $state('daily');
   let userProfile = $state(null);
+  let currentAvatar = $state<CustomizationItem | null>(null);
+
+  // UI State
+  let hasAnswered = $state(false);
+  let isLoading = $state(false);
+  let isCorrect = $state(false);
+  let showResults = $state(false);
+  let results = $state<DiagnosticResult[]>([]);
+  let averageBloomLevel = $state(0);
+  let errorMessage = $state('');
 
   // Student data
   const student = {
@@ -66,7 +118,7 @@
     { name: 'PAES Ready', value: '63%', iconType: 'chart', color: 'text-white' }
   ];
 
-  // Load user profile and subjects
+  // Load user profile and subjects for navigation
   async function loadUserProfile() {
     if (auth.user?.id) {
       const result = await getProfile(auth.user.id);
@@ -79,6 +131,21 @@
         }
       }
     }
+  }
+
+  // Load equipped avatar
+  async function loadEquippedAvatar() {
+    try {
+      const equipment = await getEquipment();
+      currentAvatar = equipment.equipped_avatar || null;
+    } catch (err) {
+      console.error('Error loading avatar:', err);
+    }
+  }
+
+  // Handle avatar change from profile panel
+  function handleAvatarChanged(avatar: CustomizationItem) {
+    currentAvatar = avatar;
   }
 
   // Get domain level for a subject
@@ -96,7 +163,7 @@
     return userProfile.profile_data.conocimiento_previo[key]?.nivel || 0;
   }
 
-  // Open subject detail modal
+  // Subject detail modal state
   let selectedSubject = $state<Subject | null>(null);
   let isModalOpen = $state(false);
   let selectedDomainLevel = $state(0);
@@ -112,228 +179,427 @@
     selectedSubject = null;
   }
 
-  // Evaluation State
-  let currentQuestionIndex = $state(0);
-  let answers = $state<Record<string, boolean>>({}); // preguntaId -> esCorrecta
-  let hasAnswered = $state(false);
-  let isLoading = $state(false);
-  let showResults = $state(false);
-  let diagnosticoCompletado = $state(false);
+  // Progress calculation
+  const progreso = $derived(currentQuestionNumber > 0 && totalQuestions > 0
+    ? Math.round((currentQuestionNumber / totalQuestions) * 100)
+    : 0);
 
-  // Derived
-  const totalPreguntas = $derived(preguntas.length);
-  const preguntaActual = $derived(preguntas[currentQuestionIndex]);
-  const progreso = $derived(totalPreguntas > 0 ? Math.round(((currentQuestionIndex + 1) / totalPreguntas) * 100) : 0);
-  const respuestasCorrectas = $derived(Object.values(answers).filter(Boolean).length);
-  const nivelCalculado = $derived(calcularNivelDiagnostico(respuestasCorrectas, totalPreguntas));
+  // Initialize diagnostic
+  async function initializeDiagnostic() {
+    if (!materiaInfo) return;
 
-  // Verificar autenticación e inicializar
-  onMount(() => {
-    if (!auth.checkAuth()) {
-      goto('/login');
+    isLoading = true;
+    errorMessage = '';
+
+    // Start diagnostic session
+    const sessionResult = await startDiagnosticSession(materiaInfo.id);
+
+    if (!sessionResult.success) {
+      errorMessage = sessionResult.error || 'Error al iniciar la evaluación';
+      isLoading = false;
       return;
     }
 
-    // Load user profile and subjects for navigation
-    loadUserProfile();
+    session = sessionResult.session!;
 
-    // Obtener materiaId de la URL
-    const unsubscribe = page.subscribe(($page) => {
-      materiaId = $page.params.materiaId || '';
+    // Load first question
+    await loadNextQuestion();
 
-      // Normalizar y validar materia
-      const normalizedId = materiaId.toLowerCase();
-      materiaInfo = MATERIA_MAP[normalizedId] || null;
-
-      if (!materiaInfo) {
-        // Materia no reconocida
-        alert('Materia no reconocida');
-        goto('/');
-        return;
-      }
-
-      if (!materiaInfo.disponible) {
-        // Materia no tiene evaluación disponible aún
-        alert(`La evaluación diagnóstica de ${materiaInfo.nombre} estará disponible próximamente.`);
-        goto('/');
-        return;
-      }
-
-      // Cargar banco de preguntas según materia
-      if (materiaInfo.key === 'lectura') {
-        preguntas = PREGUNTAS_DIAGNOSTICO_LENGUA;
-      } else if (materiaInfo.key === 'matematicas') {
-        // TODO: Cargar PREGUNTAS_DIAGNOSTICO_MATEMATICAS cuando esté disponible
-        preguntas = [];
-      }
-    });
-
-    return () => unsubscribe();
-  });
-
-  // Manejar respuesta de activity component
-  function handleAnswer(data: { isCorrect: boolean }) {
-    answers[preguntaActual.id] = data.isCorrect;
-    hasAnswered = true;
+    isLoading = false;
   }
 
-  // Siguiente pregunta
-  function siguientePregunta() {
-    if (!hasAnswered) return;
-
-    if (currentQuestionIndex < totalPreguntas - 1) {
-      currentQuestionIndex++;
-      hasAnswered = false;
-
-      // Animación al cambiar pregunta
-      gsap.fromTo(
-        '.question-container',
-        { x: 50, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }
-      );
-    } else {
-      // Última pregunta - mostrar resultados
-      mostrarResultados();
-    }
-  }
-
-  // Pregunta anterior
-  function preguntaAnterior() {
-    if (currentQuestionIndex > 0) {
-      currentQuestionIndex--;
-      hasAnswered = true; // Ya fue respondida
-    }
-  }
-
-  // Mostrar resultados
-  function mostrarResultados() {
-    showResults = true;
-
-    gsap.from('.results-container', {
-      opacity: 0,
-      scale: 0.9,
-      duration: 0.6,
-      ease: 'back.out(1.7)'
-    });
-  }
-
-  // Guardar nivel en perfil
-  async function guardarNivelEnPerfil() {
-    if (!auth.user?.id || diagnosticoCompletado || !materiaInfo) return;
+  // Load next question
+  async function loadNextQuestion() {
+    if (!session) return;
 
     isLoading = true;
+    errorMessage = '';
 
-    try {
-      const profileDataUpdate = {
-        conocimiento_previo: {
-          [materiaInfo.key]: {
-            nivel: nivelCalculado.nivel,
-            fuente: 'diagnostico_inicial',
-            fecha_evaluacion: new Date().toISOString(),
-            porcentaje_acierto: nivelCalculado.porcentaje
-          }
-        }
-      };
+    console.log('[Diagnostic] Fetching next question for session:', session.id);
+    const questionResult = await getNextQuestion(session.id);
+    console.log('[Diagnostic] Question result:', questionResult);
 
-      const result = await mergeProfileData(auth.user.id, profileDataUpdate);
-
-      if (result.success) {
-        diagnosticoCompletado = true;
-        setTimeout(() => {
-          goto('/');
-        }, 3000);
-      } else {
-        alert('Error al guardar el resultado: ' + (result.error || 'Error desconocido'));
-      }
-    } catch (error) {
-      console.error('Error guardando nivel:', error);
-      alert('Error al guardar el resultado');
-    } finally {
+    if (!questionResult.success) {
+      errorMessage = questionResult.error || 'No hay más preguntas disponibles';
       isLoading = false;
+      // If no more questions, complete the session
+      if (currentQuestionNumber > 0) {
+        await finalizeDiagnostic();
+      }
+      return;
+    }
+
+    currentQuestion = questionResult.question!;
+    currentQuestionNumber = currentQuestion.question_number;
+    totalQuestions = currentQuestion.total_questions;
+    hasAnswered = false;
+    isCorrect = false;
+    isLoading = false;
+
+    console.log('[Diagnostic] Current question loaded:', {
+      type: currentQuestion.tipo,
+      number: currentQuestionNumber,
+      total: totalQuestions,
+      data: currentQuestion.question_data
+    });
+  }
+
+  // Handle answer submission
+  async function handleAnswer(data: { isCorrect: boolean; selectedOption?: any; answer?: any }) {
+    if (hasAnswered || !session || !currentQuestion) {
+      console.log('[Diagnostic] Skipping answer - already answered or missing data', {
+        hasAnswered, session: !!session, currentQuestion: !!currentQuestion
+      });
+      return;
+    }
+
+    hasAnswered = true;
+    isCorrect = data.isCorrect;
+    isLoading = true;
+
+    // Determine user answer based on question type
+    let userAnswer: any;
+    if (data.selectedOption !== undefined) {
+      userAnswer = { selected: data.selectedOption }; // Backend expects 'selected' field
+    } else if (data.answer !== undefined) {
+      userAnswer = data.answer; // Send answer object directly (e.g., { matches: {...} })
+    } else {
+      userAnswer = { is_correct: data.isCorrect };
+    }
+
+    console.log('[Diagnostic] Submitting answer:', {
+      sessionId: session.id,
+      questionId: currentQuestion.id,
+      userAnswer
+    });
+
+    // Submit answer to backend
+    const answerResult = await submitAnswer(
+      session.id,
+      currentQuestion.id,
+      userAnswer
+    );
+
+    console.log('[Diagnostic] Answer result:', answerResult);
+
+    isLoading = false;
+
+    if (!answerResult.success) {
+      errorMessage = answerResult.error || 'Error al enviar la respuesta';
+      console.error('[Diagnostic] Error submitting answer:', errorMessage);
+      return;
+    }
+
+    // Show feedback briefly before moving to next question
+    setTimeout(() => {
+      siguientePregunta();
+    }, 1500);
+  }
+
+  // Move to next question
+  async function siguientePregunta() {
+    if (currentQuestionNumber >= totalQuestions) {
+      // Finished all questions, complete session
+      await finalizeDiagnostic();
+    } else {
+      // Load next question
+      await loadNextQuestion();
     }
   }
 
-  // Transformar pregunta a formato de componente
-  function transformarPreguntaMultipleChoice(pregunta: PreguntaDiagnostica) {
-    if (pregunta.tipo !== 'multiple_choice') return null;
+  // Complete diagnostic session
+  async function finalizeDiagnostic() {
+    if (!session) return;
 
-    return pregunta.opciones!.map((text, index) => ({
-      id: index,
-      text,
-      isCorrect: index === pregunta.respuestaCorrecta
-    }));
+    isLoading = true;
+    errorMessage = '';
+
+    const completeResult = await completeSession(session.id);
+
+    if (!completeResult.success) {
+      errorMessage = completeResult.error || 'Error al completar la evaluación';
+      isLoading = false;
+      return;
+    }
+
+    averageBloomLevel = completeResult.result!.average_bloom_level;
+
+    // Get detailed results
+    const resultsResponse = await getResults(session.id);
+
+    if (resultsResponse.success) {
+      results = resultsResponse.results!;
+    }
+
+    showResults = true;
+    isLoading = false;
   }
+
+  // Transform question data for components
+  function transformarPreguntaMultipleChoice(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+
+    // Convert opciones object {A, B, C, D} to array of option objects
+    let optionsArray: Array<{id: number, text: string, isCorrect: boolean}> = [];
+    if (questionData.opciones) {
+      if (Array.isArray(questionData.opciones)) {
+        optionsArray = questionData.opciones.map((text, index) => ({
+          id: index,
+          text: text,
+          isCorrect: false // We don't validate locally, backend handles it
+        }));
+      } else {
+        // Convert {A: "...", B: "...", C: "...", D: "..."} to array
+        const values = Object.values(questionData.opciones);
+        optionsArray = values.map((text: any, index) => ({
+          id: index,
+          text: text,
+          isCorrect: false // We don't validate locally, backend handles it
+        }));
+      }
+    }
+
+    return {
+      question: questionData.pregunta || questionData.question || '',
+      options: optionsArray,
+      showCorrectAnswer: false, // Don't show correct answer indicator (backend validates)
+      showFeedback: false // Don't show immediate feedback (wait for backend)
+    };
+  }
+
+  function transformarPreguntaTrueFalse(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+    return {
+      pregunta: questionData.pregunta || questionData.question || '',
+      respuestaCorrecta: questionData.respuesta_correcta || questionData.correct_answer || false,
+      explicacion: questionData.explicacion || questionData.explanation || ''
+    };
+  }
+
+  function transformarPreguntaFillBlanks(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+    return {
+      texto: questionData.texto || questionData.text || '',
+      blancos: questionData.blancos || questionData.blanks || [],
+      respuestasCorrectas: questionData.respuestas_correctas || questionData.correct_answers || [],
+      explicacion: questionData.explicacion || questionData.explanation || ''
+    };
+  }
+
+  function transformarPreguntaDragDropMatching(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+
+    // Transform columna_izquierda/columna_derecha format to pairs array
+    let pairs = [];
+    if (questionData.columna_izquierda && questionData.columna_derecha) {
+      const leftColumn = questionData.columna_izquierda;
+      const rightColumn = questionData.columna_derecha;
+
+      pairs = leftColumn.map((term: string, index: number) => ({
+        id: index + 1,
+        term: term,
+        definition: rightColumn[index] || ''
+      }));
+    } else if (questionData.pares || questionData.pairs) {
+      pairs = questionData.pares || questionData.pairs;
+    }
+
+    return {
+      title: questionData.instruccion || questionData.titulo || questionData.title || 'Relaciona los conceptos',
+      pairs: pairs,
+      shuffleOptions: true,
+      showFeedback: false,
+      allowMultipleAttempts: false
+    };
+  }
+
+  function transformarPreguntaSequencing(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+
+    // Transform elementos_desordenados to items array with correct order
+    let items = [];
+    if (questionData.elementos_desordenados && Array.isArray(questionData.elementos_desordenados)) {
+      // Create items with sequential IDs - backend will validate the actual order
+      items = questionData.elementos_desordenados.map((content: string, index: number) => ({
+        id: index + 1,
+        content: content,
+        correctOrder: index + 1 // Placeholder - backend validates actual correct order
+      }));
+    } else if (questionData.items || questionData.elementos) {
+      items = questionData.items || questionData.elementos;
+    }
+
+    return {
+      title: questionData.instruccion || questionData.titulo || questionData.title || 'Ordena la secuencia',
+      items: items,
+      shuffleItems: true,
+      showNumbers: true,
+      showHints: false,
+      allowMultipleAttempts: false
+    };
+  }
+
+  function transformarPreguntaCompareContrast(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+    return {
+      title: questionData.titulo || questionData.title || 'Compara y contrasta',
+      itemA: questionData.itemA || questionData.item_a || { name: 'Item A', color: 'cyan' },
+      itemB: questionData.itemB || questionData.item_b || { name: 'Item B', color: 'purple' },
+      characteristics: questionData.caracteristicas || questionData.characteristics || [],
+      showFeedback: false,
+      allowMultipleAttempts: false
+    };
+  }
+
+  function transformarPreguntaCriteriaEvaluation(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+    return {
+      title: questionData.titulo || questionData.title || 'Evalúa según criterios',
+      subject: questionData.sujeto || questionData.subject || '',
+      description: questionData.descripcion || questionData.description || '',
+      content: questionData.contenido || questionData.content || null,
+      criteria: questionData.criterios || questionData.criteria || [],
+      showFeedback: false,
+      allowMultipleAttempts: false,
+      showExpectedRatings: false
+    };
+  }
+
+  function transformarPreguntaOpenEnded(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+    return {
+      prompt: questionData.pregunta || questionData.prompt || '',
+      placeholder: questionData.placeholder || 'Escribe tu respuesta aquí...',
+      minWords: questionData.min_palabras || questionData.minWords || 0,
+      maxWords: questionData.max_palabras || questionData.maxWords || 0,
+      showWordCount: true,
+      enableAiFeedback: false,
+      rubric: questionData.rubrica || questionData.rubric || []
+    };
+  }
+
+  function transformarPreguntaConceptMap(question: DiagnosticQuestion) {
+    const questionData = question.question_data;
+    return {
+      title: questionData.titulo || questionData.title || 'Crea un mapa conceptual',
+      topic: questionData.tema || questionData.topic || '',
+      instructions: questionData.instrucciones || questionData.instructions || '',
+      requiredConcepts: questionData.conceptos_requeridos || questionData.requiredConcepts || [],
+      suggestedConnections: questionData.conexiones_sugeridas || questionData.suggestedConnections || [],
+      minConcepts: questionData.min_conceptos || questionData.minConcepts || 3,
+      minConnections: questionData.min_conexiones || questionData.minConnections || 2,
+      showFeedback: false,
+      allowMultipleAttempts: false,
+      provideConcepts: false
+    };
+  }
+
+  // Map Bloom level to display category
+  function getBloomLevelDisplay(bloomLevel: number) {
+    const bloomMap: Record<number, { label: string; color: string; porcentaje: number }> = {
+      0: { label: 'Sin Evaluar', color: 'text-slate-400', porcentaje: 0 },
+      1: { label: 'Recordar', color: 'text-red-400', porcentaje: 16 },
+      2: { label: 'Comprender', color: 'text-orange-400', porcentaje: 33 },
+      3: { label: 'Aplicar', color: 'text-yellow-400', porcentaje: 50 },
+      4: { label: 'Analizar', color: 'text-green-400', porcentaje: 66 },
+      5: { label: 'Evaluar', color: 'text-blue-400', porcentaje: 83 },
+      6: { label: 'Crear', color: 'text-purple-400', porcentaje: 100 }
+    };
+    return bloomMap[bloomLevel] || bloomMap[0];
+  }
+
+  // Initialize on mount
+  onMount(async () => {
+    loadUserProfile();
+    loadEquippedAvatar();
+
+    const unsubscribe = page.subscribe(($page) => {
+      materiaSlug = $page.params.materiaId || '';
+    });
+
+    // Fetch materia from backend
+    materiaInfo = await fetchMateriaByCodigo(materiaSlug);
+
+    if (!materiaInfo) {
+      errorMessage = 'Materia no reconocida. Por favor verifica la URL.';
+      return () => {
+        if (unsubscribe) unsubscribe();
+      };
+    }
+
+    // Initialize diagnostic session
+    await initializeDiagnostic();
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  });
 </script>
 
 <svelte:head>
-  <title>Evaluación Diagnóstica - {materiaInfo?.nombre || 'Cargando...'}</title>
+  <title>Evaluación Diagnóstica - {materiaInfo?.nombre || 'Lumera App'}</title>
 </svelte:head>
 
-<div class="min-h-screen bg-canvas-950 text-slate-200 font-sans pb-10">
-  <!-- Top Player Bar -->
+<!-- Main Layout -->
+<div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+  <!-- Header -->
   <header class="sticky top-0 z-50 border-b border-white/5 bg-canvas-950/90 backdrop-blur-md">
-    <div class="px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
-      <!-- Profile -->
+    <div class="px-6 py-3 flex items-center justify-between gap-4">
+      <!-- Left: Profile -->
       <button
         onclick={() => isPlayerProfileOpen = true}
-        class="flex items-center gap-3 hover:bg-canvas-800/40 rounded-xl p-2 -m-2 transition-colors group"
+        class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-canvas-800/40 transition-all group"
       >
-        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-lumera-500 to-focus-600 flex items-center justify-center text-sm font-bold group-hover:scale-110 transition-transform">
+        <AvatarDisplay
+          {currentAvatar}
           {initials}
-        </div>
-        <div class="text-left">
-          <div class="flex items-center gap-2">
-            <h1 class="font-semibold text-white text-sm md:text-base">{student.name}</h1>
-            <span class="px-1.5 py-0.5 rounded bg-canvas-800 border border-canvas-700 text-xs text-slate-400">{student.grade}</span>
+          size="small"
+        />
+        <div class="text-left hidden md:block">
+          <div class="text-sm font-semibold text-white group-hover:text-lumera-400 transition-colors">
+            {student.name}
           </div>
-          <div class="text-xs text-slate-400">{auth.user?.email || 'student@lumera.com'}</div>
+          <div class="text-xs text-slate-400">{student.grade}</div>
         </div>
       </button>
 
-      <!-- Evaluation Progress (replaces XP bar) -->
-      <div class="flex-1 max-w-md px-2 hidden md:block">
-        {#if materiaInfo && totalPreguntas > 0}
+      <!-- Center: Progress (replaces XP bar during evaluation) -->
+      <div class="flex-1 max-w-md">
+        <div class="flex items-center justify-between text-xs mb-1.5">
           {#if showResults}
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-green-400 font-medium">✓ Evaluación Completada</span>
-              <span class="text-slate-400">{nivelCalculado.label} - {nivelCalculado.porcentaje}%</span>
-            </div>
-            <div class="h-2 w-full bg-canvas-900 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500" style="width: 100%"></div>
-            </div>
+            <span class="text-green-400 font-medium">✓ Evaluación Completada</span>
+            <span class="text-slate-400">{getBloomLevelDisplay(averageBloomLevel).label} - {getBloomLevelDisplay(averageBloomLevel).porcentaje}%</span>
+          {:else if currentQuestion}
+            <span class="text-focus-400 font-medium">📚 {materiaInfo?.nombre}</span>
+            <span class="text-slate-400">Pregunta {currentQuestionNumber} de {totalQuestions}</span>
           {:else}
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-focus-400 font-medium">📚 {materiaInfo.nombre}</span>
-              <span class="text-slate-400">Pregunta {currentQuestionIndex + 1} de {totalPreguntas}</span>
-            </div>
-            <div class="h-2 w-full bg-canvas-900 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-focus-500 to-blue-500 transition-all duration-500" style="width: {progreso}%"></div>
-            </div>
+            <span class="text-slate-400">Cargando...</span>
+            <span class="text-slate-400">--</span>
           {/if}
-        {:else}
-          <div class="flex justify-between text-xs mb-1">
-            <span class="text-slate-400 font-medium">Cargando evaluación...</span>
-          </div>
-          <div class="h-2 w-full bg-canvas-900 rounded-full overflow-hidden">
-            <div class="h-full bg-slate-700" style="width: 0%"></div>
-          </div>
-        {/if}
+        </div>
+        <div class="h-2 w-full bg-canvas-900 rounded-full overflow-hidden border border-slate-700">
+          {#if showResults}
+            <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style="width: 100%"></div>
+          {:else}
+            <div class="h-full bg-gradient-to-r from-focus-500 to-blue-500 transition-all duration-500" style="width: {progreso}%"></div>
+          {/if}
+        </div>
       </div>
 
-      <!-- Right - Navigation Icons -->
+      <!-- Right: Navigation Icons -->
       <div class="flex items-center gap-2">
         <!-- Quest Button -->
         <button
           onclick={() => isCurrentQuestOpen = true}
           class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Current Quest"
+          title="Quest Actual"
         >
           <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>
         </button>
 
-        <!-- Missions Button -->
+        <!-- Mission Board Button -->
         <button
           onclick={() => isMissionBoardOpen = true}
           class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
@@ -413,151 +679,251 @@
 
   <!-- Main Content -->
   <main class="px-6 py-8 max-w-4xl mx-auto">
-    {#if materiaInfo && preguntas.length > 0}
-      <div class="diagnostico-container">
-      {#if !showResults}
-        <!-- Título de la evaluación -->
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold text-white">Evaluación Diagnóstica</h1>
-          <p class="text-slate-400 text-sm mt-1">Responde todas las preguntas para conocer tu nivel inicial</p>
+    <!-- Error Message -->
+    {#if errorMessage}
+      <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
+        <p class="text-red-400">{errorMessage}</p>
+      </div>
+    {/if}
+
+    <!-- Loading State -->
+    {#if isLoading && !currentQuestion}
+      <div class="flex items-center justify-center py-20">
+        <div class="text-center">
+          <svg class="animate-spin h-12 w-12 mx-auto mb-4 text-lumera-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <p class="text-slate-400">Cargando evaluación...</p>
         </div>
+      </div>
+    {/if}
 
-        <!-- Pregunta actual -->
-        <div class="question-container mb-6">
-          {#key preguntaActual.id}
-            {#if preguntaActual.tipo === 'multiple_choice'}
-              <MultipleChoice
-                question={preguntaActual.pregunta}
-                options={transformarPreguntaMultipleChoice(preguntaActual) || []}
-                bloomLevel="comprender"
-                materia="lenguaje"
-                showFeedback={true}
-                allowMultipleAttempts={false}
-                showCorrectAnswer={true}
-                onAnswer={handleAnswer}
-              />
-            {:else if preguntaActual.tipo === 'true_false'}
-              <TrueFalse
-                statement={preguntaActual.pregunta}
-                correctAnswer={preguntaActual.respuestaCorrecta === 0}
-                explanation={preguntaActual.explicacion}
-                bloomLevel="comprender"
-                materia="lenguaje"
-                showExplanation={true}
-                allowMultipleAttempts={false}
-                onAnswer={handleAnswer}
-              />
-            {:else if preguntaActual.tipo === 'fill_blanks'}
-              <FillBlanks
-                text={preguntaActual.pregunta}
-                blanks={[{
-                  id: 1,
-                  answer: String(preguntaActual.respuestaCorrecta),
-                  caseSensitive: false
-                }]}
-                bloomLevel="comprender"
-                materia="lenguaje"
-                allowMultipleAttempts={false}
-                onAnswer={handleAnswer}
-              />
-            {/if}
-          {/key}
-        </div>
+    <!-- Question Display -->
+    {#if !showResults && currentQuestion && !isLoading}
+      <div class="bg-canvas-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+        {#key currentQuestion.id}
+          {#if currentQuestion.tipo === 'multiple_choice'}
+            {@const transformedQuestion = transformarPreguntaMultipleChoice(currentQuestion)}
+            <MultipleChoice
+              question={transformedQuestion.question}
+              options={transformedQuestion.options}
+              bloomLevel="recordar"
+              materia={materiaInfo?.nombre || ''}
+              showCorrectAnswer={false}
+              showFeedback={false}
+              allowMultipleAttempts={false}
+              onAnswer={(data) => handleAnswer({ isCorrect: true, selectedOption: data.userAnswer })}
+            />
+          {:else if currentQuestion.tipo === 'true_false'}
+            {@const transformedQuestion = transformarPreguntaTrueFalse(currentQuestion)}
+            <TrueFalse
+              statement={transformedQuestion.pregunta}
+              correctAnswer={transformedQuestion.respuestaCorrecta}
+              explanation={transformedQuestion.explicacion}
+              bloomLevel="recordar"
+              materia={materiaInfo?.nombre || ''}
+              allowMultipleAttempts={false}
+              showExplanation={false}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+            />
+          {:else if currentQuestion.tipo === 'fill_blanks'}
+            {@const transformedQuestion = transformarPreguntaFillBlanks(currentQuestion)}
+            <FillBlanks
+              text={transformedQuestion.texto}
+              blanks={transformedQuestion.blancos}
+              bloomLevel="recordar"
+              materia={materiaInfo?.nombre || ''}
+              allowMultipleAttempts={false}
+              showWordBank={false}
+              showHints={false}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+            />
+          {:else if currentQuestion.tipo === 'drag_drop_matching'}
+            {@const transformedQuestion = transformarPreguntaDragDropMatching(currentQuestion)}
+            <DragDropMatching
+              title={transformedQuestion.title}
+              pairs={transformedQuestion.pairs}
+              bloomLevel="comprender"
+              materia={materiaInfo?.nombre || ''}
+              shuffleOptions={transformedQuestion.shuffleOptions}
+              showFeedback={transformedQuestion.showFeedback}
+              allowMultipleAttempts={transformedQuestion.allowMultipleAttempts}
+              onAnswer={(data) => {
+                // Transform matches from { termId: definitionId } to { "term": "definition" }
+                const textMatches: Record<string, string> = {};
+                const pairs = transformedQuestion.pairs;
 
-        <!-- Navegación -->
-        <div class="flex justify-between items-center">
-          <button
-            onclick={preguntaAnterior}
-            disabled={currentQuestionIndex === 0}
-            class="px-6 py-3 rounded-xl bg-canvas-800 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed border border-slate-700 transition-all"
-          >
-            ← Anterior
-          </button>
+                for (const [termId, defId] of Object.entries(data.matches)) {
+                  const termIdNum = parseInt(termId);
+                  const defIdNum = parseInt(defId as string);
 
-          <div class="text-center">
-            <p class="text-sm text-slate-400">
-              {hasAnswered ? 'Respuesta registrada' : 'Selecciona una respuesta'}
-            </p>
-          </div>
+                  // Find the term and definition by ID
+                  const pair = pairs.find((p: any) => p.id === termIdNum);
+                  const defPair = pairs.find((p: any) => p.id === defIdNum);
 
-          <button
-            onclick={siguientePregunta}
-            disabled={!hasAnswered}
-            class="px-6 py-3 rounded-xl bg-gradient-to-r from-focus-500 to-blue-500 hover:shadow-lg hover:shadow-cyan-500/50 disabled:opacity-50 disabled:cursor-not-allowed font-semibold transition-all"
-          >
-            {currentQuestionIndex < totalPreguntas - 1 ? 'Siguiente →' : 'Ver Resultados'}
-          </button>
-        </div>
-      {:else}
-        <!-- Pantalla de resultados -->
-        <div class="results-container">
-          <!-- Resultado general -->
-          <div class="text-center mb-8">
-            <div class="inline-block p-8 rounded-2xl bg-gradient-to-br from-cyan-600/20 to-blue-600/20 border border-cyan-500/50 mb-6">
-              <div class="text-6xl mb-4">
-                {nivelCalculado.nivel === 0 ? '📖' :
-                 nivelCalculado.nivel === 1 ? '📕' :
-                 nivelCalculado.nivel === 2 ? '📗' :
-                 nivelCalculado.nivel === 3 ? '📘' : '📙'}
-              </div>
-              <h2 class="text-4xl font-bold text-white mb-2">{nivelCalculado.label}</h2>
-              <p class="text-2xl text-focus-400">Nivel {nivelCalculado.nivel}</p>
+                  if (pair && defPair) {
+                    textMatches[pair.term] = defPair.definition;
+                  }
+                }
+
+                handleAnswer({ isCorrect: data.isCorrect, answer: { matches: textMatches } });
+              }}
+            />
+          {:else if currentQuestion.tipo === 'sequencing'}
+            {@const transformedQuestion = transformarPreguntaSequencing(currentQuestion)}
+            <Sequencing
+              title={transformedQuestion.title}
+              items={transformedQuestion.items}
+              bloomLevel="comprender"
+              materia={materiaInfo?.nombre || ''}
+              shuffleItems={transformedQuestion.shuffleItems}
+              showNumbers={transformedQuestion.showNumbers}
+              showHints={transformedQuestion.showHints}
+              allowMultipleAttempts={transformedQuestion.allowMultipleAttempts}
+              onAnswer={(data) => {
+                // Transform userOrder from IDs to content texts
+                const items = transformedQuestion.items;
+                const sequenceTexts = data.userOrder.map((id: number) => {
+                  const item = items.find((i: any) => i.id === id);
+                  return item ? item.content : '';
+                });
+                handleAnswer({ isCorrect: data.isCorrect, answer: { sequence: sequenceTexts } });
+              }}
+            />
+          {:else if currentQuestion.tipo === 'compare_contrast'}
+            {@const transformedQuestion = transformarPreguntaCompareContrast(currentQuestion)}
+            <CompareContrast
+              title={transformedQuestion.title}
+              itemA={transformedQuestion.itemA}
+              itemB={transformedQuestion.itemB}
+              characteristics={transformedQuestion.characteristics}
+              bloomLevel="analizar"
+              materia={materiaInfo?.nombre || ''}
+              showFeedback={transformedQuestion.showFeedback}
+              allowMultipleAttempts={transformedQuestion.allowMultipleAttempts}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+            />
+          {:else if currentQuestion.tipo === 'criteria_evaluation'}
+            {@const transformedQuestion = transformarPreguntaCriteriaEvaluation(currentQuestion)}
+            <CriteriaEvaluation
+              title={transformedQuestion.title}
+              subject={transformedQuestion.subject}
+              description={transformedQuestion.description}
+              content={transformedQuestion.content}
+              criteria={transformedQuestion.criteria}
+              bloomLevel="evaluar"
+              materia={materiaInfo?.nombre || ''}
+              showFeedback={transformedQuestion.showFeedback}
+              allowMultipleAttempts={transformedQuestion.allowMultipleAttempts}
+              showExpectedRatings={transformedQuestion.showExpectedRatings}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+            />
+          {:else if currentQuestion.tipo === 'open_ended'}
+            {@const transformedQuestion = transformarPreguntaOpenEnded(currentQuestion)}
+            <OpenEndedResponse
+              prompt={transformedQuestion.prompt}
+              placeholder={transformedQuestion.placeholder}
+              minWords={transformedQuestion.minWords}
+              maxWords={transformedQuestion.maxWords}
+              bloomLevel="analizar"
+              materia={materiaInfo?.nombre || ''}
+              showWordCount={transformedQuestion.showWordCount}
+              enableAiFeedback={transformedQuestion.enableAiFeedback}
+              rubric={transformedQuestion.rubric}
+              onSubmit={(data) => handleAnswer({ isCorrect: true, answer: data.response })}
+            />
+          {:else if currentQuestion.tipo === 'concept_map'}
+            {@const transformedQuestion = transformarPreguntaConceptMap(currentQuestion)}
+            <ConceptMapBuilder
+              title={transformedQuestion.title}
+              topic={transformedQuestion.topic}
+              instructions={transformedQuestion.instructions}
+              requiredConcepts={transformedQuestion.requiredConcepts}
+              suggestedConnections={transformedQuestion.suggestedConnections}
+              minConcepts={transformedQuestion.minConcepts}
+              minConnections={transformedQuestion.minConnections}
+              bloomLevel="crear"
+              materia={materiaInfo?.nombre || ''}
+              showFeedback={transformedQuestion.showFeedback}
+              allowMultipleAttempts={transformedQuestion.allowMultipleAttempts}
+              provideConcepts={transformedQuestion.provideConcepts}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+            />
+          {:else}
+            <div class="text-center p-8 bg-red-500/10 border border-red-500/20 rounded-xl">
+              <p class="text-red-400 mb-2">Tipo de pregunta no soportado: <strong>{currentQuestion.tipo}</strong></p>
+              <p class="text-sm text-slate-400">Por favor contacta al administrador</p>
             </div>
+          {/if}
+        {/key}
+      </div>
+    {/if}
 
-            <div class="max-w-2xl mx-auto space-y-4">
-              <div class="p-6 bg-canvas-900/60 rounded-2xl border border-slate-800">
-                <div class="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div class="text-3xl font-bold text-white">{respuestasCorrectas}</div>
-                    <div class="text-sm text-slate-400">Correctas</div>
+    <!-- Results Display -->
+    {#if showResults}
+      <div class="space-y-6">
+        <!-- Overall Result -->
+        <div class="bg-canvas-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-8 text-center">
+          <div class="text-6xl mb-4">
+            {averageBloomLevel >= 5 ? '🏆' : averageBloomLevel >= 3 ? '🎯' : '📚'}
+          </div>
+          <h2 class="text-3xl font-bold text-white mb-2">¡Evaluación Completada!</h2>
+          <p class="text-xl text-slate-300 mb-4">
+            Nivel Promedio: <span class="{getBloomLevelDisplay(averageBloomLevel).color} font-bold">
+              {getBloomLevelDisplay(averageBloomLevel).label}
+            </span>
+          </p>
+          <p class="text-slate-400 mb-6">
+            Respondiste {totalQuestions} preguntas de diferentes objetivos de aprendizaje
+          </p>
+        </div>
+
+        <!-- Results by OA -->
+        <div class="space-y-4">
+          <h3 class="text-xl font-bold text-white">Resultados por Objetivo de Aprendizaje</h3>
+
+          {#each results as result}
+            <div class="bg-canvas-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+              <div class="flex items-center justify-between mb-3">
+                <div>
+                  <h4 class="font-semibold text-white">{result.oa?.titulo || `OA ${result.oa_id}`}</h4>
+                  <p class="text-xs text-slate-400">{result.oa?.codigo}</p>
+                </div>
+                <div class="text-right">
+                  <div class="text-2xl font-bold {getBloomLevelDisplay(result.nivel_bloom_dominado).color}">
+                    {getBloomLevelDisplay(result.nivel_bloom_dominado).label}
                   </div>
-                  <div>
-                    <div class="text-3xl font-bold text-white">{totalPreguntas - respuestasCorrectas}</div>
-                    <div class="text-sm text-slate-400">Incorrectas</div>
-                  </div>
-                  <div>
-                    <div class="text-3xl font-bold text-focus-400">{nivelCalculado.porcentaje}%</div>
-                    <div class="text-sm text-slate-400">Acierto</div>
+                  <div class="text-sm text-slate-400">
+                    {result.preguntas_correctas}/{result.preguntas_respondidas} correctas
                   </div>
                 </div>
               </div>
 
-              <div class="p-6 bg-canvas-900/60 rounded-2xl border border-slate-800 text-left">
-                <h3 class="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                  <span>💬</span> Retroalimentación
-                </h3>
-                <p class="text-slate-300 leading-relaxed">
-                  {getFeedbackMensaje(nivelCalculado.nivel)}
-                </p>
+              <!-- Progress Bar -->
+              <div class="h-2 w-full bg-canvas-950 rounded-full overflow-hidden mb-3">
+                <div
+                  class="h-full bg-gradient-to-r from-lumera-500 to-focus-500 transition-all duration-500"
+                  style="width: {result.porcentaje_aciertos}%"
+                ></div>
               </div>
-            </div>
-          </div>
 
-          <!-- Acciones -->
-          <div class="flex justify-center gap-4">
-            {#if !diagnosticoCompletado}
-              <button
-                onclick={guardarNivelEnPerfil}
-                disabled={isLoading}
-                class="px-8 py-4 rounded-xl bg-gradient-to-r from-focus-500 to-blue-500 hover:shadow-lg hover:shadow-cyan-500/50 font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              >
-                {isLoading ? 'Guardando...' : 'Guardar y Continuar'}
-              </button>
-            {:else}
-              <div class="text-center">
-                <div class="text-green-400 text-2xl mb-2">✓ Nivel guardado</div>
-                <p class="text-slate-400">Redirigiendo al dashboard...</p>
-              </div>
-            {/if}
-          </div>
+              <!-- Recommendation -->
+              <p class="text-sm text-slate-300">
+                {result.recomendacion}
+              </p>
+            </div>
+          {/each}
         </div>
-      {/if}
-      </div>
-    {:else}
-      <div class="flex items-center justify-center min-h-[60vh]">
-        <div class="text-center">
-          <div class="text-6xl mb-4">⏳</div>
-          <p class="text-slate-400">Cargando evaluación...</p>
+
+        <!-- Action Buttons -->
+        <div class="flex gap-4 justify-center pt-4">
+          <button
+            onclick={() => goto('/')}
+            class="px-8 py-3 rounded-xl bg-canvas-800 hover:bg-canvas-700 text-white font-semibold transition-all"
+          >
+            Volver al Dashboard
+          </button>
         </div>
       </div>
     {/if}
@@ -608,16 +974,5 @@
   level={student.level}
   xp={student.xp}
   {initials}
+  onAvatarChanged={handleAvatarChanged}
 />
-
-<!-- Subject Detail Modal -->
-{#if selectedSubject}
-  <div class="fixed inset-0 z-70" style="display: {isModalOpen ? 'block' : 'none'}">
-    <div class="fixed inset-0 bg-black/60 backdrop-blur-sm" onclick={closeModal}></div>
-    <div class="fixed inset-0 flex items-center justify-center p-4 pointer-events-none">
-      <div class="pointer-events-auto">
-        <!-- Subject detail content would go here if needed during evaluation -->
-      </div>
-    </div>
-  </div>
-{/if}

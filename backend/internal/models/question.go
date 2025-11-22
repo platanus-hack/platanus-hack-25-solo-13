@@ -3,6 +3,8 @@ package models
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/lib/pq"
@@ -287,8 +289,19 @@ func (q *Question) ValidateAnswer(userAnswer datatypes.JSON) (bool, float64, err
 		return q.validateTrueFalseAnswer(userAnswer)
 	case "criteria_evaluation":
 		return q.validateCriteriaEvaluationAnswer(userAnswer)
+	case "drag_drop_matching":
+		return q.validateDragDropMatchingAnswer(userAnswer)
+	case "sequencing":
+		return q.validateSequencingAnswer(userAnswer)
+	case "fill_blanks":
+		return q.validateFillBlanksAnswer(userAnswer)
+	case "compare_contrast":
+		return q.validateCompareContrastAnswer(userAnswer)
 	case "open_ended":
 		// Open ended requires manual or AI validation
+		return false, 0, errors.New("requires manual or AI validation")
+	case "concept_map":
+		// Concept map requires manual or AI validation
 		return false, 0, errors.New("requires manual or AI validation")
 	// Add other types as needed
 	default:
@@ -422,4 +435,200 @@ func abs(x float64) float64 {
 		return -x
 	}
 	return x
+}
+
+// validateDragDropMatchingAnswer validates a drag-drop matching answer
+func (q *Question) validateDragDropMatchingAnswer(userAnswer datatypes.JSON) (bool, float64, error) {
+	var answer map[string]interface{}
+	if err := json.Unmarshal(userAnswer, &answer); err != nil {
+		return false, 0, err
+	}
+
+	var validation map[string]interface{}
+	if err := json.Unmarshal(q.ValidationData, &validation); err != nil {
+		return false, 0, err
+	}
+
+	// User answer format: { "matches": { "0": 0, "1": 1, "2": 2 } } or { "matches": { "term1": "def1", ... } }
+	// Validation formats supported:
+	//   - { "correct_matches": { "0": 0, "1": 1, "2": 2 } }
+	//   - { "emparejamientos_correctos": { "term1": "def1", "term2": "def2" } }
+	userMatches, ok := answer["matches"].(map[string]interface{})
+	if !ok {
+		return false, 0, errors.New("answer must contain 'matches' map")
+	}
+
+	// Support both 'correct_matches' and 'emparejamientos_correctos'
+	var correctMatches map[string]interface{}
+	if cm, ok := validation["correct_matches"].(map[string]interface{}); ok {
+		correctMatches = cm
+	} else if em, ok := validation["emparejamientos_correctos"].(map[string]interface{}); ok {
+		correctMatches = em
+	} else {
+		return false, 0, errors.New("validation_data must contain 'correct_matches' or 'emparejamientos_correctos' map")
+	}
+
+	correctCount := 0
+	totalCount := len(correctMatches)
+
+	for termID, correctMatchID := range correctMatches {
+		if userMatchID, exists := userMatches[termID]; exists {
+			// Compare as strings for flexibility
+			if fmt.Sprint(userMatchID) == fmt.Sprint(correctMatchID) {
+				correctCount++
+			}
+		}
+	}
+
+	if totalCount == 0 {
+		return false, 0, errors.New("no correct matches found in validation_data")
+	}
+
+	score := (float64(correctCount) / float64(totalCount)) * 100.0
+	isCorrect := score >= 60.0
+
+	return isCorrect, score, nil
+}
+
+// validateSequencingAnswer validates a sequencing answer
+func (q *Question) validateSequencingAnswer(userAnswer datatypes.JSON) (bool, float64, error) {
+	var answer map[string]interface{}
+	if err := json.Unmarshal(userAnswer, &answer); err != nil {
+		return false, 0, err
+	}
+
+	var validation map[string]interface{}
+	if err := json.Unmarshal(q.ValidationData, &validation); err != nil {
+		return false, 0, err
+	}
+
+	// User answer format: { "sequence": ["text1", "text2", "text3"] } or { "sequence": [0, 1, 2] }
+	// Validation formats supported:
+	//   - { "correct_sequence": [0, 1, 2, 3] }
+	//   - { "orden_correcto": ["text1", "text2", "text3"] }
+	userSequence, ok := answer["sequence"].([]interface{})
+	if !ok {
+		return false, 0, errors.New("answer must contain 'sequence' array")
+	}
+
+	// Support both 'correct_sequence' and 'orden_correcto'
+	var correctSequence []interface{}
+	if cs, ok := validation["correct_sequence"].([]interface{}); ok {
+		correctSequence = cs
+	} else if oc, ok := validation["orden_correcto"].([]interface{}); ok {
+		correctSequence = oc
+	} else {
+		return false, 0, errors.New("validation_data must contain 'correct_sequence' or 'orden_correcto' array")
+	}
+
+	if len(userSequence) != len(correctSequence) {
+		return false, 0, nil
+	}
+
+	correctCount := 0
+	for i := range correctSequence {
+		if fmt.Sprint(userSequence[i]) == fmt.Sprint(correctSequence[i]) {
+			correctCount++
+		}
+	}
+
+	score := (float64(correctCount) / float64(len(correctSequence))) * 100.0
+	isCorrect := score == 100.0 // Sequencing must be perfect
+
+	return isCorrect, score, nil
+}
+
+// validateFillBlanksAnswer validates a fill-in-the-blanks answer
+func (q *Question) validateFillBlanksAnswer(userAnswer datatypes.JSON) (bool, float64, error) {
+	var answer map[string]interface{}
+	if err := json.Unmarshal(userAnswer, &answer); err != nil {
+		return false, 0, err
+	}
+
+	var validation map[string]interface{}
+	if err := json.Unmarshal(q.ValidationData, &validation); err != nil {
+		return false, 0, err
+	}
+
+	// User answer format: { "blanks": { "1": "answer1", "2": "answer2" } }
+	// Validation format: { "correct_blanks": { "1": "answer1", "2": "answer2" }, "case_sensitive": false }
+	userBlanks, ok := answer["blanks"].(map[string]interface{})
+	if !ok {
+		return false, 0, errors.New("answer must contain 'blanks' map")
+	}
+
+	correctBlanks, ok := validation["correct_blanks"].(map[string]interface{})
+	if !ok {
+		return false, 0, errors.New("validation_data must contain 'correct_blanks' map")
+	}
+
+	caseSensitive := false
+	if cs, ok := validation["case_sensitive"].(bool); ok {
+		caseSensitive = cs
+	}
+
+	correctCount := 0
+	totalCount := len(correctBlanks)
+
+	for blankID, correctAnswer := range correctBlanks {
+		if userAnswerVal, exists := userBlanks[blankID]; exists {
+			userStr := strings.TrimSpace(fmt.Sprint(userAnswerVal))
+			correctStr := strings.TrimSpace(fmt.Sprint(correctAnswer))
+
+			if !caseSensitive {
+				userStr = strings.ToLower(userStr)
+				correctStr = strings.ToLower(correctStr)
+			}
+
+			if userStr == correctStr {
+				correctCount++
+			}
+		}
+	}
+
+	score := (float64(correctCount) / float64(totalCount)) * 100.0
+	isCorrect := score >= 60.0
+
+	return isCorrect, score, nil
+}
+
+// validateCompareContrastAnswer validates a compare-contrast answer
+func (q *Question) validateCompareContrastAnswer(userAnswer datatypes.JSON) (bool, float64, error) {
+	var answer map[string]interface{}
+	if err := json.Unmarshal(userAnswer, &answer); err != nil {
+		return false, 0, err
+	}
+
+	var validation map[string]interface{}
+	if err := json.Unmarshal(q.ValidationData, &validation); err != nil {
+		return false, 0, err
+	}
+
+	// User answer format: { "classifications": { "0": "A", "1": "B", "2": "both" } }
+	// Validation format: { "correct_classifications": { "0": "A", "1": "B", "2": "both" } }
+	userClassifications, ok := answer["classifications"].(map[string]interface{})
+	if !ok {
+		return false, 0, errors.New("answer must contain 'classifications' map")
+	}
+
+	correctClassifications, ok := validation["correct_classifications"].(map[string]interface{})
+	if !ok {
+		return false, 0, errors.New("validation_data must contain 'correct_classifications' map")
+	}
+
+	correctCount := 0
+	totalCount := len(correctClassifications)
+
+	for charID, correctColumn := range correctClassifications {
+		if userColumn, exists := userClassifications[charID]; exists {
+			if fmt.Sprint(userColumn) == fmt.Sprint(correctColumn) {
+				correctCount++
+			}
+		}
+	}
+
+	score := (float64(correctCount) / float64(totalCount)) * 100.0
+	isCorrect := score >= 60.0
+
+	return isCorrect, score, nil
 }

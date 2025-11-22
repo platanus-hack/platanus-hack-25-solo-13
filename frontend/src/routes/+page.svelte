@@ -5,6 +5,7 @@
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
   import { materiasToSubjects, type Subject } from '$lib/constants/subjects';
+  import { getEquipment, type CustomizationItem } from '$lib/api/customization';
   import SubjectDetailModal from '$lib/components/dashboard/SubjectDetailModal.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
   import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
@@ -12,6 +13,7 @@
   import CurrentQuestModal from '$lib/components/dashboard/CurrentQuestModal.svelte';
   import LiveEventsModal from '$lib/components/dashboard/LiveEventsModal.svelte';
   import PlayerProfilePanel from '$lib/components/dashboard/PlayerProfilePanel.svelte';
+  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
 
   // State
   let activeTab = $state('daily');
@@ -25,6 +27,7 @@
   let isCurrentQuestOpen = $state(false);
   let isLiveEventsOpen = $state(false);
   let isPlayerProfileOpen = $state(false);
+  let currentAvatar = $state<CustomizationItem | null>(null);
 
   // Get authenticated user
   const student = {
@@ -78,6 +81,24 @@
     }
   }
 
+  // Load equipped avatar
+  async function loadEquippedAvatar() {
+    try {
+      console.log('Loading equipped avatar...');
+      const equipment = await getEquipment();
+      console.log('Equipment response:', equipment);
+      currentAvatar = equipment.equipped_avatar || null;
+      console.log('Current avatar set to:', currentAvatar);
+    } catch (err) {
+      console.error('Error loading avatar:', err);
+    }
+  }
+
+  // Handle avatar change from profile panel
+  function handleAvatarChanged(avatar: CustomizationItem) {
+    currentAvatar = avatar;
+  }
+
   // Get domain level for a subject
   function getDomainLevel(subjectId: string): number {
     if (!userProfile?.profile_data?.conocimiento_previo) {
@@ -113,6 +134,7 @@
   // Load profile on mount
   onMount(() => {
     loadUserProfile();
+    loadEquippedAvatar();
   });
 
   function getSubjectColor(subject) {
@@ -141,8 +163,12 @@
         onclick={() => isPlayerProfileOpen = true}
         class="flex items-center gap-3 hover:bg-canvas-800/40 rounded-xl p-2 -m-2 transition-colors group"
       >
-        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-lumera-500 to-focus-600 flex items-center justify-center text-sm font-bold group-hover:scale-110 transition-transform">
-          {initials}
+        <div class="group-hover:scale-110 transition-transform">
+          <AvatarDisplay
+            {currentAvatar}
+            {initials}
+            size="small"
+          />
         </div>
         <div class="text-left">
           <div class="flex items-center gap-2">
@@ -337,4 +363,5 @@
   level={student.level}
   xp={student.xp}
   {initials}
+  onAvatarChanged={handleAvatarChanged}
 />

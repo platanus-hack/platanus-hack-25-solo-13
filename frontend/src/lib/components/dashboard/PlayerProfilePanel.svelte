@@ -1,6 +1,10 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import gsap from 'gsap';
+  import AvatarSelectorModal from './AvatarSelectorModal.svelte';
+  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
+  import { getEquipment } from '$lib/api/customization';
+  import type { CustomizationItem } from '$lib/api/customization';
 
   interface Props {
     isOpen: boolean;
@@ -11,11 +15,15 @@
     level: number;
     xp: number;
     initials: string;
+    onAvatarChanged?: (avatar: CustomizationItem) => void;
   }
 
-  let { isOpen, onClose, userName, userEmail, userGrade, level, xp, initials }: Props = $props();
+  let { isOpen, onClose, userName, userEmail, userGrade, level, xp, initials, onAvatarChanged }: Props = $props();
   let backdropRef = $state<HTMLDivElement | null>(null);
   let panelRef = $state<HTMLDivElement | null>(null);
+  let avatarSelectorOpen = $state(false);
+  let currentAvatar = $state<CustomizationItem | null>(null);
+  let avatarLoading = $state(false);
 
   // Close with animation
   function handleClose() {
@@ -46,14 +54,38 @@
     }
   }
 
+  // Load equipped avatar
+  async function loadEquipment() {
+    avatarLoading = true;
+    try {
+      const equipment = await getEquipment();
+      currentAvatar = equipment.equipped_avatar || null;
+    } catch (err) {
+      console.error('Error loading equipment:', err);
+    } finally {
+      avatarLoading = false;
+    }
+  }
+
+  // Handle avatar equipped
+  function handleAvatarEquipped(avatar: CustomizationItem) {
+    currentAvatar = avatar;
+    // Notify parent component
+    if (onAvatarChanged) {
+      onAvatarChanged(avatar);
+    }
+  }
+
   onMount(() => {
     window.addEventListener('keydown', handleKeydown);
     return () => window.removeEventListener('keydown', handleKeydown);
   });
 
-  // Animate panel entrance
+  // Animate panel entrance and load avatar
   $effect(() => {
     if (isOpen && backdropRef && panelRef) {
+      loadEquipment();
+
       gsap.fromTo(backdropRef,
         { opacity: 0 },
         { opacity: 1, duration: 0.2, ease: 'power2.out' }
@@ -94,9 +126,18 @@
     <div class="p-6 space-y-6">
       <!-- Avatar & Basic Info -->
       <div class="text-center">
-        <div class="inline-flex items-center justify-center h-24 w-24 rounded-full bg-gradient-to-br from-lumera-500 to-focus-600 text-3xl font-bold text-white mb-4 shadow-lg">
-          {initials}
+        <!-- Avatar with edit button -->
+        <div class="mb-4">
+          <AvatarDisplay
+            {currentAvatar}
+            {initials}
+            size="medium"
+            editable={true}
+            loading={avatarLoading}
+            onEdit={() => avatarSelectorOpen = true}
+          />
         </div>
+
         <h3 class="text-2xl font-bold text-white mb-1">{userName}</h3>
         <p class="text-sm text-slate-400 mb-2">{userEmail}</p>
         <span class="inline-block px-3 py-1 rounded-full bg-canvas-800 border border-canvas-700 text-sm text-slate-300">
@@ -151,3 +192,11 @@
     </div>
   </div>
 {/if}
+
+<!-- Avatar Selector Modal -->
+<AvatarSelectorModal
+  isOpen={avatarSelectorOpen}
+  onClose={() => avatarSelectorOpen = false}
+  currentAvatarId={currentAvatar?.id || null}
+  onAvatarEquipped={handleAvatarEquipped}
+/>

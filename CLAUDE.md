@@ -99,6 +99,92 @@ make db-query SQL="\dt"
 
 See `scripts/db-queries.md` for more query examples.
 
+### Automated Deployment
+
+**IMPORTANT:** A deployment script automates the entire deployment process including migrations.
+
+```bash
+# Full automated deployment (recommended)
+./scripts/deploy.sh
+
+# Development mode (skip git pull)
+./scripts/deploy.sh --skip-git
+
+# Fast deployment (skip Docker rebuild)
+./scripts/deploy.sh --skip-build
+
+# View all options
+./scripts/deploy.sh --help
+```
+
+**What the script does automatically:**
+1. ✅ Updates code from git (optional with `--skip-git`)
+2. ✅ Stops old containers
+3. ✅ Builds and starts new containers
+4. ✅ **Runs database migrations automatically** (includes seed data)
+5. ✅ Verifies services are healthy
+6. ✅ Shows service status and URLs
+
+**Script features:**
+- Color-coded output (info, success, warnings, errors)
+- Pre-deployment checks (Docker running, .env exists, etc.)
+- Detects uncommitted git changes (asks for confirmation)
+- Loads DB credentials from `.env` file
+- Shows migration version before and after
+- Checks backend health endpoint
+- Interactive prompt to view logs after deployment
+
+**Production deployment on VPS/Cloud:**
+```bash
+# SSH to server
+ssh user@your-server.com
+
+# Clone or pull latest
+git clone [repo] && cd lumera_app
+# or: git pull
+
+# Run deployment
+./scripts/deploy.sh
+
+# Script will:
+# - Pull latest code
+# - Rebuild containers
+# - Run migrations (migrations 17-20 include seed data)
+# - Verify everything is working
+```
+
+**Migrations included in seed data:**
+- Migration 17: Cursos y Materias (1 curso, 2 materias)
+- Migration 18: OAs de Lengua (23 objetivos)
+- Migration 19: Bloom Objectives (134 objectives)
+- Migration 20: Questions (672 preguntas)
+
+All migrations use `ON CONFLICT DO UPDATE` for idempotency, so they can be safely re-run.
+
+**Manual migration commands** (if needed):
+```bash
+# Apply migrations
+docker compose exec backend migrate \
+  -path=/app/migrations \
+  -database='postgres://admin:PASSWORD@postgres:5432/hackathon?sslmode=disable' up
+
+# Check version
+docker compose exec backend migrate \
+  -path=/app/migrations \
+  -database='postgres://admin:PASSWORD@postgres:5432/hackathon?sslmode=disable' version
+
+# Rollback last migration
+docker compose exec backend migrate \
+  -path=/app/migrations \
+  -database='postgres://admin:PASSWORD@postgres:5432/hackathon?sslmode=disable' down 1
+```
+
+**Troubleshooting deployment:**
+- Check logs: `docker compose logs -f backend`
+- Verify containers: `docker compose ps`
+- Check health: `curl http://localhost:8080/api/health`
+- Reset everything: `docker compose down -v && ./scripts/deploy.sh`
+
 ### Backend Development
 
 ```bash
