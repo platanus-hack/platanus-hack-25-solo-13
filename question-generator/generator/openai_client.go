@@ -7,12 +7,34 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	openai "github.com/sashabaranov/go-openai"
 )
 
 var openaiClient *openai.Client
+
+// cleanMarkdownJSON removes markdown code block markers from JSON response
+func cleanMarkdownJSON(content string) string {
+	// Trim whitespace
+	content = strings.TrimSpace(content)
+
+	// Remove ```json at the beginning
+	if strings.HasPrefix(content, "```json") {
+		content = strings.TrimPrefix(content, "```json")
+	} else if strings.HasPrefix(content, "```") {
+		content = strings.TrimPrefix(content, "```")
+	}
+
+	// Remove ``` at the end
+	if strings.HasSuffix(content, "```") {
+		content = strings.TrimSuffix(content, "```")
+	}
+
+	// Trim whitespace again
+	return strings.TrimSpace(content)
+}
 
 // InitOpenAI inicializa el cliente de OpenAI
 func InitOpenAI() {
@@ -87,6 +109,9 @@ func GenerateQuestion(questionType string, objective OABloomObjective, dificulta
 		}
 
 		content := resp.Choices[0].Message.Content
+
+		// Clean markdown code blocks if present
+		content = cleanMarkdownJSON(content)
 
 		// Parse JSON response
 		var result map[string]interface{}

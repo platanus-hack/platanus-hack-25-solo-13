@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import gsap from 'gsap';
   import { auth } from '$lib/stores/auth.svelte';
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
@@ -10,6 +9,9 @@
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
   import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
   import MissionBoardModal from '$lib/components/dashboard/MissionBoardModal.svelte';
+  import CurrentQuestModal from '$lib/components/dashboard/CurrentQuestModal.svelte';
+  import LiveEventsModal from '$lib/components/dashboard/LiveEventsModal.svelte';
+  import PlayerProfilePanel from '$lib/components/dashboard/PlayerProfilePanel.svelte';
 
   // State
   let activeTab = $state('daily');
@@ -21,6 +23,9 @@
   let isProgressPanelOpen = $state(false);
   let isActivityModalOpen = $state(false);
   let isMissionBoardOpen = $state(false);
+  let isCurrentQuestOpen = $state(false);
+  let isLiveEventsOpen = $state(false);
+  let isPlayerProfileOpen = $state(false);
 
   // Get authenticated user
   const student = {
@@ -77,15 +82,6 @@
   const activeMissionCount = $derived(
     Object.values(missions).flat().filter(m => m.state !== 'done').length
   );
-
-  const shortcuts = [
-    { id: 1, label: 'My Curriculum', desc: 'Map of units', icon: '🗺️' },
-    { id: 2, label: 'PAES Sim', desc: 'Full practice exams', icon: '🎓' },
-    { id: 3, label: 'Adaptive Gym', desc: 'Train weak spots', icon: '🏋️' },
-    { id: 4, label: 'Classroom', desc: 'Teacher updates', icon: '👨‍🏫' },
-    { id: 5, label: 'Friends', desc: 'Study groups', icon: '👥' },
-    { id: 6, label: 'Settings', desc: 'Profile & App', icon: '⚙️' }
-  ];
 
   const events = [
     { id: 1, title: 'Exam Sprint Week', subtitle: 'Boost your PAES score', color: 'from-indigo-600 to-violet-600' },
@@ -149,15 +145,9 @@
     selectedSubject = null;
   }
 
-  // Animations
+  // Load profile on mount
   onMount(() => {
     loadUserProfile();
-
-    const tl = gsap.timeline({ defaults: { ease: 'power2.out' } });
-    tl.from('.hero-card', { y: 30, opacity: 0, duration: 0.8 })
-      .from('.shortcut-tile', { y: 20, opacity: 0, duration: 0.5, stagger: 0.05 }, '-=0.5')
-      .from('.mission-card', { x: -20, opacity: 0, duration: 0.4, stagger: 0.1 }, '-=0.5')
-      .from('.subject-card', { scale: 0.8, opacity: 0, duration: 0.4, stagger: 0.1 }, '-=0.5');
   });
 
   function getSubjectColor(subject) {
@@ -182,18 +172,21 @@
   <header class="sticky top-0 z-50 border-b border-white/5 bg-canvas-950/90 backdrop-blur-md">
     <div class="px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <!-- Profile -->
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-lumera-500 to-focus-600 flex items-center justify-center text-sm font-bold">
+      <button
+        onclick={() => isPlayerProfileOpen = true}
+        class="flex items-center gap-3 hover:bg-canvas-800/40 rounded-xl p-2 -m-2 transition-colors group"
+      >
+        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-lumera-500 to-focus-600 flex items-center justify-center text-sm font-bold group-hover:scale-110 transition-transform">
           {initials}
         </div>
-        <div>
+        <div class="text-left">
           <div class="flex items-center gap-2">
             <h1 class="font-semibold text-white text-sm md:text-base">{student.name}</h1>
             <span class="px-1.5 py-0.5 rounded bg-canvas-800 border border-canvas-700 text-xs text-slate-400">{student.grade}</span>
           </div>
           <div class="text-xs text-slate-400">{auth.user?.email || 'student@lumera.com'}</div>
         </div>
-      </div>
+      </button>
 
       <!-- XP -->
       <div class="flex-1 max-w-md px-2 hidden md:block">
@@ -240,64 +233,21 @@
 
   <!-- Sub Navigation Bar -->
   <SubNavBar
+    onQuestClick={() => isCurrentQuestOpen = true}
     onProgressClick={() => isProgressPanelOpen = true}
     onActivityClick={() => isActivityModalOpen = true}
     onMissionsClick={() => isMissionBoardOpen = true}
+    onEventsClick={() => isLiveEventsOpen = true}
     onLogoutClick={() => auth.logout()}
     subjectCount={subjects.length}
     activityCount={activities.length}
     missionCount={activeMissionCount}
+    eventCount={events.length}
   />
 
   <!-- Main -->
-  <main class="px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <!-- LEFT -->
-    <div class="lg:col-span-8 space-y-8">
-      <!-- Hero Quest -->
-      <section class="hero-card relative overflow-hidden rounded-2xl bg-gradient-to-br from-lumera-900/90 via-canvas-900 to-canvas-900 border border-lumera-600/40 p-10">
-        <div class="relative z-10">
-          <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-lumera-500/20 border border-lumera-400/30 text-lumera-300 text-xs font-semibold mb-4">
-            <span class="animate-pulse">●</span> Current Quest
-          </div>
-          <h2 class="text-5xl font-display font-bold text-white mb-2 tracking-tight">Continue today's quest</h2>
-          <p class="text-slate-400 text-lg mb-6">Pick up where you left off in <span class="text-focus-300">Math · Linear Functions</span>.</p>
-          <button class="px-6 py-3 rounded-lg bg-white text-lumera-950 font-bold hover:scale-105 transition-all">Resume Quest</button>
-        </div>
-      </section>
-
-      <!-- Shortcuts -->
-      <section>
-        <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-          {#each shortcuts as item}
-            <button class="shortcut-tile p-4 rounded-2xl bg-canvas-900/40 border border-slate-800/60 hover:bg-canvas-800 transition-all text-center">
-              <div class="text-3xl mb-2">{item.icon}</div>
-              <div class="font-medium text-slate-200 text-sm">{item.label}</div>
-              <div class="text-[10px] text-slate-500 mt-1">{item.desc}</div>
-            </button>
-          {/each}
-        </div>
-      </section>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="lg:col-span-4 space-y-8">
-      <!-- Events -->
-      <section>
-        <h3 class="text-lg font-semibold text-white mb-4">Live Events</h3>
-        <div class="space-y-4">
-          {#each events as event}
-            <button class="w-full text-left p-5 rounded-2xl bg-gradient-to-br {event.color} text-white relative overflow-hidden">
-              <div class="relative z-10">
-                <div class="text-xs font-bold opacity-80 mb-1">LIMITED TIME</div>
-                <h4 class="font-bold text-xl mb-1">{event.title}</h4>
-                <p class="text-sm opacity-90">{event.subtitle}</p>
-              </div>
-            </button>
-          {/each}
-        </div>
-      </section>
-
-    </div>
+  <main class="px-6 py-8 max-w-7xl mx-auto">
+    <!-- Dashboard content area - currently empty, all content in modals -->
   </main>
 </div>
 
@@ -332,4 +282,30 @@
   onTabChange={(tab) => activeTab = tab}
   isOpen={isMissionBoardOpen}
   onClose={() => isMissionBoardOpen = false}
+/>
+
+<!-- Current Quest Modal -->
+<CurrentQuestModal
+  isOpen={isCurrentQuestOpen}
+  onClose={() => isCurrentQuestOpen = false}
+  onResumeQuest={() => console.log('Resume quest clicked')}
+/>
+
+<!-- Live Events Modal -->
+<LiveEventsModal
+  {events}
+  isOpen={isLiveEventsOpen}
+  onClose={() => isLiveEventsOpen = false}
+/>
+
+<!-- Player Profile Panel -->
+<PlayerProfilePanel
+  isOpen={isPlayerProfileOpen}
+  onClose={() => isPlayerProfileOpen = false}
+  userName={student.name}
+  userEmail={auth.user?.email || 'student@lumera.com'}
+  userGrade={student.grade}
+  level={student.level}
+  xp={student.xp}
+  {initials}
 />

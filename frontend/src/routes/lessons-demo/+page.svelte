@@ -992,6 +992,586 @@ Conclusión: Por lo tanto, es urgente educar sobre uso responsable de redes soci
           }
         }
       ]
+    },
+
+    // SHOWCASE: SOLO COMPONENTES TEACH
+    'teach-showcase': {
+      leccionId: "teach-showcase",
+      titulo: "Showcase: Componentes de Enseñanza",
+      materia: "Lenguaje",
+      slides: [
+        // 1. ReadingStrategySlide
+        {
+          tipo: "ReadingStrategySlide",
+          orden: 1,
+          props: {
+            titulo: "Estrategias de Comprensión Lectora",
+            estrategias: [
+              {
+                icono: "🎯",
+                nombre: "Identificar Idea Principal",
+                resumen: "Encuentra el mensaje central del texto",
+                explicacion: "La idea principal es el mensaje más importante que el autor quiere transmitir. No es simplemente el tema, sino lo que se dice sobre ese tema.",
+                pasos: [
+                  "Lee el título y el primer párrafo para entender el tema general",
+                  "Pregúntate: '¿Qué quiere decir el autor sobre este tema?'",
+                  "Busca oraciones que resuman el contenido de cada párrafo",
+                  "Identifica qué ideas se repiten o se enfatizan",
+                  "Formula la idea principal en una oración completa"
+                ],
+                ejemplo: "En un texto sobre reciclaje, el tema es 'reciclaje', pero la idea principal podría ser: 'El reciclaje es fundamental para reducir la contaminación ambiental'",
+                cuandoUsar: [
+                  "Al leer textos informativos o expositivos",
+                  "Para hacer resúmenes efectivos",
+                  "En preguntas PAES sobre tema central",
+                  "Al estudiar para sintetizar información"
+                ]
+              },
+              {
+                icono: "🔍",
+                nombre: "Hacer Inferencias",
+                resumen: "Lee entre líneas lo que no está explícito",
+                explicacion: "Inferir es llegar a conclusiones usando pistas del texto y tu conocimiento previo. Es 'leer entre líneas' para entender información implícita.",
+                pasos: [
+                  "Identifica pistas en el texto (palabras clave, descripciones, acciones)",
+                  "Conecta esas pistas con tu conocimiento del mundo",
+                  "Pregúntate: '¿Qué sugiere esto?' o '¿Por qué el autor menciona esto?'",
+                  "Formula una conclusión lógica basada en las evidencias",
+                  "Verifica que tu inferencia tenga apoyo en el texto"
+                ],
+                ejemplo: "Si el texto dice 'María cerró la puerta con fuerza y subió las escaleras sin mirar atrás', puedes inferir que María está molesta o enojada, aunque no lo diga directamente",
+                cuandoUsar: [
+                  "Al leer narrativa literaria",
+                  "Para entender intenciones de personajes",
+                  "En preguntas PAES que piden 'se puede inferir que...'",
+                  "Al analizar textos con lenguaje figurado"
+                ]
+              },
+              {
+                icono: "📌",
+                nombre: "Identificar Evidencia Textual",
+                resumen: "Encuentra pruebas concretas en el texto",
+                explicacion: "La evidencia textual son citas o referencias específicas del texto que apoyan una afirmación o respuesta. Es la prueba de que tu interpretación es correcta.",
+                pasos: [
+                  "Lee la pregunta o afirmación que necesitas apoyar",
+                  "Busca en el texto pasajes que se relacionen directamente",
+                  "Subraya o anota las citas exactas relevantes",
+                  "Verifica que la evidencia realmente apoye tu punto",
+                  "Cita textualmente usando comillas"
+                ],
+                ejemplo: "Pregunta: '¿Por qué el personaje decidió viajar?' Evidencia: 'Como dice el texto: Necesitaba escapar de la rutina que lo consumía'",
+                cuandoUsar: [
+                  "En respuestas de desarrollo",
+                  "Para justificar interpretaciones",
+                  "En análisis literarios",
+                  "Al escribir ensayos argumentativos"
+                ]
+              },
+              {
+                icono: "📖",
+                nombre: "Vocabulario en Contexto",
+                resumen: "Deduce significados sin diccionario",
+                explicacion: "Puedes entender palabras desconocidas usando pistas del contexto: palabras cercanas, ejemplos, definiciones implícitas, o el tono general del párrafo.",
+                pasos: [
+                  "No te detengas en la palabra desconocida; lee toda la oración",
+                  "Lee también la oración anterior y posterior",
+                  "Busca sinónimos, antónimos o ejemplos cerca de la palabra",
+                  "Pregúntate: '¿Qué palabra tendría sentido aquí?'",
+                  "Reemplaza mentalmente la palabra y verifica si tiene lógica"
+                ],
+                ejemplo: "Texto: 'El científico era meticuloso: revisaba cada detalle tres veces antes de publicar.' Contexto sugiere que 'meticuloso' = cuidadoso/detallista",
+                cuandoUsar: [
+                  "En la PAES cuando no puedes usar diccionario",
+                  "Al leer textos académicos complejos",
+                  "Para expandir vocabulario mientras lees",
+                  "En lecturas cronometradas"
+                ]
+              }
+            ],
+            tipsAdicionales: [
+              "Lee primero las preguntas antes del texto para saber qué buscar",
+              "Subraya o anota mientras lees (si es permitido)",
+              "Resume cada párrafo en una frase mental",
+              "No releas todo; busca la sección relevante",
+              "Practica con textos de diferentes géneros",
+              "Cronometra tu lectura para mejorar velocidad"
+            ],
+            materia: "lenguaje"
+          }
+        },
+
+        // 2. GrammarConceptSlide
+        {
+          tipo: "GrammarConceptSlide",
+          orden: 2,
+          props: {
+            titulo: "El Predicado en Español",
+            concepto: "Predicado",
+            definicion: "El predicado es la parte de la oración que expresa la acción que realiza el sujeto o lo que se dice del sujeto. Siempre contiene un verbo.",
+            tipos: [
+              {
+                nombre: "Predicado Verbal",
+                definicion: "El núcleo es un verbo que expresa acción, proceso o estado",
+                caracteristicas: [
+                  "El verbo es el elemento principal (núcleo)",
+                  "Puede tener complementos (CD, CI, CC, etc.)",
+                  "Expresa lo que hace o le pasa al sujeto"
+                ],
+                ejemplos: [
+                  {
+                    oracion: "Los estudiantes chilenos estudian matemáticas en la biblioteca",
+                    analisis: "Predicado verbal: 'estudian matemáticas en la biblioteca' | Núcleo: estudian | CD: matemáticas | CC lugar: en la biblioteca"
+                  },
+                  {
+                    oracion: "María entregó el trabajo al profesor ayer",
+                    analisis: "Predicado verbal: 'entregó el trabajo al profesor ayer' | Núcleo: entregó | CD: el trabajo | CI: al profesor | CC tiempo: ayer"
+                  }
+                ],
+                estructura: "Verbo + Complementos (opcionales)"
+              },
+              {
+                nombre: "Predicado Nominal",
+                definicion: "El núcleo es un sustantivo, adjetivo o construcción equivalente. Usa verbos copulativos (ser, estar, parecer)",
+                caracteristicas: [
+                  "Usa verbos copulativos: ser, estar, parecer",
+                  "El núcleo es el atributo (sustantivo/adjetivo)",
+                  "No expresa acción, sino cualidad o estado"
+                ],
+                ejemplos: [
+                  {
+                    oracion: "El estudiante es inteligente",
+                    analisis: "Predicado nominal: 'es inteligente' | Verbo copulativo: es | Atributo (núcleo): inteligente"
+                  },
+                  {
+                    oracion: "La clase parecía interesante",
+                    analisis: "Predicado nominal: 'parecía interesante' | Verbo copulativo: parecía | Atributo: interesante"
+                  },
+                  {
+                    oracion: "María está en la universidad",
+                    analisis: "Predicado nominal: 'está en la universidad' | Verbo copulativo: está | Atributo: en la universidad"
+                  }
+                ],
+                estructura: "Verbo copulativo + Atributo"
+              }
+            ],
+            reglas: [
+              {
+                texto: "El predicado siempre debe concordar con el sujeto en número y persona",
+                ejemplo: "Ellos estudian (plural) / Él estudia (singular)"
+              },
+              {
+                texto: "Para identificar el predicado, pregunta al sujeto: '¿Qué hace?' o '¿Cómo es?'",
+                ejemplo: "Los niños → ¿Qué hacen? → juegan en el parque (predicado)"
+              },
+              {
+                texto: "El predicado puede ir antes del sujeto sin cambiar su función",
+                ejemplo: "En la biblioteca estudian los alumnos (predicado primero)"
+              }
+            ],
+            erroresComunes: [
+              {
+                incorrecto: "Los estudiante estudia",
+                correcto: "Los estudiantes estudian",
+                explicacion: "El predicado 'estudian' debe concordar con el sujeto plural 'los estudiantes'"
+              },
+              {
+                incorrecto: "María es una persona que le gusta leer",
+                correcto: "A María le gusta leer / María es una persona a la que le gusta leer",
+                explicacion: "No se debe mezclar estructura de 'ser' + 'gustar' sin la preposición correcta"
+              }
+            ],
+            materia: "lenguaje"
+          }
+        },
+
+        // 3. ConnectorsGuideSlide (versión reducida)
+        {
+          tipo: "ConnectorsGuideSlide",
+          orden: 3,
+          props: {
+            titulo: "Conectores: La Clave de la Coherencia",
+            importancia: "Los conectores textuales son esenciales para unir ideas, dar fluidez al texto y guiar al lector. Son altamente evaluados en la PAES de Lenguaje.",
+            categorias: [
+              {
+                nombre: "Causales",
+                tipo: "causal",
+                definicion: "Indican la causa o razón por la cual ocurre algo",
+                funcion: "Explican el origen o motivo de una situación",
+                conectores: [
+                  {
+                    palabra: "porque",
+                    nivel: "básico",
+                    ejemplos: [
+                      "Aprobó el examen porque estudió toda la semana.",
+                      "No salió porque estaba lloviendo mucho."
+                    ],
+                    nota: "Es el conector causal más común y versátil"
+                  },
+                  {
+                    palabra: "ya que",
+                    nivel: "formal",
+                    ejemplos: [
+                      "El proyecto avanzó rápido ya que todos colaboraron.",
+                      "Recibió el premio ya que su trabajo fue sobresaliente."
+                    ]
+                  },
+                  {
+                    palabra: "puesto que",
+                    nivel: "muy formal",
+                    ejemplos: [
+                      "La reunión se canceló puesto que faltó el director."
+                    ]
+                  }
+                ],
+                ejemploParrafo: "El reciclaje es fundamental porque reduce los desechos. Ya que muchos no conocen su importancia, debemos educar desde temprano.",
+                comparacion: "Los causales explican el 'por qué' (razón), mientras que los consecutivos muestran el 'qué pasa' (resultado)"
+              },
+              {
+                nombre: "Adversativos",
+                tipo: "adversativo",
+                definicion: "Expresan contraste u oposición entre dos ideas",
+                funcion: "Señalan un cambio de dirección o contradicción en el argumento",
+                conectores: [
+                  {
+                    palabra: "sin embargo",
+                    nivel: "formal",
+                    ejemplos: [
+                      "Estudió mucho; sin embargo, no logró aprobar.",
+                      "La propuesta era buena; sin embargo, fue rechazada."
+                    ],
+                    nota: "Muy usado en textos argumentativos y académicos"
+                  },
+                  {
+                    palabra: "pero",
+                    nivel: "básico",
+                    ejemplos: [
+                      "Quería viajar, pero no tenía dinero.",
+                      "Es talentoso, pero no se esfuerza."
+                    ]
+                  }
+                ],
+                ejemploParrafo: "Las energías renovables son limpias. Sin embargo, requieren alta inversión inicial. Pero a largo plazo son más económicas.",
+                comparacion: "Los adversativos contrastan ideas, mientras que los aditivos las suman"
+              }
+            ],
+            consejos: [
+              "No repitas el mismo conector; varía para enriquecer tu texto",
+              "Usa conectores formales en textos académicos (ya que, no obstante)",
+              "En la PAES, identifica primero la relación lógica entre ideas",
+              "No abuses: solo usa conectores cuando sea necesario para claridad"
+            ],
+            materia: "lenguaje"
+          }
+        },
+
+        // 4. VocabularyStrategySlide
+        {
+          tipo: "VocabularyStrategySlide",
+          orden: 4,
+          props: {
+            titulo: "Cómo Aprender Vocabulario Académico",
+            palabra: "fotosíntesis",
+            estrategias: [
+              {
+                icono: "🌳",
+                nombre: "Análisis Etimológico",
+                descripcion: "Descompón la palabra en sus partes (prefijos, raíz, sufijos) para entender su significado",
+                pasos: [
+                  "Identifica el prefijo (parte al inicio)",
+                  "Encuentra la raíz (parte central con el significado base)",
+                  "Reconoce el sufijo (parte final que modifica)",
+                  "Busca el origen del idioma (griego, latín, etc.)",
+                  "Conecta el significado de cada parte para deducir el total"
+                ],
+                ejemplo: "foto-síntesis: 'foto' (luz) + 'síntesis' (unión/construcción) = proceso que usa luz para construir/sintetizar"
+              },
+              {
+                icono: "📚",
+                nombre: "Uso en Contexto",
+                descripcion: "Aprende palabras viendo cómo se usan en oraciones reales",
+                pasos: [
+                  "Lee la oración completa donde aparece la palabra",
+                  "Identifica el tema general del texto",
+                  "Observa qué palabras la rodean",
+                  "Deduce el significado por el contexto",
+                  "Crea tus propias oraciones usando la palabra"
+                ],
+                ejemplo: "La fotosíntesis permite a las plantas convertir luz en energía. (Contexto: biología, plantas, energía)"
+              },
+              {
+                icono: "👨‍👩‍👧‍👦",
+                nombre: "Familias de Palabras",
+                descripcion: "Agrupa palabras relacionadas por su raíz común",
+                pasos: [
+                  "Identifica la raíz compartida",
+                  "Busca otras palabras con la misma raíz",
+                  "Nota cómo cambia el significado con prefijos/sufijos",
+                  "Agrúpalas mentalmente",
+                  "Practica usando varias de la familia en un párrafo"
+                ],
+                ejemplo: "Familia 'foto': fotografía, fotógrafo, fotogénico, fotofobia, fotocopia, fotoperiodo"
+              },
+              {
+                icono: "🔄",
+                nombre: "Sinónimos y Antónimos",
+                descripcion: "Relaciona palabras nuevas con palabras que ya conoces",
+                pasos: [
+                  "Busca palabras con significado similar (sinónimos)",
+                  "Busca palabras con significado opuesto (antónimos)",
+                  "Nota los matices de diferencia entre sinónimos",
+                  "Practica reemplazando en oraciones",
+                  "Crea mapas mentales de relaciones"
+                ],
+                ejemplo: "Sinónimos de 'fotosíntesis': metabolismo vegetal, proceso autótrofo"
+              }
+            ],
+            familiasPalabras: [
+              {
+                raiz: "foto- (luz)",
+                significado: "Relacionado con luz",
+                palabras: [
+                  { palabra: "fotografía", definicion: "Arte de capturar imágenes con luz" },
+                  { palabra: "fotofobia", definicion: "Miedo o rechazo a la luz" },
+                  { palabra: "fotocopia", definicion: "Copia hecha con proceso lumínico" }
+                ]
+              },
+              {
+                raiz: "-síntesis (unión)",
+                significado: "Acción de unir o construir",
+                palabras: [
+                  { palabra: "síntesis", definicion: "Resumen o unión de ideas" },
+                  { palabra: "sintetizar", definicion: "Resumir o construir algo" },
+                  { palabra: "sintético", definicion: "Que es resultado de síntesis" }
+                ]
+              }
+            ],
+            consejos: [
+              "Aprende 5-10 palabras nuevas por semana, no más",
+              "Úsalas activamente: escribe oraciones con ellas",
+              "Lee variedad de textos para ver palabras en contexto",
+              "Lleva un cuaderno o app de vocabulario",
+              "Repasa palabras antiguas regularmente",
+              "Asocia palabras con imágenes mentales"
+            ],
+            materia: "lenguaje"
+          }
+        },
+
+        // 5. TextTypesGuideSlide
+        {
+          tipo: "TextTypesGuideSlide",
+          orden: 5,
+          props: {
+            titulo: "Tipos de Texto: Estructura y Propósito",
+            tipos: [
+              {
+                nombre: "Narrativo",
+                tipo: "narrativo",
+                definicion: "Texto que cuenta una historia real o ficticia con personajes, tiempo y espacio",
+                proposito: "Relatar hechos o acontecimientos en secuencia cronológica",
+                contexto: "Cuentos, novelas, noticias, biografías, crónicas",
+                estructura: [
+                  {
+                    nombre: "Inicio/Presentación",
+                    descripcion: "Introduce personajes, lugar y situación inicial",
+                    ejemplo: "Había una vez en un pequeño pueblo..."
+                  },
+                  {
+                    nombre: "Desarrollo/Nudo",
+                    descripcion: "Presenta el conflicto o problema principal",
+                    ejemplo: "Pero un día, todo cambió cuando..."
+                  },
+                  {
+                    nombre: "Clímax",
+                    descripcion: "Momento de mayor tensión o punto crítico",
+                    ejemplo: "En ese instante decisivo..."
+                  },
+                  {
+                    nombre: "Desenlace/Final",
+                    descripcion: "Resolución del conflicto y cierre",
+                    ejemplo: "Finalmente, todo volvió a la normalidad..."
+                  }
+                ],
+                caracteristicas: [
+                  "Uso de verbos en pasado (pretérito)",
+                  "Descripción de personajes y ambientes",
+                  "Diálogos (si aplica)",
+                  "Secuencia temporal clara",
+                  "Narrador (1ª o 3ª persona)"
+                ],
+                ejemploTexto: "El coronel Aureliano Buendía recordaba aquella tarde cuando su padre lo llevó a conocer el hielo. Macondo era entonces una aldea de veinte casas...",
+                conectoresTipicos: ["luego", "después", "entonces", "mientras", "cuando", "finalmente"]
+              },
+              {
+                nombre: "Argumentativo",
+                tipo: "argumentativo",
+                definicion: "Texto que defiende una postura con argumentos y evidencias",
+                proposito: "Convencer al lector sobre un punto de vista o tesis",
+                contexto: "Ensayos, artículos de opinión, debates, editoriales",
+                estructura: [
+                  {
+                    nombre: "Introducción",
+                    descripcion: "Presenta el tema y contexto general",
+                    ejemplo: "El cambio climático es uno de los mayores desafíos..."
+                  },
+                  {
+                    nombre: "Tesis",
+                    descripcion: "Plantea la postura o afirmación principal",
+                    ejemplo: "Es urgente implementar energías renovables porque..."
+                  },
+                  {
+                    nombre: "Argumentos",
+                    descripcion: "Presenta razones y evidencias que apoyan la tesis",
+                    ejemplo: "En primer lugar, los datos muestran que... Además, estudios recientes..."
+                  },
+                  {
+                    nombre: "Contraargumentos",
+                    descripcion: "Reconoce y refuta posiciones contrarias",
+                    ejemplo: "Aunque algunos sostienen que es costoso, la realidad es..."
+                  },
+                  {
+                    nombre: "Conclusión",
+                    descripcion: "Refuerza la tesis y cierra el texto",
+                    ejemplo: "Por lo tanto, es evidente que debemos actuar ahora..."
+                  }
+                ],
+                caracteristicas: [
+                  "Uso de conectores lógicos (por lo tanto, sin embargo)",
+                  "Evidencias y datos concretos",
+                  "Lenguaje objetivo y formal",
+                  "Estructura lógica y coherente",
+                  "Citas de autoridad (opcional)"
+                ],
+                ejemploTexto: "Las energías renovables son fundamentales para el futuro. Primero, reducen emisiones contaminantes. Además, generan empleos verdes. Por lo tanto, debemos invertir en ellas.",
+                conectoresTipicos: ["por lo tanto", "sin embargo", "además", "en consecuencia", "no obstante"]
+              }
+            ],
+            comparacionTabla: true,
+            materia: "lenguaje"
+          }
+        },
+
+        // 6. LiteraryDeviceGuideSlide
+        {
+          tipo: "LiteraryDeviceGuideSlide",
+          orden: 6,
+          props: {
+            titulo: "Recursos Literarios Fundamentales",
+            dispositivos: [
+              {
+                nombre: "metáfora",
+                definicion: "Comparación implícita entre dos elementos sin usar 'como'. Se dice que algo ES otra cosa.",
+                efecto: "Crea imágenes poéticas potentes y permite expresar ideas abstractas de forma concreta y memorable.",
+                ejemplos: [
+                  {
+                    texto: "Tus ojos son dos luceros",
+                    autor: "Popular",
+                    analisis: "Se comparan los ojos con luceros (estrellas brillantes) sin usar 'como'"
+                  },
+                  {
+                    texto: "La vida es un teatro",
+                    autor: "Calderón de la Barca",
+                    analisis: "Compara la vida con el teatro, sugiriendo que representamos roles"
+                  },
+                  {
+                    texto: "El tiempo es oro",
+                    autor: "Refrán popular",
+                    analisis: "Expresa el valor del tiempo comparándolo con oro"
+                  }
+                ],
+                comoIdentificar: [
+                  "Busca el verbo 'ser' o 'estar' que equipara dos cosas diferentes",
+                  "Identifica comparaciones que NO usan 'como' o 'cual'",
+                  "Nota cuando algo se describe como si fuera literalmente otra cosa",
+                  "Pregúntate: ¿Realmente es eso, o es una comparación poética?"
+                ],
+                cuandoUsar: "La metáfora es perfecta para expresar emociones, crear atmósfera poética, o explicar conceptos abstractos usando imágenes concretas. Muy común en poesía y narrativa lírica."
+              },
+              {
+                nombre: "símil",
+                definicion: "Comparación explícita entre dos elementos USANDO 'como', 'cual', 'parece', 'semejante a'.",
+                efecto: "Ayuda al lector a visualizar mejor mediante comparaciones claras y directas. Más explícito que la metáfora.",
+                ejemplos: [
+                  {
+                    texto: "Tus dientes son como perlas",
+                    autor: "Popular",
+                    analisis: "Compara dientes con perlas usando 'como', destacando su blancura"
+                  },
+                  {
+                    texto: "Cual gusano que va de sí tejiendo su cárcel",
+                    autor: "San Juan de la Cruz",
+                    analisis: "Usa 'cual' para comparar la situación con un gusano"
+                  },
+                  {
+                    texto: "El tiempo vuela como una flecha",
+                    autor: "Proverbio",
+                    analisis: "Compara la rapidez del tiempo con una flecha"
+                  }
+                ],
+                comoIdentificar: [
+                  "Busca las palabras clave: 'como', 'cual', 'parece', 'semejante a'",
+                  "Identifica dos elementos que se comparan",
+                  "Nota la característica compartida entre ambos",
+                  "Verifica que la comparación sea explícita, no sugerida"
+                ],
+                variantes: [
+                  {
+                    tipo: "Símil simple",
+                    descripcion: "Comparación directa de una característica",
+                    ejemplo: "Rápido como el viento"
+                  },
+                  {
+                    tipo: "Símil extendido",
+                    descripcion: "Comparación desarrollada en varias líneas",
+                    ejemplo: "Como el río que fluye sin cesar hacia el mar..."
+                  }
+                ],
+                cuandoUsar: "El símil es ideal cuando quieres que el lector entienda claramente la comparación. Muy útil en textos descriptivos y educativos, además de poesía."
+              },
+              {
+                nombre: "personificación",
+                definicion: "Atribuir características humanas (acciones, sentimientos) a objetos, animales o conceptos abstractos.",
+                efecto: "Hace más vívido y cercano el texto, permitiendo que elementos no humanos cobren vida y generen empatía.",
+                ejemplos: [
+                  {
+                    texto: "El viento susurra secretos entre los árboles",
+                    autor: "Popular",
+                    analisis: "El viento recibe la acción humana de 'susurrar'"
+                  },
+                  {
+                    texto: "La muerte sonrió",
+                    autor: "Común en literatura",
+                    analisis: "La muerte (concepto abstracto) recibe la acción humana de sonreír"
+                  },
+                  {
+                    texto: "Las estrellas nos miran desde el cielo",
+                    autor: "Popular",
+                    analisis: "Las estrellas reciben la capacidad humana de mirar"
+                  }
+                ],
+                comoIdentificar: [
+                  "Busca verbos de acción humana aplicados a no-humanos",
+                  "Identifica sentimientos o pensamientos en objetos/animales",
+                  "Nota cuando algo inanimado 'hace' algo propio de personas",
+                  "Pregúntate: ¿Puede X realmente hacer eso, o es lenguaje figurado?"
+                ],
+                cuandoUsar: "La personificación es excelente para crear atmósferas mágicas, explicar fenómenos naturales de forma poética, o hacer más accesibles conceptos abstractos. Muy usada en fábulas y poesía."
+              }
+            ],
+            comparaciones: [
+              {
+                dispositivos: ["metáfora", "símil"],
+                diferencia: "Ambos comparan dos elementos, pero el símil usa 'como/cual' explícitamente, mientras la metáfora dice que algo ES otra cosa.",
+                ejemplos: [
+                  { tipo: "Metáfora", ejemplo: "Sus ojos son esmeraldas" },
+                  { tipo: "Símil", ejemplo: "Sus ojos son como esmeraldas" }
+                ]
+              }
+            ],
+            materia: "lenguaje"
+          }
+        }
+      ]
     }
   };
 
@@ -1084,6 +1664,17 @@ Conclusión: Por lo tanto, es urgente educar sobre uso responsable de redes soci
             "
           >
             🎓 Teach→Practice
+          </button>
+
+          <!-- SHOWCASE: Solo componentes TEACH -->
+          <button
+            onclick={() => leccionActiva = 'teach-showcase'}
+            class="
+              px-4 py-2 rounded-xl font-semibold transition-all duration-300 border-2
+              {leccionActiva === 'teach-showcase' ? 'bg-gradient-to-r from-blue-600 via-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/50 border-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 border-cyan-500/30'}
+            "
+          >
+            📚 Solo TEACH
           </button>
         </div>
       </div>
