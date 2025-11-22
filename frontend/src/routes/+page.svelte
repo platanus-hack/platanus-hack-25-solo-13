@@ -8,6 +8,8 @@
   import SubjectDetailModal from '$lib/components/dashboard/SubjectDetailModal.svelte';
   import SubNavBar from '$lib/components/dashboard/SubNavBar.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
+  import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
+  import MissionBoardModal from '$lib/components/dashboard/MissionBoardModal.svelte';
 
   // State
   let activeTab = $state('daily');
@@ -17,6 +19,8 @@
   let isModalOpen = $state(false);
   let selectedDomainLevel = $state(0);
   let isProgressPanelOpen = $state(false);
+  let isActivityModalOpen = $state(false);
+  let isMissionBoardOpen = $state(false);
 
   // Get authenticated user
   const student = {
@@ -31,9 +35,24 @@
   const initials = auth.user?.name ? auth.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'ST';
 
   const resources = [
-    { name: 'Mastery Tokens', value: 420, icon: '🪙', color: 'text-amber-400' },
-    { name: 'Skill Points', value: 15, icon: '⚡', color: 'text-focus-400' },
-    { name: 'PAES Ready', value: '63%', icon: '📈', color: 'text-emerald-400' }
+    {
+      name: 'Mastery Tokens',
+      value: 420,
+      iconType: 'currency',
+      color: 'text-white'
+    },
+    {
+      name: 'Skill Points',
+      value: 15,
+      iconType: 'bolt',
+      color: 'text-white'
+    },
+    {
+      name: 'PAES Ready',
+      value: '63%',
+      iconType: 'chart',
+      color: 'text-white'
+    }
   ];
 
   const missions = {
@@ -53,6 +72,11 @@
       { id: 7, subject: 'Challenge', title: 'Speed Math: Mental Calculation', time: '5 min', reward: '10 SP', state: 'start' }
     ]
   };
+
+  // Count active missions (not done)
+  const activeMissionCount = $derived(
+    Object.values(missions).flat().filter(m => m.state !== 'done').length
+  );
 
   const shortcuts = [
     { id: 1, label: 'My Curriculum', desc: 'Map of units', icon: '🗺️' },
@@ -184,24 +208,32 @@
 
       <!-- Resources -->
       <div class="flex items-center gap-3">
+        <!-- Streak Badge -->
         <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas-900/50 border border-slate-800">
-          <span class="text-sm">🔥</span>
-          <span class="text-xs font-bold text-orange-400">{student.streak} Days</span>
+          <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2.25c-2.429 0-4.817.178-7.152.521C2.87 3.061 1.5 4.795 1.5 6.741v6.018c0 1.946 1.37 3.68 3.348 3.97.877.129 1.761.234 2.652.316V21a.75.75 0 001.28.53l4.184-4.183a.39.39 0 01.266-.112c2.006-.05 3.982-.22 5.922-.506 1.978-.29 3.348-2.023 3.348-3.97V6.741c0-1.947-1.37-3.68-3.348-3.97A49.145 49.145 0 0012 2.25zM8.25 8.625a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zm2.625 1.125a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" />
+          </svg>
+          <span class="text-xs font-bold text-white">{student.streak}</span>
         </div>
+
         {#each resources as res}
           <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas-900/50 border border-slate-800">
-            <span class="text-sm">{res.icon}</span>
+            {#if res.iconType === 'currency'}
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            {:else if res.iconType === 'bolt'}
+              <svg class="w-4 h-4 text-focus-500" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.25 5.337c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.036 1.007-1.875 2.25-1.875S15 2.34 15 3.375c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959 0 .332.278.598.61.578 1.91-.114 3.79-.342 5.632-.676a.75.75 0 01.878.645 49.17 49.17 0 01.376 5.452.657.657 0 01-.66.664c-.354 0-.675-.186-.958-.401a1.647 1.647 0 00-1.003-.349c-1.035 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401.31 0 .557.262.534.571a48.774 48.774 0 01-.595 4.845.75.75 0 01-.61.61c-1.82.317-3.673.533-5.555.642a.58.58 0 01-.611-.581c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.035-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959a.641.641 0 01-.658.643 49.118 49.118 0 01-4.708-.36.75.75 0 01-.645-.878c.293-1.614.504-3.257.629-4.924A.53.53 0 005.337 15c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401a.656.656 0 00.659-.663 47.703 47.703 0 00-.31-4.82.75.75 0 01.83-.832c1.343.155 2.703.254 4.077.294a.64.64 0 00.657-.642z" />
+              </svg>
+            {:else if res.iconType === 'chart'}
+              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            {/if}
             <span class="text-xs font-bold {res.color}">{res.value}</span>
           </div>
         {/each}
-        <button
-          onclick={() => auth.logout()}
-          class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-red-900/50 border border-red-800 hover:bg-red-800/50 transition-colors"
-          title="Logout"
-        >
-          <span class="text-sm">🚪</span>
-          <span class="text-xs font-bold text-red-400">Logout</span>
-        </button>
       </div>
     </div>
   </header>
@@ -209,7 +241,12 @@
   <!-- Sub Navigation Bar -->
   <SubNavBar
     onProgressClick={() => isProgressPanelOpen = true}
+    onActivityClick={() => isActivityModalOpen = true}
+    onMissionsClick={() => isMissionBoardOpen = true}
+    onLogoutClick={() => auth.logout()}
     subjectCount={subjects.length}
+    activityCount={activities.length}
+    missionCount={activeMissionCount}
   />
 
   <!-- Main -->
@@ -230,53 +267,12 @@
 
       <!-- Shortcuts -->
       <section>
-        <h3 class="text-lg font-semibold text-white mb-4">Quick Access</h3>
         <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
           {#each shortcuts as item}
             <button class="shortcut-tile p-4 rounded-2xl bg-canvas-900/40 border border-slate-800/60 hover:bg-canvas-800 transition-all text-center">
               <div class="text-3xl mb-2">{item.icon}</div>
               <div class="font-medium text-slate-200 text-sm">{item.label}</div>
               <div class="text-[10px] text-slate-500 mt-1">{item.desc}</div>
-            </button>
-          {/each}
-        </div>
-      </section>
-
-      <!-- Missions -->
-      <section class="bg-canvas-900/20 rounded-2xl border border-canvas-800/50 p-6">
-        <div class="flex flex-wrap items-center justify-between mb-6 gap-4">
-          <h3 class="text-xl font-display font-bold text-white">⚔️ Mission Board</h3>
-          <div class="flex p-1 rounded-xl bg-canvas-950 border border-canvas-800">
-            {#each ['daily', 'weekly', 'story', 'side'] as tab}
-              <button
-                class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all capitalize {activeTab === tab ? 'bg-lumera-600 text-white' : 'text-slate-500 hover:text-slate-300'}"
-                onclick={() => activeTab = tab}
-              >
-                {tab}
-              </button>
-            {/each}
-          </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-4">
-          {#each missions[activeTab] as mission}
-            <button class="mission-card p-4 rounded-xl bg-canvas-900/50 border border-canvas-800/80 hover:border-lumera-500/40 transition-colors flex items-center gap-4 w-full text-left">
-              <div class="h-12 w-12 rounded-lg {getSubjectColor(mission.subject)} flex items-center justify-center text-lg font-bold">
-                {mission.subject[0]}
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 mb-0.5">
-                  <span class="text-xs font-bold text-slate-500 uppercase">{mission.subject}</span>
-                  {#if mission.state === 'done'}
-                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/20">Done</span>
-                  {/if}
-                </div>
-                <h4 class="font-medium text-slate-200">{mission.title}</h4>
-                <div class="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                  <span>⏱️ {mission.time}</span>
-                  <span class="text-achievement-400">🎁 {mission.reward}</span>
-                </div>
-              </div>
             </button>
           {/each}
         </div>
@@ -301,21 +297,6 @@
         </div>
       </section>
 
-      <!-- Activity -->
-      <section class="bg-canvas-900/30 rounded-2xl p-6 border border-slate-800/30">
-        <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Recent Activity</h3>
-        <div class="space-y-4">
-          {#each activities as act}
-            <div class="flex gap-3">
-              <div class="text-lg">{act.icon}</div>
-              <div>
-                <p class="text-sm text-slate-300">{act.text}</p>
-                <span class="text-xs text-slate-600">{act.time}</span>
-              </div>
-            </div>
-          {/each}
-        </div>
-      </section>
     </div>
   </main>
 </div>
@@ -335,4 +316,20 @@
   {subjects}
   {userProfile}
   onSubjectClick={openSubjectDetail}
+/>
+
+<!-- Recent Activity Modal -->
+<RecentActivityModal
+  {activities}
+  isOpen={isActivityModalOpen}
+  onClose={() => isActivityModalOpen = false}
+/>
+
+<!-- Mission Board Modal -->
+<MissionBoardModal
+  {missions}
+  {activeTab}
+  onTabChange={(tab) => activeTab = tab}
+  isOpen={isMissionBoardOpen}
+  onClose={() => isMissionBoardOpen = false}
 />

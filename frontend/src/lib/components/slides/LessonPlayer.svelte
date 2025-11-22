@@ -1,10 +1,25 @@
 <script>
   import { onMount } from 'svelte';
-  import ConceptIntroSlide from './ConceptIntroSlide.svelte';
-  import ComparisonTableSlide from './ComparisonTableSlide.svelte';
-  import StepByStepProcessSlide from './StepByStepProcessSlide.svelte';
-  import FormulaExplorerSlide from './FormulaExplorerSlide.svelte';
-  import PracticePromptSlide from './PracticePromptSlide.svelte';
+  // Componentes Generales
+  import ConceptIntroSlide from './general/ConceptIntroSlide.svelte';
+  import ComparisonTableSlide from './general/ComparisonTableSlide.svelte';
+  import StepByStepProcessSlide from './general/StepByStepProcessSlide.svelte';
+  import FormulaExplorerSlide from './general/FormulaExplorerSlide.svelte';
+  import PracticePromptSlide from './general/PracticePromptSlide.svelte';
+  // Componentes de Enseñanza (TEACH)
+  import ReadingStrategySlide from './teach/ReadingStrategySlide.svelte';
+  import GrammarConceptSlide from './teach/GrammarConceptSlide.svelte';
+  import ConnectorsGuideSlide from './teach/ConnectorsGuideSlide.svelte';
+  import VocabularyStrategySlide from './teach/VocabularyStrategySlide.svelte';
+  import TextTypesGuideSlide from './teach/TextTypesGuideSlide.svelte';
+  import LiteraryDeviceGuideSlide from './teach/LiteraryDeviceGuideSlide.svelte';
+  // Componentes de Práctica (PRACTICE)
+  import TextAnnotationSlide from './practice/TextAnnotationSlide.svelte';
+  import SentenceBuilderSlide from './practice/SentenceBuilderSlide.svelte';
+  import VocabularyContextSlide from './practice/VocabularyContextSlide.svelte';
+  import TextStructureSlide from './practice/TextStructureSlide.svelte';
+  import ConnectorsWorkshopSlide from './practice/ConnectorsWorkshopSlide.svelte';
+  import LiteraryDevicesExplorerSlide from './practice/LiteraryDevicesExplorerSlide.svelte';
 
   // Props
   let {
@@ -31,11 +46,26 @@
 
   // Mapa de componentes
   const componentMap = {
+    // Generales
     'ConceptIntroSlide': ConceptIntroSlide,
     'ComparisonTableSlide': ComparisonTableSlide,
     'StepByStepProcessSlide': StepByStepProcessSlide,
     'FormulaExplorerSlide': FormulaExplorerSlide,
-    'PracticePromptSlide': PracticePromptSlide
+    'PracticePromptSlide': PracticePromptSlide,
+    // Enseñanza (TEACH)
+    'ReadingStrategySlide': ReadingStrategySlide,
+    'GrammarConceptSlide': GrammarConceptSlide,
+    'ConnectorsGuideSlide': ConnectorsGuideSlide,
+    'VocabularyStrategySlide': VocabularyStrategySlide,
+    'TextTypesGuideSlide': TextTypesGuideSlide,
+    'LiteraryDeviceGuideSlide': LiteraryDeviceGuideSlide,
+    // Práctica (PRACTICE)
+    'TextAnnotationSlide': TextAnnotationSlide,
+    'SentenceBuilderSlide': SentenceBuilderSlide,
+    'VocabularyContextSlide': VocabularyContextSlide,
+    'TextStructureSlide': TextStructureSlide,
+    'ConnectorsWorkshopSlide': ConnectorsWorkshopSlide,
+    'LiteraryDevicesExplorerSlide': LiteraryDevicesExplorerSlide
   };
 
   function handleNext() {

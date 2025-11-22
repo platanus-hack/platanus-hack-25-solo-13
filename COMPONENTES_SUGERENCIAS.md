@@ -155,6 +155,58 @@ Slides interactivos configurables vía JSON para enseñar conceptos (NO WYSIWYG)
 - **Tiempo estimado:** N/A
 - **Archivo:** `LessonPlayer.svelte`
 
+### B.1 📖 SLIDES DE LENGUAJE (Nuevos) - ✅ IMPLEMENTADO
+
+Componentes especializados para comprensión lectora, gramática, vocabulario y literatura:
+
+### 17. ✅ TextAnnotationSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Analizar
+- **Variantes:** 4 colores de highlighting (idea principal, evidencia, vocabulario, preguntas), sticky notes
+- **Uso:** Comprensión lectora activa, análisis de textos narrativos/argumentativos/expositivos
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 5-10 minutos
+- **Archivo:** `TextAnnotationSlide.svelte`
+
+### 18. ✅ SentenceBuilderSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Aplicar
+- **Variantes:** 3 modos (libre, guiado, transformación), drag & drop palabras color-coded
+- **Uso:** Gramática, sintaxis, estructura de oraciones
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 4-7 minutos
+- **Archivo:** `SentenceBuilderSlide.svelte`
+
+### 19. ✅ VocabularyContextSlide - IMPLEMENTADO
+- **Bloom levels:** Recordar, Comprender, Aplicar
+- **Variantes:** Etimología (prefijo + raíz + sufijo), 3-5 contextos con carousel, sinónimos/antónimos
+- **Uso:** Vocabulario académico, etimología, familias de palabras
+- **Interactividad:** Alta
+- **Tiempo estimado:** 3-5 minutos
+- **Archivo:** `VocabularyContextSlide.svelte`
+
+### 20. ✅ TextStructureSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Analizar
+- **Variantes:** 4 tipos (narrativo, argumentativo, expositivo, instructivo), toggle estructura/texto
+- **Uso:** Tipos de texto PAES, estructura argumentativa, análisis de géneros
+- **Interactividad:** Alta
+- **Tiempo estimado:** 4-6 minutos
+- **Archivo:** `TextStructureSlide.svelte`
+
+### 21. ✅ ConnectorsWorkshopSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Aplicar
+- **Variantes:** 5 categorías (causales, adversativos, consecutivos, aditivos, temporales), fill-in-the-blank
+- **Uso:** Coherencia textual, conectores lógicos, escritura académica
+- **Interactividad:** Alta
+- **Tiempo estimado:** 5-8 minutos
+- **Archivo:** `ConnectorsWorkshopSlide.svelte`
+
+### 22. ✅ LiteraryDevicesExplorerSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Analizar, Evaluar
+- **Variantes:** 8 dispositivos (metáfora, símil, personificación, etc.), frecuency chart, análisis crítico
+- **Uso:** Literatura, análisis literario, recursos estilísticos
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 6-10 minutos
+- **Archivo:** `LiteraryDevicesExplorerSlide.svelte`
+
 **Demo disponible:** `http://localhost:5173/lessons-demo`
 
 ---
@@ -605,13 +657,13 @@ Los componentes deben:
 
 ## 📊 ESTADO ACTUAL DE IMPLEMENTACIÓN
 
-**Componentes Implementados:** 15/50 (30%)
+**Componentes Implementados:** 21/50 (42%)
 - ✅ A. Core Learning: 9/10 componentes
   - Multiple Choice, True/False, Open-Ended, Fill Blanks, Drag & Drop, Sequencing
   - Compare & Contrast, Criteria Evaluation, Concept Map Builder
-- ✅ B. Lesson Slides: 6/6 componentes (100% COMPLETADO)
-  - ConceptIntroSlide, ComparisonTableSlide, StepByStepProcessSlide
-  - FormulaExplorerSlide, PracticePromptSlide, LessonPlayer
+- ✅ B. Lesson Slides: 12/12 componentes (100% COMPLETADO)
+  - **Generales:** ConceptIntroSlide, ComparisonTableSlide, StepByStepProcessSlide, FormulaExplorerSlide, PracticePromptSlide, LessonPlayer
+  - **Lenguaje:** TextAnnotationSlide, SentenceBuilderSlide, VocabularyContextSlide, TextStructureSlide, ConnectorsWorkshopSlide, LiteraryDevicesExplorerSlide
 - ⏳ C. Content Delivery: 0/6 componentes
 - ⏳ D. Assessment & Feedback: 0/5 componentes
 - ⏳ E. Progress & Gamification: 0/8 componentes
@@ -629,11 +681,12 @@ Los componentes deben:
 
 ---
 
-**Versión:** 3.0
+**Versión:** 3.1
 **Última actualización:** 2025-11-22
 **Autor:** Claude (Anthropic) + Johnny (Lumera Team)
 
 **Changelog:**
-- v3.0: Implementados 6 componentes de slides educativos (ConceptIntro, ComparisonTable, StepByStep, FormulaExplorer, PracticePrompt, LessonPlayer) con demo en `/lessons-demo`
+- v3.1: Implementados 6 componentes de slides especializados en Lenguaje (TextAnnotation, SentenceBuilder, VocabularyContext, TextStructure, ConnectorsWorkshop, LiteraryDevicesExplorer) con 3 lecciones demo chilenas (García Márquez, gramática, escritura argumentativa). Cobertura Lenguaje: ~80-85%
+- v3.0: Implementados 6 componentes de slides educativos generales (ConceptIntro, ComparisonTable, StepByStep, FormulaExplorer, PracticePrompt, LessonPlayer) con demo en `/lessons-demo`
 - v2.0: Fase 1 completada con 9 componentes de actividades (agregados CompareContrast, CriteriaEvaluation, ConceptMapBuilder para completar cobertura de Bloom)
 - v1.0: Documentación inicial de 44 componentes sugeridos
