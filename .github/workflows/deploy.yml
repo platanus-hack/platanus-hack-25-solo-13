@@ -21,6 +21,5 @@ name: Deploy to VPS
               git pull origin main
               sudo docker compose up -d --build --force-recreate
               sleep 10
-              sudo docker exec -T lumera_backend migrate -path=/app/migrations
-  -database='postgres://admin:hackathon2025@postgres:5432/hackathon?sslmode=disable' up
+              sudo docker exec -T lumera_backend migrate -path=/app/migrations-database='postgres://admin:hackathon2025@postgres:5432/hackathon?sslmode=disable' up
               sudo docker image prune -f
