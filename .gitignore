@@ -48,7 +48,13 @@ lerna-debug.log*
 .DS_Store
 Thumbs.db
 
-# Data Loader
-/data-loader/.env
-/data-loader/output/*.json
-!/data-loader/output/.gitkeep
+# Tools (generators and loaders)
+/tools/data-loader/.env
+/tools/data-loader/output/*.json
+!/tools/data-loader/output/.gitkeep
+/tools/avatar-generator/.env
+/tools/avatar-generator/output/*.json
+!/tools/avatar-generator/output/.gitkeep
+/tools/question-generator/.env
+/tools/question-generator/output/*.json
+!/tools/question-generator/output/.gitkeep
