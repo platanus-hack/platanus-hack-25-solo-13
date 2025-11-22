@@ -92,7 +92,7 @@
 </svelte:head>
 
 <main class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center p-4">
-  <div class="auth-card bg-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-md w-full border border-white/10">
+  <div class="auth-card bg-canvas-900/40 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-md w-full border border-white/10">
     <!-- Logo/Title -->
     <div class="text-center mb-8">
       <h1 class="text-4xl font-bold text-white mb-2">Lumera App</h1>
@@ -100,15 +100,15 @@
     </div>
 
     <!-- Tabs -->
-    <div class="flex p-1 mb-6 rounded-xl bg-slate-950/50 border border-slate-800">
+    <div class="flex p-1 mb-6 rounded-xl bg-canvas-950/50 border border-slate-800">
       <button
-        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all {activeTab === 'login' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50' : 'text-slate-400 hover:text-white'}"
+        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all {activeTab === 'login' ? 'bg-lumera-600 text-white shadow-lg shadow-indigo-900/50' : 'text-slate-400 hover:text-white'}"
         onclick={() => { activeTab = 'login'; clearError(); }}
       >
         Login
       </button>
       <button
-        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all {activeTab === 'register' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50' : 'text-slate-400 hover:text-white'}"
+        class="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all {activeTab === 'register' ? 'bg-lumera-600 text-white shadow-lg shadow-indigo-900/50' : 'text-slate-400 hover:text-white'}"
         onclick={() => { activeTab = 'register'; clearError(); }}
       >
         Register
@@ -133,7 +133,7 @@
             bind:value={loginEmail}
             oninput={clearError}
             disabled={isLoading}
-            class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+            class="w-full px-4 py-3 bg-canvas-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
             placeholder="your@email.com"
             required
           />
@@ -147,7 +147,7 @@
             bind:value={loginPassword}
             oninput={clearError}
             disabled={isLoading}
-            class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+            class="w-full px-4 py-3 bg-canvas-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
             placeholder="••••••••"
             required
           />
@@ -156,7 +156,7 @@
         <button
           type="submit"
           disabled={isLoading}
-          class="w-full mt-6 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-indigo-500/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          class="w-full mt-6 px-6 py-3 bg-lumera-600 hover:bg-lumera-700 disabled:bg-lumera-600/50 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-indigo-500/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {#if isLoading}
             <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -182,7 +182,7 @@
             bind:value={registerName}
             oninput={clearError}
             disabled={isLoading}
-            class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+            class="w-full px-4 py-3 bg-canvas-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
             placeholder="Your Name"
             required
           />
@@ -196,7 +196,7 @@
             bind:value={registerEmail}
             oninput={clearError}
             disabled={isLoading}
-            class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+            class="w-full px-4 py-3 bg-canvas-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
             placeholder="your@email.com"
             required
           />
@@ -210,7 +210,7 @@
             bind:value={registerPassword}
             oninput={clearError}
             disabled={isLoading}
-            class="w-full px-4 py-3 bg-slate-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
+            class="w-full px-4 py-3 bg-canvas-950/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all disabled:opacity-50"
             placeholder="••••••••"
             minlength="6"
             required
@@ -221,7 +221,7 @@
         <button
           type="submit"
           disabled={isLoading}
-          class="w-full mt-6 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-600/50 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-indigo-500/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          class="w-full mt-6 px-6 py-3 bg-lumera-600 hover:bg-lumera-700 disabled:bg-lumera-600/50 text-white font-semibold rounded-lg transition-all shadow-lg hover:shadow-indigo-500/50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {#if isLoading}
             <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

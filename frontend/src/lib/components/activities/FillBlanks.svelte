@@ -2,11 +2,41 @@
   import { onMount } from 'svelte';
   import gsap from 'gsap';
 
+  /**
+   * FillBlanks - Componente de completar espacios en blanco
+   *
+   * ⚠️ FORMATO CRÍTICO: El texto debe usar ___N___ (tres underscores + número + tres underscores)
+   *
+   * @example
+   * // ✅ CORRECTO
+   * <FillBlanks
+   *   text="La capital es ___1___ y la moneda es ___2___."
+   *   blanks={[
+   *     { id: 1, answer: "Santiago", caseSensitive: false },
+   *     { id: 2, answer: "Peso", caseSensitive: false }
+   *   ]}
+   * />
+   *
+   * // ❌ INCORRECTO - NO usar estos formatos:
+   * text="La capital es _____ y la moneda es _____."    // Sin números
+   * text="La capital es __1__ y la moneda es __2__."   // Solo 2 underscores
+   */
+
   // Props
   let {
-    // Data del componente
-    // El texto usa ___1___, ___2___, etc. para marcar blanks
+    /**
+     * Texto con marcadores de blanks en formato ___N___
+     * Regex interna: /___(\d+)___/g
+     * @type {string}
+     * @required
+     */
     text = "La capital de Chile es ___1___ y está ubicada en la región ___2___.",
+
+    /**
+     * Definición de respuestas correctas para cada blank
+     * @type {Array<{id: number, answer: string, caseSensitive: boolean}>}
+     * @required
+     */
     blanks = [
       { id: 1, answer: "Santiago", caseSensitive: false },
       { id: 2, answer: "Metropolitana", caseSensitive: false }
@@ -23,26 +53,47 @@
     allowMultipleAttempts = true,
     showHints = false,
 
-    // Callbacks
+    /**
+     * Callback cuando el usuario envía respuesta
+     * @type {function|null}
+     * @param {Object} data - Datos de la respuesta
+     * @param {number|null} data.oaId - ID del objetivo de aprendizaje
+     * @param {string} data.bloomLevel - Nivel de Bloom
+     * @param {string} data.materia - Materia/asignatura
+     * @param {Record<number, string>} data.userAnswers - Todas las respuestas del usuario
+     * @param {Record<number, boolean>} data.results - Resultado por cada blank (true = correcto)
+     * @param {number} data.score - Porcentaje de acierto (0-100)
+     * @param {boolean} data.isCorrect - Si todas las respuestas son correctas
+     * @param {number} data.attemptCount - Número de intentos
+     * @param {string} data.timestamp - ISO timestamp
+     */
     onAnswer = null,
+
+    /**
+     * Callback cuando se completa correctamente (todas correctas)
+     * @type {function|null}
+     * @param {Object} data - Datos de completación
+     * @param {number|null} data.oaId - ID del objetivo de aprendizaje
+     * @param {string} data.bloomLevel - Nivel de Bloom
+     * @param {number} data.score - Siempre 100
+     * @param {number} data.attempts - Número de intentos hasta completar
+     */
     onComplete = null
   } = $props();
 
   // Estados locales
-  let userAnswers = $state({});
   let hasSubmitted = $state(false);
   let results = $state({});
   let attemptCount = $state(0);
   let containerRef = $state(null);
 
   // Inicializar respuestas vacías
-  $effect(() => {
-    const initialAnswers = {};
-    blanks.forEach(blank => {
-      initialAnswers[blank.id] = "";
-    });
-    userAnswers = initialAnswers;
-  });
+  let userAnswers = $state(
+    blanks.reduce((acc, blank) => {
+      acc[blank.id] = "";
+      return acc;
+    }, {})
+  );
 
   // Colores por nivel de Bloom
   const bloomColors = {
@@ -158,6 +209,7 @@
         userAnswers: userAnswers,
         results: results,
         score: score,
+        isCorrect: allCorrect,
         attemptCount: attemptCount,
         timestamp: new Date().toISOString()
       });
@@ -212,7 +264,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-3xl mx-auto p-6 bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-3xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -241,7 +293,7 @@
 
   <!-- Banco de palabras (opcional) -->
   {#if showWordBank && wordBank.length > 0}
-    <div class="mb-6 p-4 bg-slate-900/50 rounded-xl border border-slate-700">
+    <div class="mb-6 p-4 bg-canvas-900/50 rounded-xl border border-slate-700">
       <p class="text-xs font-semibold text-slate-400 mb-3 uppercase">Banco de palabras:</p>
       <div class="flex flex-wrap gap-2">
         {#each wordBank as word}
@@ -250,7 +302,7 @@
             disabled={hasSubmitted && !allowMultipleAttempts}
             class="
               px-4 py-2 rounded-lg
-              bg-slate-800 text-white border border-slate-600
+              bg-canvas-800 text-white border border-slate-600
               hover:bg-slate-700 hover:border-cyan-500
               transition-all duration-300
               disabled:opacity-50 disabled:cursor-not-allowed
@@ -264,7 +316,7 @@
   {/if}
 
   <!-- Texto con blanks -->
-  <div class="mb-6 p-6 bg-slate-900/50 rounded-xl border border-slate-700">
+  <div class="mb-6 p-6 bg-canvas-900/50 rounded-xl border border-slate-700">
     <div class="text-lg text-white leading-relaxed flex flex-wrap items-center gap-2">
       {#each textParts as part}
         {#if part.type === 'text'}
@@ -281,7 +333,7 @@
               placeholder="..."
               class="
                 inline-block px-3 py-1 min-w-[120px]
-                bg-slate-800 border-2 rounded-lg
+                bg-canvas-800 border-2 rounded-lg
                 text-white text-center
                 focus:outline-none focus:ring-2 focus:ring-cyan-500
                 disabled:cursor-not-allowed
@@ -326,7 +378,7 @@
         disabled={Object.values(userAnswers).some(ans => !ans || ans.trim() === "")}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-cyan-500 to-blue-500
+          bg-gradient-to-r from-focus-500 to-blue-500
           text-white
           transition-all duration-300
           hover:shadow-lg hover:shadow-cyan-500/50
@@ -340,7 +392,7 @@
         onclick={handleTryAgain}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-slate-800 text-white
+          bg-canvas-800 text-white
           border border-slate-700
           transition-all duration-300
           hover:bg-slate-700
@@ -363,9 +415,9 @@
             {allCorrect ? '¡Perfecto! Todas las respuestas son correctas' : `${Object.values(results).filter(r => r).length} de ${blanks.length} correctas`}
           </p>
           <div class="flex items-center gap-3 mt-2">
-            <div class="flex-1 bg-slate-900 rounded-full h-2 overflow-hidden">
+            <div class="flex-1 bg-canvas-900 rounded-full h-2 overflow-hidden">
               <div
-                class="h-full bg-gradient-to-r from-cyan-500 to-green-500 transition-all duration-500"
+                class="h-full bg-gradient-to-r from-focus-500 to-green-500 transition-all duration-500"
                 style="width: {score}%"
               ></div>
             </div>

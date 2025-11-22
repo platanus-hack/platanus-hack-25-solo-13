@@ -26,15 +26,15 @@
       type="button"
       class="flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-300 min-w-[80px] {
         isSelected
-          ? 'bg-indigo-600/20 border-indigo-500 scale-110 shadow-lg shadow-indigo-500/30'
-          : 'bg-slate-900/40 border-slate-700 hover:border-slate-600 hover:bg-slate-800/60 hover:scale-105'
+          ? 'bg-lumera-600/20 border-lumera-500 scale-110 shadow-lg shadow-indigo-500/30'
+          : 'bg-canvas-900/40 border-slate-700 hover:border-slate-600 hover:bg-canvas-800/60 hover:scale-105'
       }"
       onclick={() => handleSelect(option.value)}
     >
       <div class="text-4xl mb-2 transition-transform duration-300 {isSelected ? 'scale-125' : ''}">
         {option.emoji}
       </div>
-      <div class="text-xs font-medium text-center {isSelected ? 'text-indigo-300' : 'text-slate-400'}">
+      <div class="text-xs font-medium text-center {isSelected ? 'text-lumera-300' : 'text-slate-400'}">
         {option.label}
       </div>
     </button>

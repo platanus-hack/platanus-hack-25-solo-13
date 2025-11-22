@@ -151,3 +151,57 @@ export async function hasProfile(userId: number): Promise<boolean> {
   const result = await getProfile(userId);
   return result.success && result.profile !== undefined;
 }
+
+/**
+ * Update profile_data with merge (preserves existing data)
+ * This is a safer alternative to updateProfile when you only want to update specific fields
+ */
+export async function mergeProfileData(userId: number, newProfileData: Partial<ProfileData>): Promise<{ success: boolean; profile?: StudentProfile; error?: string }> {
+  try {
+    // First get the current profile
+    const currentProfile = await getProfile(userId);
+    if (!currentProfile.success || !currentProfile.profile) {
+      return { success: false, error: currentProfile.error || 'Profile not found' };
+    }
+
+    // Deep merge profile_data
+    const mergedProfileData = {
+      ...currentProfile.profile.profile_data,
+      ...newProfileData
+    };
+
+    // Merge nested objects specifically
+    if (newProfileData.conocimiento_previo) {
+      mergedProfileData.conocimiento_previo = {
+        ...currentProfile.profile.profile_data.conocimiento_previo,
+        ...newProfileData.conocimiento_previo
+      };
+    }
+
+    if (newProfileData.preferencias_aprendizaje) {
+      mergedProfileData.preferencias_aprendizaje = {
+        ...currentProfile.profile.profile_data.preferencias_aprendizaje,
+        ...newProfileData.preferencias_aprendizaje
+      };
+    }
+
+    if (newProfileData.motivacion) {
+      mergedProfileData.motivacion = {
+        ...currentProfile.profile.profile_data.motivacion,
+        ...newProfileData.motivacion
+      };
+    }
+
+    if (newProfileData.intereses_personales) {
+      mergedProfileData.intereses_personales = {
+        ...currentProfile.profile.profile_data.intereses_personales,
+        ...newProfileData.intereses_personales
+      };
+    }
+
+    // Update with merged data
+    return await updateProfile(userId, { profile_data: mergedProfileData });
+  } catch (error) {
+    return { success: false, error: 'Error merging profile data' };
+  }
+}

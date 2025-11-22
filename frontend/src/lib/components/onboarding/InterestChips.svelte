@@ -38,17 +38,17 @@
       type="button"
       class="p-4 rounded-xl border-2 transition-all duration-300 text-center {
         isSelected
-          ? 'bg-indigo-600/20 border-indigo-500 scale-105 shadow-lg shadow-indigo-500/20'
-          : 'bg-slate-900/40 border-slate-700 hover:border-slate-600 hover:bg-slate-800/60'
+          ? 'bg-lumera-600/20 border-lumera-500 scale-105 shadow-lg shadow-indigo-500/20'
+          : 'bg-canvas-900/40 border-slate-700 hover:border-slate-600 hover:bg-canvas-800/60'
       }"
       onclick={() => toggleInterest(interest.id)}
     >
       <div class="text-3xl mb-2">{interest.icon}</div>
-      <div class="text-sm font-medium {isSelected ? 'text-indigo-300' : 'text-slate-300'}">
+      <div class="text-sm font-medium {isSelected ? 'text-lumera-300' : 'text-slate-300'}">
         {interest.label}
       </div>
       {#if isSelected}
-        <div class="mt-1 text-xs text-indigo-400">✓ Seleccionado</div>
+        <div class="mt-1 text-xs text-lumera-400">✓ Seleccionado</div>
       {/if}
     </button>
   {/each}

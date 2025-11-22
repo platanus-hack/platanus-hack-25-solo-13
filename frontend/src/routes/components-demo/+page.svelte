@@ -6,6 +6,9 @@
   import FillBlanks from '$lib/components/activities/FillBlanks.svelte';
   import DragDropMatching from '$lib/components/activities/DragDropMatching.svelte';
   import Sequencing from '$lib/components/activities/Sequencing.svelte';
+  import CompareContrast from '$lib/components/activities/CompareContrast.svelte';
+  import CriteriaEvaluation from '$lib/components/activities/CriteriaEvaluation.svelte';
+  import ConceptMapBuilder from '$lib/components/activities/ConceptMapBuilder.svelte';
 
   // Estado para navegación de componentes
   let selectedComponent = $state('all');
@@ -34,7 +37,10 @@
     { id: 'open-ended', name: 'Open-Ended', icon: '📝' },
     { id: 'fill-blanks', name: 'Fill Blanks', icon: '___' },
     { id: 'drag-drop', name: 'Drag & Drop', icon: '🔗' },
-    { id: 'sequencing', name: 'Sequencing', icon: '🔢' }
+    { id: 'sequencing', name: 'Sequencing', icon: '🔢' },
+    { id: 'compare-contrast', name: 'Compare & Contrast', icon: '⚖️' },
+    { id: 'criteria-evaluation', name: 'Criteria Evaluation', icon: '⭐' },
+    { id: 'concept-map', name: 'Concept Map', icon: '🗺️' }
   ];
 </script>
 
@@ -53,7 +59,7 @@
         </span>
       </h1>
       <p class="text-slate-400 text-lg mb-6">
-        6 componentes de actividades alineados con la taxonomía de Bloom
+        9 componentes de actividades alineados con la taxonomía de Bloom
       </p>
 
       <!-- Component Selector -->
@@ -62,7 +68,7 @@
           onclick={() => selectedComponent = 'all'}
           class="
             px-4 py-2 rounded-xl font-semibold transition-all duration-300
-            {selectedComponent === 'all' ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}
+            {selectedComponent === 'all' ? 'bg-gradient-to-r from-focus-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50' : 'bg-canvas-800 text-slate-400 hover:bg-slate-700'}
           "
         >
           Todos
@@ -72,7 +78,7 @@
             onclick={() => selectedComponent = component.id}
             class="
               px-4 py-2 rounded-xl font-semibold transition-all duration-300
-              {selectedComponent === component.id ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}
+              {selectedComponent === component.id ? 'bg-gradient-to-r from-focus-500 to-blue-500 text-white shadow-lg shadow-cyan-500/50' : 'bg-canvas-800 text-slate-400 hover:bg-slate-700'}
             "
           >
             {component.icon} {component.name}
@@ -405,6 +411,155 @@
         </div>
       </section>
     {/if}
+
+    <!-- 7. Compare & Contrast -->
+    {#if selectedComponent === 'all' || selectedComponent === 'compare-contrast'}
+      <section class="scroll-mt-8" id="compare-contrast">
+        <div class="mb-6">
+          <h2 class="text-3xl font-bold text-white mb-2">
+            ⚖️ Compare & Contrast
+          </h2>
+          <p class="text-slate-400">
+            Analiza similitudes y diferencias entre dos conceptos. Nivel Bloom: Analizar.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+          <!-- Ejemplo: Biología -->
+          <div>
+            <p class="text-xs font-semibold text-slate-500 mb-3 uppercase">Ejemplo: Células Animales vs Vegetales</p>
+            <CompareContrast
+              title="Compara las características de células animales y vegetales"
+              itemA={{ name: "Célula Animal", color: "cyan" }}
+              itemB={{ name: "Célula Vegetal", color: "green" }}
+              characteristics={[
+                { id: 1, text: "Tiene pared celular", correctColumn: "B" },
+                { id: 2, text: "Tiene membrana celular", correctColumn: "both" },
+                { id: 3, text: "Tiene cloroplastos", correctColumn: "B" },
+                { id: 4, text: "Tiene centriolos bien definidos", correctColumn: "A" },
+                { id: 5, text: "Tiene mitocondrias", correctColumn: "both" },
+                { id: 6, text: "Tiene vacuola central grande", correctColumn: "B" },
+                { id: 7, text: "Tiene núcleo", correctColumn: "both" },
+                { id: 8, text: "Forma irregular o redondeada", correctColumn: "A" }
+              ]}
+              bloomLevel="analizar"
+              materia="biología"
+              oaId={701}
+              allowMultipleAttempts={true}
+              onAnswer={(data) => handleAnswer('CompareContrast', data)}
+              onComplete={(data) => handleComplete('CompareContrast', data)}
+            />
+          </div>
+        </div>
+      </section>
+    {/if}
+
+    <!-- 8. Criteria Evaluation -->
+    {#if selectedComponent === 'all' || selectedComponent === 'criteria-evaluation'}
+      <section class="scroll-mt-8" id="criteria-evaluation">
+        <div class="mb-6">
+          <h2 class="text-3xl font-bold text-white mb-2">
+            ⭐ Criteria Evaluation
+          </h2>
+          <p class="text-slate-400">
+            Evalúa la calidad de un argumento o fuente usando criterios específicos. Nivel Bloom: Evaluar.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+          <!-- Ejemplo: Historia -->
+          <div>
+            <p class="text-xs font-semibold text-slate-500 mb-3 uppercase">Ejemplo: Evaluación de Fuente Histórica</p>
+            <CriteriaEvaluation
+              title="Evalúa la calidad de este documento histórico"
+              subject="Artículo: 'Consecuencias de la Guerra del Pacífico'"
+              description="Un artículo de periódico de 1885 sobre el impacto económico de la guerra."
+              content="La victoria en la Guerra del Pacífico (1879-1884) transformó a Chile en una potencia regional. La anexión de las provincias de Tarapacá y Antofagasta proporcionó acceso exclusivo a ricos yacimientos de salitre y cobre. Los ingresos del salitre representaron hasta el 50% del presupuesto nacional en las décadas siguientes, financiando modernización de puertos, ferrocarriles y educación pública."
+              criteria={[
+                {
+                  id: 1,
+                  name: "Evidencia histórica",
+                  description: "¿Menciona datos, fechas y hechos específicos verificables?",
+                  expectedRating: 5,
+                  weight: 30
+                },
+                {
+                  id: 2,
+                  name: "Objetividad",
+                  description: "¿Presenta los hechos sin sesgo nacionalista evidente?",
+                  expectedRating: 3,
+                  weight: 25
+                },
+                {
+                  id: 3,
+                  name: "Contexto temporal",
+                  description: "¿Es apropiado considerando que fue escrito solo 1 año después de la guerra?",
+                  expectedRating: 4,
+                  weight: 20
+                },
+                {
+                  id: 4,
+                  name: "Análisis económico",
+                  description: "¿Proporciona datos económicos concretos y medibles?",
+                  expectedRating: 4,
+                  weight: 25
+                }
+              ]}
+              bloomLevel="evaluar"
+              materia="historia"
+              oaId={801}
+              showExpectedRatings={true}
+              allowMultipleAttempts={true}
+              onAnswer={(data) => handleAnswer('CriteriaEvaluation', data)}
+              onComplete={(data) => handleComplete('CriteriaEvaluation', data)}
+            />
+          </div>
+        </div>
+      </section>
+    {/if}
+
+    <!-- 9. Concept Map Builder -->
+    {#if selectedComponent === 'all' || selectedComponent === 'concept-map'}
+      <section class="scroll-mt-8" id="concept-map">
+        <div class="mb-6">
+          <h2 class="text-3xl font-bold text-white mb-2">
+            🗺️ Concept Map Builder
+          </h2>
+          <p class="text-slate-400">
+            Crea un mapa conceptual conectando ideas y relaciones. Nivel Bloom: Crear.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+          <!-- Ejemplo: Biología -->
+          <div>
+            <p class="text-xs font-semibold text-slate-500 mb-3 uppercase">Ejemplo: Fotosíntesis</p>
+            <ConceptMapBuilder
+              title="Crea un mapa conceptual"
+              topic="Fotosíntesis"
+              instructions="Identifica los conceptos clave del proceso de fotosíntesis y cómo se relacionan entre sí"
+              requiredConcepts={["Fotosíntesis", "Luz Solar", "Clorofila", "Agua", "CO2", "Oxígeno", "Glucosa"]}
+              suggestedConnections={[
+                { from: "Luz Solar", to: "Fotosíntesis", label: "inicia" },
+                { from: "Clorofila", to: "Fotosíntesis", label: "captura luz para" },
+                { from: "Agua", to: "Fotosíntesis", label: "es reactivo de" },
+                { from: "CO2", to: "Fotosíntesis", label: "es reactivo de" },
+                { from: "Fotosíntesis", to: "Oxígeno", label: "produce" },
+                { from: "Fotosíntesis", to: "Glucosa", label: "produce" }
+              ]}
+              minConcepts={5}
+              minConnections={4}
+              bloomLevel="crear"
+              materia="biología"
+              oaId={901}
+              allowMultipleAttempts={true}
+              onAnswer={(data) => handleAnswer('ConceptMapBuilder', data)}
+              onComplete={(data) => handleComplete('ConceptMapBuilder', data)}
+            />
+          </div>
+        </div>
+      </section>
+    {/if}
   </main>
 
   <!-- Footer -->
@@ -414,11 +569,11 @@
         Componentes educativos desarrollados para Lumera - Platanus Hack 25
       </p>
       <div class="flex justify-center gap-6 text-xs text-slate-600">
-        <a href="/components-demo" class="hover:text-cyan-400 transition-colors">Demo</a>
+        <a href="/components-demo" class="hover:text-focus-400 transition-colors">Demo</a>
         <span>|</span>
-        <a href="https://github.com" class="hover:text-cyan-400 transition-colors">GitHub</a>
+        <a href="https://github.com" class="hover:text-focus-400 transition-colors">GitHub</a>
         <span>|</span>
-        <a href="/docs" class="hover:text-cyan-400 transition-colors">Documentación</a>
+        <a href="/docs" class="hover:text-focus-400 transition-colors">Documentación</a>
       </div>
     </div>
   </footer>

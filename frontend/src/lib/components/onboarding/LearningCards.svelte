@@ -48,8 +48,8 @@
       type="button"
       class="p-6 rounded-2xl border-2 transition-all duration-300 text-left relative overflow-hidden {
         selected
-          ? 'bg-gradient-to-br from-indigo-600/30 to-cyan-600/20 border-indigo-500 scale-105 shadow-xl shadow-indigo-500/30'
-          : 'bg-slate-900/40 border-slate-700 hover:border-slate-600 hover:bg-slate-800/60 hover:scale-102'
+          ? 'bg-gradient-to-br from-indigo-600/30 to-focus-600/20 border-lumera-500 scale-105 shadow-xl shadow-indigo-500/30'
+          : 'bg-canvas-900/40 border-slate-700 hover:border-slate-600 hover:bg-canvas-800/60 hover:scale-102'
       }"
       onclick={() => handleSelect(card.id)}
     >
@@ -63,7 +63,7 @@
       <h3 class="text-lg font-semibold mb-2 {selected ? 'text-indigo-200' : 'text-slate-200'}">
         {card.label}
       </h3>
-      <p class="text-sm {selected ? 'text-indigo-300/80' : 'text-slate-400'}">
+      <p class="text-sm {selected ? 'text-lumera-300/80' : 'text-slate-400'}">
         {card.description}
       </p>
     </button>

@@ -171,7 +171,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-3xl mx-auto p-6 bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-3xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -198,14 +198,14 @@
 
     <!-- Rúbrica (si existe) -->
     {#if rubric && rubric.length > 0}
-      <details class="mt-4 p-4 bg-slate-900/50 rounded-xl border border-slate-700">
-        <summary class="text-sm font-semibold text-cyan-400 cursor-pointer">
+      <details class="mt-4 p-4 bg-canvas-900/50 rounded-xl border border-slate-700">
+        <summary class="text-sm font-semibold text-focus-400 cursor-pointer">
           Ver criterios de evaluación
         </summary>
         <ul class="mt-3 space-y-2">
           {#each rubric as criterion}
             <li class="flex items-start gap-2">
-              <span class="text-cyan-400 mt-1">•</span>
+              <span class="text-focus-400 mt-1">•</span>
               <span class="text-slate-300 text-sm">{criterion}</span>
             </li>
           {/each}
@@ -223,7 +223,7 @@
       {placeholder}
       class="
         w-full p-4 rounded-xl
-        bg-slate-900 border-2
+        bg-canvas-900 border-2
         {isOverMaxWords ? 'border-red-500' : isUnderMinWords ? 'border-yellow-500' : 'border-slate-700'}
         text-white placeholder-slate-500
         focus:outline-none focus:ring-2 focus:ring-cyan-500
@@ -288,7 +288,7 @@
         disabled={!canSubmit}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-cyan-500 to-blue-500
+          bg-gradient-to-r from-focus-500 to-blue-500
           text-white
           transition-all duration-300
           hover:shadow-lg hover:shadow-cyan-500/50
@@ -302,7 +302,7 @@
         onclick={handleEdit}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-slate-800 text-white
+          bg-canvas-800 text-white
           border border-slate-700
           transition-all duration-300
           hover:bg-slate-700
@@ -317,14 +317,14 @@
   {#if hasSubmitted && enableAiFeedback}
     <div class="mt-6">
       {#if isGeneratingFeedback}
-        <div class="p-6 bg-slate-900/50 rounded-2xl border border-slate-700">
+        <div class="p-6 bg-canvas-900/50 rounded-2xl border border-slate-700">
           <div class="flex items-center gap-3">
             <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-cyan-500"></div>
             <span class="text-slate-400">Generando retroalimentación con IA...</span>
           </div>
         </div>
       {:else if aiFeedback}
-        <div class="p-6 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl border border-cyan-500/50">
+        <div class="p-6 bg-gradient-to-br from-focus-500/10 to-blue-500/10 rounded-2xl border border-cyan-500/50">
           <div class="flex items-center gap-2 mb-4">
             <span class="text-2xl">🤖</span>
             <h4 class="text-lg font-semibold text-white">Retroalimentación IA</h4>
@@ -356,7 +356,7 @@
 
           <div class="mt-4 pt-4 border-t border-cyan-500/30">
             <p class="text-sm text-slate-400">
-              Puntuación estimada: <strong class="text-cyan-400 text-lg">{aiFeedback.score}/100</strong>
+              Puntuación estimada: <strong class="text-focus-400 text-lg">{aiFeedback.score}/100</strong>
             </p>
           </div>
         </div>

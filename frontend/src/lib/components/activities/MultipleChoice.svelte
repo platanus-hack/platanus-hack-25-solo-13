@@ -2,15 +2,47 @@
   import { onMount } from 'svelte';
   import gsap from 'gsap';
 
+  /**
+   * MultipleChoice - Componente de selección múltiple
+   *
+   * ⚠️ IMPORTANTE: Los IDs de opciones DEBEN comenzar desde 0
+   *
+   * @example
+   * // ✅ CORRECTO
+   * <MultipleChoice
+   *   question="¿Cuál es la capital de Chile?"
+   *   options={[
+   *     { id: 0, text: "Santiago", isCorrect: true },
+   *     { id: 1, text: "Valparaíso", isCorrect: false }
+   *   ]}
+   * />
+   *
+   * // ❌ INCORRECTO - No empezar desde 1
+   * options={[
+   *   { id: 1, text: "Santiago", isCorrect: true },  // Bug: primer elemento no seleccionable
+   *   { id: 2, text: "Valparaíso", isCorrect: false }
+   * ]}
+   */
+
   // Props
   let {
-    // Data del componente
+    /**
+     * Texto de la pregunta
+     * @type {string}
+     * @required
+     */
     question = "¿Cuál es la capital de Chile?",
+
+    /**
+     * Opciones de respuesta. IDs DEBEN empezar desde 0
+     * @type {Array<{id: number, text: string, isCorrect: boolean}>}
+     * @required
+     */
     options = [
-      { id: 1, text: "Santiago", isCorrect: true },
-      { id: 2, text: "Valparaíso", isCorrect: false },
-      { id: 3, text: "Concepción", isCorrect: false },
-      { id: 4, text: "La Serena", isCorrect: false }
+      { id: 0, text: "Santiago", isCorrect: true },
+      { id: 1, text: "Valparaíso", isCorrect: false },
+      { id: 2, text: "Concepción", isCorrect: false },
+      { id: 3, text: "La Serena", isCorrect: false }
     ],
 
     // Metadata educativa
@@ -23,8 +55,29 @@
     allowMultipleAttempts = false,
     showCorrectAnswer = true,
 
-    // Callbacks para integración backend
+    /**
+     * Callback cuando el usuario envía respuesta
+     * @type {function|null}
+     * @param {Object} data - Datos de la respuesta
+     * @param {number|null} data.oaId - ID del objetivo de aprendizaje
+     * @param {string} data.bloomLevel - Nivel de Bloom
+     * @param {string} data.materia - Materia/asignatura
+     * @param {number} data.userAnswer - ID de la opción seleccionada
+     * @param {boolean} data.isCorrect - Si la respuesta es correcta
+     * @param {number} data.attemptCount - Número de intentos
+     * @param {string} data.timestamp - ISO timestamp
+     */
     onAnswer = null,
+
+    /**
+     * Callback cuando se completa correctamente
+     * @type {function|null}
+     * @param {Object} data - Datos de completación
+     * @param {number|null} data.oaId - ID del objetivo de aprendizaje
+     * @param {string} data.bloomLevel - Nivel de Bloom
+     * @param {number} data.score - Siempre 1 para single choice
+     * @param {number} data.attempts - Número de intentos hasta completar
+     */
     onComplete = null
   } = $props();
 
@@ -67,7 +120,7 @@
   }
 
   function handleSubmit() {
-    if (!selectedOption) return;
+    if (selectedOption === null || selectedOption === undefined) return;
 
     hasSubmitted = true;
     attemptCount++;
@@ -133,7 +186,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-2xl mx-auto p-6 bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-2xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header con Bloom Level Badge -->
   <div class="flex items-center justify-between mb-6">
@@ -173,7 +226,7 @@
           {isSelected && !hasSubmitted ? 'border-cyan-500 bg-cyan-500/10' : 'border-slate-700'}
           {showAsCorrect ? 'border-green-500 bg-green-500/20' : ''}
           {showAsIncorrect ? 'border-red-500 bg-red-500/20' : ''}
-          {!hasSubmitted ? 'hover:border-slate-600 hover:bg-slate-900/50 cursor-pointer' : ''}
+          {!hasSubmitted ? 'hover:border-slate-600 hover:bg-canvas-900/50 cursor-pointer' : ''}
           {hasSubmitted && !allowMultipleAttempts ? 'cursor-not-allowed opacity-75' : ''}
         "
       >
@@ -200,10 +253,10 @@
     {#if !hasSubmitted}
       <button
         onclick={handleSubmit}
-        disabled={!selectedOption}
+        disabled={selectedOption === null || selectedOption === undefined}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-cyan-500 to-blue-500
+          bg-gradient-to-r from-focus-500 to-blue-500
           text-white
           transition-all duration-300
           hover:shadow-lg hover:shadow-cyan-500/50
@@ -217,7 +270,7 @@
         onclick={handleTryAgain}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-slate-800 text-white
+          bg-canvas-800 text-white
           border border-slate-700
           transition-all duration-300
           hover:bg-slate-700

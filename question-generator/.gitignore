@@ -1,0 +1,30 @@
+# Environment variables
+.env
+
+# Go binaries
+question-generator
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output coverage files
+*.out
+
+# Dependency directories
+vendor/
+
+# Output files
+output/*.json
+!output/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

@@ -13,9 +13,9 @@
 <div class="w-full mb-8">
   <!-- Progress bar -->
   <div class="relative mb-4">
-    <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+    <div class="h-2 bg-canvas-800 rounded-full overflow-hidden">
       <div
-        class="h-full bg-gradient-to-r from-indigo-500 to-cyan-500 transition-all duration-500 ease-out"
+        class="h-full bg-gradient-to-r from-indigo-500 to-focus-500 transition-all duration-500 ease-out"
         style="width: {percentage}%"
       ></div>
     </div>
@@ -32,9 +32,9 @@
       <div class="flex flex-col items-center flex-1">
         <div
           class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mb-2 transition-all duration-300 {
-            isCompleted ? 'bg-gradient-to-br from-indigo-500 to-cyan-500 text-white scale-100' :
-            isCurrent ? 'bg-indigo-600 text-white scale-110 shadow-lg shadow-indigo-500/50' :
-            'bg-slate-800 text-slate-500 scale-90'
+            isCompleted ? 'bg-gradient-to-br from-indigo-500 to-focus-500 text-white scale-100' :
+            isCurrent ? 'bg-lumera-600 text-white scale-110 shadow-lg shadow-indigo-500/50' :
+            'bg-canvas-800 text-slate-500 scale-90'
           }"
         >
           {#if isCompleted}
@@ -44,7 +44,7 @@
           {/if}
         </div>
 
-        <span class="text-xs text-center {isCurrent ? 'text-indigo-300 font-semibold' : 'text-slate-500'} hidden sm:block">
+        <span class="text-xs text-center {isCurrent ? 'text-lumera-300 font-semibold' : 'text-slate-500'} hidden sm:block">
           {stepTitle}
         </span>
       </div>

@@ -9,47 +9,69 @@
 
 Componentes que los estudiantes usan directamente para aprender y practicar:
 
-### 1. Multiple Choice Question (MCQ)
+### 1. ✅ Multiple Choice Question (MCQ) - IMPLEMENTADO
 - **Bloom levels:** Recordar, Comprender, Aplicar
 - **Variantes:** 2-5 opciones, con/sin imágenes, feedback inmediato
 - **Uso:** Evaluaciones rápidas, PAES simulator
 - **Interactividad:** Alta
 - **Tiempo estimado:** 1-3 minutos
+- **Archivo:** `MultipleChoice.svelte`
 
-### 2. True/False Statement
+### 2. ✅ True/False Statement - IMPLEMENTADO
 - **Bloom levels:** Recordar, Comprender
 - **Variantes:** Simple, con justificación opcional
 - **Uso:** Daily missions, warm-ups, diagnósticos rápidos
 - **Interactividad:** Media
 - **Tiempo estimado:** 30 segundos - 1 minuto
+- **Archivo:** `TrueFalse.svelte`
 
-### 3. Open-Ended Text Response
+### 3. ✅ Open-Ended Text Response - IMPLEMENTADO
 - **Bloom levels:** Analizar, Evaluar, Crear
 - **Variantes:** Con/sin límite de palabras, puede incluir AI feedback
 - **Uso:** Ensayos cortos, reflexiones, análisis crítico
 - **Interactividad:** Alta
 - **Tiempo estimado:** 5-15 minutos
+- **Archivo:** `OpenEndedResponse.svelte`
 
-### 4. Fill in the Blanks / Cloze Test
+### 4. ✅ Fill in the Blanks / Cloze Test - IMPLEMENTADO
 - **Bloom levels:** Recordar, Comprender
 - **Variantes:** Palabras únicas, frases, selección de banco de palabras
 - **Uso:** Vocabulario, fórmulas matemáticas, conceptos clave
 - **Interactividad:** Media-Alta
 - **Tiempo estimado:** 2-5 minutos
+- **Archivo:** `FillBlanks.svelte`
 
-### 5. Drag & Drop Matching
+### 5. ✅ Drag & Drop Matching - IMPLEMENTADO
 - **Bloom levels:** Comprender, Aplicar
 - **Variantes:** Términos-definiciones, causas-efectos, imágenes-textos
 - **Uso:** Historia (eventos-fechas), Ciencias (conceptos-aplicaciones)
 - **Interactividad:** Muy Alta
 - **Tiempo estimado:** 3-7 minutos
+- **Archivo:** `DragDropMatching.svelte`
 
-### 6. Sequencing/Ordering
+### 6. ✅ Sequencing/Ordering - IMPLEMENTADO
 - **Bloom levels:** Comprender, Aplicar
 - **Variantes:** Ordenar pasos, eventos cronológicos, procesos lógicos
 - **Uso:** Historia (cronología), procedimientos científicos, algoritmos
 - **Interactividad:** Alta
 - **Tiempo estimado:** 2-5 minutos
+- **Archivo:** `Sequencing.svelte`
+
+### 6b. ✅ Compare & Contrast - IMPLEMENTADO (NUEVO)
+- **Bloom levels:** Analizar
+- **Variantes:** Tabla de 3 columnas (A | Ambos | B), drag & drop características
+- **Uso:** Análisis comparativo, pensamiento crítico, ciencias/historia
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 5-8 minutos
+- **Archivo:** `CompareContrast.svelte`
+
+### 6c. ✅ Criteria Evaluation - IMPLEMENTADO (NUEVO)
+- **Bloom levels:** Evaluar
+- **Variantes:** Rúbrica interactiva con escala de estrellas (1-5), evaluación ponderada
+- **Uso:** Evaluar argumentos, fuentes históricas, calidad de trabajos
+- **Interactividad:** Alta
+- **Tiempo estimado:** 5-10 minutos
+- **Archivo:** `CriteriaEvaluation.svelte`
 
 ### 7. Interactive Diagram/Labeling
 - **Bloom levels:** Recordar, Comprender, Aplicar
@@ -81,46 +103,103 @@ Componentes que los estudiantes usan directamente para aprender y practicar:
 
 ---
 
-## 📖 B. COMPONENTES DE CONTENIDO ENRIQUECIDO (Content Delivery)
+## 📊 B. COMPONENTES DE SLIDES EDUCATIVOS (Lesson Slides) - ✅ IMPLEMENTADO
+
+Slides interactivos configurables vía JSON para enseñar conceptos (NO WYSIWYG):
+
+### 11. ✅ ConceptIntroSlide - IMPLEMENTADO
+- **Bloom levels:** Recordar, Comprender
+- **Variantes:** Toggle simple/técnica, términos clave con tooltips, imagen de apoyo
+- **Uso:** Introducir conceptos nuevos, definiciones, terminología
+- **Interactividad:** Alta
+- **Tiempo estimado:** 2-4 minutos
+- **Archivo:** `ConceptIntroSlide.svelte`
+
+### 12. ✅ ComparisonTableSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Analizar
+- **Variantes:** 2-3 conceptos, filas expandibles, filtros similitudes/diferencias
+- **Uso:** Comparar conceptos (Mitosis vs Meiosis, Capitalismo vs Socialismo)
+- **Interactividad:** Alta
+- **Tiempo estimado:** 3-5 minutos
+- **Archivo:** `ComparisonTableSlide.svelte`
+
+### 13. ✅ StepByStepProcessSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Aplicar
+- **Variantes:** Navegación paso a paso, checkboxes de confirmación, progreso visual
+- **Uso:** Procesos secuenciales (resolver ecuación, método científico, experimentos)
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 5-8 minutos
+- **Archivo:** `StepByStepProcessSlide.svelte`
+
+### 14. ✅ FormulaExplorerSlide - IMPLEMENTADO
+- **Bloom levels:** Comprender, Aplicar
+- **Variantes:** Variables con tooltips, calculadora interactiva, ejemplo resuelto
+- **Uso:** Fórmulas matemáticas/físicas (E=mc², ecuaciones, leyes)
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 4-6 minutos
+- **Archivo:** `FormulaExplorerSlide.svelte`
+
+### 15. ✅ PracticePromptSlide - IMPLEMENTADO
+- **Bloom levels:** N/A (transición)
+- **Variantes:** Preview de ejercicios, mensaje motivacional, confetti animado
+- **Uso:** Transición entre teoría y práctica, motivar estudiante
+- **Interactividad:** Media
+- **Tiempo estimado:** 1-2 minutos
+- **Archivo:** `PracticePromptSlide.svelte`
+
+### 16. ✅ LessonPlayer - IMPLEMENTADO (Contenedor)
+- **Bloom levels:** N/A (sistema)
+- **Variantes:** Progress circular/lineal, tracking de tiempo, navegación por teclado
+- **Uso:** Reproductor de secuencias de slides configurables
+- **Interactividad:** Sistema
+- **Tiempo estimado:** N/A
+- **Archivo:** `LessonPlayer.svelte`
+
+**Demo disponible:** `http://localhost:5173/lessons-demo`
+
+---
+
+## 📖 C. COMPONENTES DE CONTENIDO ENRIQUECIDO (Content Delivery)
 
 Para presentar información de manera engaging:
 
-### 11. Reading Comprehension Passage
+### 17. Reading Comprehension Passage
 - **Bloom levels:** Comprender, Analizar
 - **Variantes:** Texto + preguntas integradas (MCQ, open-ended)
 - **Uso:** Lenguaje, Historia, comprensión lectora PAES
 - **Interactividad:** Media-Alta
 - **Tiempo estimado:** 10-20 minutos
 
-### 12. Interactive Video Player
+### 18. Interactive Video Player
 - **Bloom levels:** Todos
 - **Variantes:** Video con pausas programadas para preguntas, anotaciones
 - **Uso:** Clases grabadas, tutoriales, demostraciones científicas
 - **Interactividad:** Alta
 - **Tiempo estimado:** 5-30 minutos
 
-### 13. Audio Listening Exercise
+### 19. Audio Listening Exercise
 - **Bloom levels:** Comprender, Analizar
 - **Variantes:** Audio + transcripción opcional + preguntas
 - **Uso:** Lenguaje (comprensión auditiva), Historia (testimonios)
 - **Interactividad:** Media
 - **Tiempo estimado:** 5-15 minutos
 
-### 14. Interactive Timeline
+### 20. Interactive Timeline
 - **Bloom levels:** Recordar, Comprender
 - **Variantes:** Línea de tiempo clickeable con eventos expandibles
 - **Uso:** Historia, Literatura (biografías), procesos históricos
 - **Interactividad:** Alta
 - **Tiempo estimado:** 5-10 minutos
 
-### 15. Concept Map/Mind Map
-- **Bloom levels:** Comprender, Analizar
-- **Variantes:** Visualización de relaciones entre conceptos, nodos expandibles
-- **Uso:** Todas las materias (resúmenes, conexiones conceptuales)
-- **Interactividad:** Alta
-- **Tiempo estimado:** Variable
+### 21. ✅ Concept Map/Mind Map - IMPLEMENTADO
+- **Bloom levels:** Comprender, Analizar, Crear
+- **Variantes:** Constructor interactivo con nodos draggables, conexiones con etiquetas, canvas SVG
+- **Uso:** Todas las materias (resúmenes, conexiones conceptuales, síntesis de conocimiento)
+- **Interactividad:** Muy Alta
+- **Tiempo estimado:** 10-20 minutos
+- **Archivo:** `ConceptMapBuilder.svelte`
 
-### 16. Infographic Display
+### 22. Infographic Display
 - **Bloom levels:** Comprender
 - **Variantes:** Información visual con hotspots interactivos
 - **Uso:** Estadísticas, datos científicos, geografía
@@ -357,15 +436,18 @@ Para niveles altos de Bloom (Crear):
 
 ## 🎯 PRIORIZACIÓN RECOMENDADA
 
-### **Fase 1: Core Learning (MVP)** ⭐ PRIORIDAD ACTUAL
-1. Multiple Choice Question
-2. True/False Statement
-3. Open-Ended Text Response
-4. Fill in the Blanks
-5. Drag & Drop Matching
-6. Sequencing/Ordering
+### **Fase 1: Core Learning (MVP)** ✅ COMPLETADA
+1. ✅ Multiple Choice Question
+2. ✅ True/False Statement
+3. ✅ Open-Ended Text Response
+4. ✅ Fill in the Blanks
+5. ✅ Drag & Drop Matching
+6. ✅ Sequencing/Ordering
+7. ✅ Compare & Contrast (NUEVO)
+8. ✅ Criteria Evaluation (NUEVO)
+9. ✅ Concept Map Builder (NUEVO)
 
-**Justificación:** Estos 6 componentes cubren los primeros 4 niveles de Bloom (Recordar → Aplicar) y son esenciales para cualquier actividad de aprendizaje. Permiten diagnosticar, practicar y evaluar conocimientos básicos.
+**Justificación:** Estos 9 componentes cubren los 6 niveles completos de Bloom (Recordar → Crear). Los primeros 6 son esenciales para cualquier actividad de aprendizaje. Los 3 adicionales (Compare & Contrast, Criteria Evaluation, Concept Map Builder) completan la cobertura de niveles superiores de pensamiento (Analizar, Evaluar, Crear) con componentes especializados.
 
 ### **Fase 2: Gamification & Progress**
 7. Bloom Level Progress Wheel
@@ -512,14 +594,46 @@ Los componentes deben:
 ## 📚 PRÓXIMOS PASOS
 
 1. ✅ **Documentar todas las sugerencias** (este archivo)
-2. 🔄 **Implementar Fase 1** (6 componentes core)
-3. ⏳ **Crear página demo** para probar componentes
-4. ⏳ **Integrar con backend** Lumera
+2. ✅ **Implementar Fase 1** (9 componentes core con cobertura completa de Bloom)
+3. ✅ **Crear página demo** para probar componentes (`/components-demo`)
+4. ⏳ **Integrar con backend** Lumera (endpoints `/api/educational/progress` y `/api/educational/complete`)
 5. ⏳ **Testing con usuarios** reales
 6. ⏳ **Iterar y mejorar** según feedback
+7. ⏳ **Fase 2:** Implementar componentes de gamificación y progreso
 
 ---
 
-**Versión:** 1.0
+## 📊 ESTADO ACTUAL DE IMPLEMENTACIÓN
+
+**Componentes Implementados:** 15/50 (30%)
+- ✅ A. Core Learning: 9/10 componentes
+  - Multiple Choice, True/False, Open-Ended, Fill Blanks, Drag & Drop, Sequencing
+  - Compare & Contrast, Criteria Evaluation, Concept Map Builder
+- ✅ B. Lesson Slides: 6/6 componentes (100% COMPLETADO)
+  - ConceptIntroSlide, ComparisonTableSlide, StepByStepProcessSlide
+  - FormulaExplorerSlide, PracticePromptSlide, LessonPlayer
+- ⏳ C. Content Delivery: 0/6 componentes
+- ⏳ D. Assessment & Feedback: 0/5 componentes
+- ⏳ E. Progress & Gamification: 0/8 componentes
+- ⏳ F. AI-Powered: 0/6 componentes
+- ⏳ G. Social & Collaborative: 0/5 componentes
+- ⏳ H. Higher-Order Thinking: 0/4 componentes
+
+**Cobertura de Bloom:**
+- ✅ Recordar: 3 componentes especializados
+- ✅ Comprender: 5 componentes especializados
+- ✅ Aplicar: 3 componentes especializados
+- ✅ Analizar: 2 componentes (OpenEnded + CompareContrast)
+- ✅ Evaluar: 2 componentes (OpenEnded + CriteriaEvaluation)
+- ✅ Crear: 2 componentes (OpenEnded + ConceptMapBuilder)
+
+---
+
+**Versión:** 3.0
 **Última actualización:** 2025-11-22
 **Autor:** Claude (Anthropic) + Johnny (Lumera Team)
+
+**Changelog:**
+- v3.0: Implementados 6 componentes de slides educativos (ConceptIntro, ComparisonTable, StepByStep, FormulaExplorer, PracticePrompt, LessonPlayer) con demo en `/lessons-demo`
+- v2.0: Fase 1 completada con 9 componentes de actividades (agregados CompareContrast, CriteriaEvaluation, ConceptMapBuilder para completar cobertura de Bloom)
+- v1.0: Documentación inicial de 44 componentes sugeridos

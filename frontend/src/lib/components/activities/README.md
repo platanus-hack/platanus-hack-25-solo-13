@@ -2,7 +2,15 @@
 
 Esta carpeta contiene los componentes de actividades educativas para Lumera, alineados con la taxonomía de Bloom y diseñados para el aprendizaje adaptativo.
 
-## 📚 Componentes Disponibles
+## 📚 Componentes Disponibles (9 Total)
+
+### Cobertura por Nivel de Bloom:
+- **Recordar:** MultipleChoice, TrueFalse, FillBlanks (3 componentes)
+- **Comprender:** MultipleChoice, TrueFalse, FillBlanks, DragDropMatching, Sequencing (5 componentes)
+- **Aplicar:** MultipleChoice, DragDropMatching, Sequencing (3 componentes)
+- **Analizar:** OpenEndedResponse, CompareContrast (2 componentes)
+- **Evaluar:** OpenEndedResponse, CriteriaEvaluation (2 componentes)
+- **Crear:** OpenEndedResponse, ConceptMapBuilder (2 componentes)
 
 ### 1. MultipleChoice.svelte
 **Pregunta de selección múltiple**
@@ -30,6 +38,25 @@ Esta carpeta contiene los componentes de actividades educativas para Lumera, ali
 }
 ```
 
+**⚠️ IMPORTANTE: IDs de opciones**
+
+**SIEMPRE comienza los IDs desde 0**, ya que el componente usa índices de array:
+
+```javascript
+// ✅ CORRECTO
+options={[
+  { id: 0, text: "Santiago", isCorrect: true },
+  { id: 1, text: "Valparaíso", isCorrect: false },
+  { id: 2, text: "Concepción", isCorrect: false }
+]}
+
+// ❌ INCORRECTO - ¡No empieces desde 1!
+options={[
+  { id: 1, text: "Santiago", isCorrect: true },  // Bug: primer elemento no será seleccionable
+  { id: 2, text: "Valparaíso", isCorrect: false }
+]}
+```
+
 **Ejemplo de uso:**
 ```svelte
 <script>
@@ -49,9 +76,9 @@ Esta carpeta contiene los componentes de actividades educativas para Lumera, ali
 <MultipleChoice
   question="¿Cuál es la capital de Chile?"
   options={[
-    { id: 1, text: "Santiago", isCorrect: true },
-    { id: 2, text: "Valparaíso", isCorrect: false },
-    { id: 3, text: "Concepción", isCorrect: false }
+    { id: 0, text: "Santiago", isCorrect: true },
+    { id: 1, text: "Valparaíso", isCorrect: false },
+    { id: 2, text: "Concepción", isCorrect: false }
   ]}
   bloomLevel="recordar"
   materia="historia"
@@ -175,6 +202,27 @@ Esta carpeta contiene los componentes de actividades educativas para Lumera, ali
 }
 ```
 
+**⚠️ FORMATO CRÍTICO: Marcadores de Blanks**
+
+**El formato es OBLIGATORIO: `___N___` (tres underscores + número + tres underscores)**
+
+```javascript
+// ✅ CORRECTO
+text: "La capital es ___1___ y la moneda es ___2___."
+blanks: [
+  { id: 1, answer: "Santiago", caseSensitive: false },
+  { id: 2, answer: "Peso", caseSensitive: false }
+]
+
+// ❌ INCORRECTO - Estos formatos NO funcionarán:
+text: "La capital es _____ y la moneda es _____."    // Sin números
+text: "La capital es __1__ y la moneda es __2__."   // Solo 2 underscores
+text: "La capital es ____1____ y la moneda es ____2____."  // 4 underscores
+text: "La capital es [1] y la moneda es [2]."       // No usa underscores
+```
+
+**Regex interno:** `/___(\d+)___/g` - Si los marcadores no coinciden, los inputs no aparecerán.
+
 **Ejemplo de uso:**
 ```svelte
 <FillBlanks
@@ -291,6 +339,295 @@ Esta carpeta contiene los componentes de actividades educativas para Lumera, ali
   showHints={true}
   onAnswer={handleAnswer}
 />
+```
+
+---
+
+### 7. CompareContrast.svelte
+**Comparar y Contrastar Conceptos**
+
+- **Bloom Levels:** Analizar
+- **Uso:** Análisis de similitudes y diferencias entre dos conceptos, pensamiento crítico
+
+**Props:**
+```javascript
+{
+  title: string,                 // Título de la actividad
+  itemA: {                       // Primer concepto a comparar
+    name: string,
+    color: string                // Color del badge (cyan, purple, green, etc.)
+  },
+  itemB: {                       // Segundo concepto a comparar
+    name: string,
+    color: string
+  },
+  characteristics: Array<{       // Características para clasificar
+    id: number,
+    text: string,                // Descripción de la característica
+    correctColumn: string        // "A" | "B" | "both"
+  }>,
+  bloomLevel: string,
+  materia: string,
+  oaId: number | null,
+  showFeedback: boolean,
+  allowMultipleAttempts: boolean,
+  onAnswer: function,
+  onComplete: function
+}
+```
+
+**Ejemplo de uso:**
+```svelte
+<CompareContrast
+  title="Compara las características de células animales y vegetales"
+  itemA={{ name: "Célula Animal", color: "cyan" }}
+  itemB={{ name: "Célula Vegetal", color: "green" }}
+  characteristics={[
+    { id: 1, text: "Tiene pared celular", correctColumn: "B" },
+    { id: 2, text: "Tiene membrana celular", correctColumn: "both" },
+    { id: 3, text: "Tiene cloroplastos", correctColumn: "B" },
+    { id: 4, text: "Tiene centriolos", correctColumn: "A" },
+    { id: 5, text: "Tiene núcleo", correctColumn: "both" }
+  ]}
+  bloomLevel="analizar"
+  materia="biología"
+  onAnswer={handleAnswer}
+/>
+```
+
+**Interacción:**
+- Estudiante arrastra características a 3 columnas: solo A, solo B, o Ambos
+- Feedback visual con colores verde (correcto) y rojo (incorrecto)
+- Opción de corregir solo los errores en intentos posteriores
+
+---
+
+### 8. CriteriaEvaluation.svelte
+**Evaluación por Criterios**
+
+- **Bloom Levels:** Evaluar
+- **Uso:** Evaluar argumentos, fuentes históricas, calidad de trabajos usando rúbricas
+
+**Props:**
+```javascript
+{
+  title: string,                 // Título de la actividad
+  subject: string,               // Qué se está evaluando
+  description: string,           // Descripción breve
+  content: string | null,        // Contenido a evaluar (opcional)
+  criteria: Array<{              // Criterios de evaluación
+    id: number,
+    name: string,                // Nombre del criterio
+    description: string,         // Descripción detallada
+    expectedRating: number,      // Rating esperado (1-5)
+    weight: number               // Peso porcentual en score final
+  }>,
+  bloomLevel: string,
+  materia: string,
+  oaId: number | null,
+  showFeedback: boolean,
+  allowMultipleAttempts: boolean,
+  showExpectedRatings: boolean,  // Mostrar ratings esperados después (default: false)
+  onAnswer: function,
+  onComplete: function
+}
+```
+
+**Ejemplo de uso:**
+```svelte
+<CriteriaEvaluation
+  title="Evalúa la calidad de este documento histórico"
+  subject="Artículo sobre la Guerra del Pacífico"
+  description="Un artículo de 1885 sobre el impacto económico"
+  content="La victoria en la Guerra del Pacífico (1879-1884) transformó a Chile..."
+  criteria={[
+    {
+      id: 1,
+      name: "Evidencia histórica",
+      description: "¿Menciona datos y fechas específicas?",
+      expectedRating: 5,
+      weight: 30
+    },
+    {
+      id: 2,
+      name: "Objetividad",
+      description: "¿Presenta múltiples perspectivas?",
+      expectedRating: 3,
+      weight: 25
+    }
+  ]}
+  bloomLevel="evaluar"
+  materia="historia"
+  showExpectedRatings={true}
+  onAnswer={handleAnswer}
+/>
+```
+
+**Interacción:**
+- Escala de 1-5 estrellas por cada criterio
+- Sistema de tolerancia: exacto (100%), ±1 (60%), ±2 (30%)
+- Feedback diferenciado: perfecto ✓, cercano ~, incorrecto ✗
+
+---
+
+### 9. ConceptMapBuilder.svelte
+**Constructor de Mapas Conceptuales**
+
+- **Bloom Levels:** Crear
+- **Uso:** Crear representaciones visuales de conceptos y relaciones, síntesis de conocimiento
+
+**Props:**
+```javascript
+{
+  title: string,                 // Título de la actividad
+  topic: string,                 // Tema del mapa conceptual
+  instructions: string,          // Instrucciones para el estudiante
+  requiredConcepts: Array<string>, // Conceptos que deben aparecer
+  suggestedConnections: Array<{  // Conexiones esperadas
+    from: string,                // Concepto origen
+    to: string,                  // Concepto destino
+    label: string                // Etiqueta de la relación
+  }>,
+  minConcepts: number,           // Mínimo de conceptos requeridos
+  minConnections: number,        // Mínimo de conexiones requeridas
+  bloomLevel: string,
+  materia: string,
+  oaId: number | null,
+  showFeedback: boolean,
+  allowMultipleAttempts: boolean,
+  provideConcepts: boolean,      // Si true, conceptos vienen predefinidos (default: false)
+  onAnswer: function,
+  onComplete: function
+}
+```
+
+**Ejemplo de uso:**
+```svelte
+<ConceptMapBuilder
+  title="Crea un mapa conceptual"
+  topic="Fotosíntesis"
+  instructions="Identifica conceptos clave y sus relaciones"
+  requiredConcepts={["Fotosíntesis", "Luz Solar", "Clorofila", "Oxígeno", "Glucosa"]}
+  suggestedConnections={[
+    { from: "Luz Solar", to: "Fotosíntesis", label: "inicia" },
+    { from: "Fotosíntesis", to: "Oxígeno", label: "produce" }
+  ]}
+  minConcepts={5}
+  minConnections={4}
+  bloomLevel="crear"
+  materia="biología"
+  onAnswer={handleAnswer}
+/>
+```
+
+**Interacción:**
+- Agregar nodos (conceptos) escribiendo texto
+- Seleccionar 2 nodos para crear conexión
+- Etiquetar la relación entre nodos
+- Arrastrar nodos para reorganizar visualmente
+- Canvas SVG para dibujar conexiones con flechas
+
+**Validación:**
+- Verifica que conceptos requeridos estén presentes (búsqueda fuzzy)
+- Verifica que conexiones sugeridas existan
+- Score: 50% conceptos + 50% conexiones
+
+---
+
+## ⚡ Uso en Wizards/Secuencias de Preguntas
+
+### ⚠️ PATRÓN OBLIGATORIO: Usar `{#key}` para resetear estado
+
+Cuando uses estos componentes en secuencias (como tests diagnósticos), **SIEMPRE** envuélvelos en `{#key}` para forzar la recreación del componente:
+
+```svelte
+<script>
+  let currentQuestionIndex = $state(0);
+  let questions = [/* ... */];
+
+  const currentQuestion = $derived(questions[currentQuestionIndex]);
+</script>
+
+<!-- ✅ CORRECTO - Se resetea el estado al cambiar de pregunta -->
+{#key currentQuestion.id}
+  <MultipleChoice
+    question={currentQuestion.text}
+    options={currentQuestion.options}
+    onAnswer={handleAnswer}
+  />
+{/key}
+
+<!-- ❌ INCORRECTO - El estado persiste entre preguntas -->
+<MultipleChoice
+  question={currentQuestion.text}
+  options={currentQuestion.options}
+  onAnswer={handleAnswer}
+/>
+```
+
+**¿Por qué es necesario?**
+- Svelte reutiliza componentes del mismo tipo para eficiencia
+- Sin `{#key}`, el estado interno (`selectedOption`, `userAnswers`, etc.) persiste
+- Resultado: La selección de la pregunta anterior se mantiene visible en la nueva pregunta
+
+### Ejemplo Completo: Wizard de Diagnóstico
+
+```svelte
+<script>
+  import { MultipleChoice, TrueFalse, FillBlanks } from '$lib/components/activities';
+
+  let currentIndex = $state(0);
+  let answers = $state({});
+
+  const questions = [
+    {
+      id: 'q1',
+      tipo: 'multiple_choice',
+      pregunta: '¿Cuál es 2+2?',
+      opciones: [
+        { id: 0, text: '3', isCorrect: false },
+        { id: 1, text: '4', isCorrect: true }
+      ]
+    },
+    {
+      id: 'q2',
+      tipo: 'fill_blanks',
+      pregunta: 'La capital es ___1___.',
+      blanks: [{ id: 1, answer: 'Santiago', caseSensitive: false }]
+    }
+  ];
+
+  const current = $derived(questions[currentIndex]);
+
+  function handleAnswer(data) {
+    answers[current.id] = data.isCorrect;
+  }
+
+  function next() {
+    if (currentIndex < questions.length - 1) {
+      currentIndex++;
+    }
+  }
+</script>
+
+<!-- CRÍTICO: Usar {#key} para cada tipo de componente -->
+{#key current.id}
+  {#if current.tipo === 'multiple_choice'}
+    <MultipleChoice
+      question={current.pregunta}
+      options={current.opciones}
+      onAnswer={handleAnswer}
+    />
+  {:else if current.tipo === 'fill_blanks'}
+    <FillBlanks
+      text={current.pregunta}
+      blanks={current.blanks}
+      onAnswer={handleAnswer}
+    />
+  {/if}
+{/key}
+
+<button onclick={next}>Siguiente</button>
 ```
 
 ---
@@ -438,6 +775,10 @@ Ver la página demo `/components-demo` para ejemplos completos con datos de prue
 
 ---
 
-**Versión:** 1.0
+**Versión:** 2.0
 **Última actualización:** 2025-11-22
 **Autores:** Claude (Anthropic) + Lumera Team
+
+**Changelog:**
+- v2.0: Agregados 3 componentes para niveles superiores de Bloom (CompareContrast, CriteriaEvaluation, ConceptMapBuilder)
+- v1.0: Lanzamiento inicial con 6 componentes base

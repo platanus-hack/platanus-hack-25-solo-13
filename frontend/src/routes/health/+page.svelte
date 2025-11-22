@@ -97,7 +97,7 @@
     </div>
 
     <div class="mt-4 text-center">
-      <a href="/" class="text-indigo-400 hover:text-indigo-300 text-sm">← Back to Dashboard</a>
+      <a href="/" class="text-lumera-400 hover:text-lumera-300 text-sm">← Back to Dashboard</a>
     </div>
   </div>
 </main>

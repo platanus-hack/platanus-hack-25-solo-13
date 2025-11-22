@@ -216,7 +216,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-4xl mx-auto p-6 bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-4xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -265,7 +265,7 @@
             {isDropTarget ? 'border-cyan-500 bg-cyan-500/10 scale-105' : 'border-slate-700'}
             {isCorrect ? 'border-green-500 bg-green-500/20' : ''}
             {isIncorrect ? 'border-red-500 bg-red-500/20' : ''}
-            {!isMatched && !isDropTarget ? 'bg-slate-900/50' : ''}
+            {!isMatched && !isDropTarget ? 'bg-canvas-900/50' : ''}
           "
         >
           <div class="flex items-start justify-between gap-3">
@@ -273,7 +273,7 @@
               <p class="text-white font-semibold mb-2">{pair.term}</p>
 
               {#if isMatched}
-                <div class="p-3 bg-slate-800 rounded-xl border border-slate-600 relative">
+                <div class="p-3 bg-canvas-800 rounded-xl border border-slate-600 relative">
                   <p class="text-slate-300 text-sm pr-6">{matchedDefinition?.definition}</p>
 
                   {#if !hasSubmitted || allowMultipleAttempts}
@@ -317,8 +317,8 @@
                 p-4 rounded-2xl border-2
                 transition-all duration-300
                 {isDragging ? 'opacity-50 scale-95 border-cyan-500' : 'border-slate-700'}
-                {!hasSubmitted || allowMultipleAttempts ? 'cursor-move hover:border-cyan-500 hover:bg-slate-900/50' : 'cursor-not-allowed opacity-50'}
-                bg-slate-900
+                {!hasSubmitted || allowMultipleAttempts ? 'cursor-move hover:border-cyan-500 hover:bg-canvas-900/50' : 'cursor-not-allowed opacity-50'}
+                bg-canvas-900
               "
             >
               <p class="text-slate-300 text-sm">{def.definition}</p>
@@ -345,7 +345,7 @@
         disabled={Object.keys(matches).length !== pairs.length}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-cyan-500 to-blue-500
+          bg-gradient-to-r from-focus-500 to-blue-500
           text-white
           transition-all duration-300
           hover:shadow-lg hover:shadow-cyan-500/50
@@ -359,7 +359,7 @@
         onclick={handleTryAgain}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-slate-800 text-white
+          bg-canvas-800 text-white
           border border-slate-700
           transition-all duration-300
           hover:bg-slate-700
@@ -382,9 +382,9 @@
             {allCorrect ? '¡Perfecto! Todas las relaciones son correctas' : `${Object.values(results).filter(r => r).length} de ${pairs.length} correctas`}
           </p>
           <div class="flex items-center gap-3 mt-2">
-            <div class="flex-1 bg-slate-900 rounded-full h-2 overflow-hidden">
+            <div class="flex-1 bg-canvas-900 rounded-full h-2 overflow-hidden">
               <div
-                class="h-full bg-gradient-to-r from-cyan-500 to-green-500 transition-all duration-500"
+                class="h-full bg-gradient-to-r from-focus-500 to-green-500 transition-all duration-500"
                 style="width: {score}%"
               ></div>
             </div>

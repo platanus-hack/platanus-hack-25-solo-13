@@ -154,6 +154,33 @@ func main() {
 		r.Get("/{user_id}/history", handlers.GetProgressHistory) // Get progress history
 	})
 
+	// Question Types catalog (public)
+	r.Get("/api/question-types", handlers.GetQuestionTypes)
+
+	// Questions Bank
+	r.Route("/api/questions", func(r chi.Router) {
+		r.Get("/", handlers.GetQuestions)               // Public: List questions with filters
+		r.Get("/{id}", handlers.GetQuestion)            // Public: Get question (without validation_data)
+		r.Post("/{id}/validate", handlers.ValidateAnswer) // Public: Validate answer
+
+		// Protected write operations
+		r.Group(func(r chi.Router) {
+			r.Use(authmiddleware.AuthMiddleware)
+			r.Post("/", handlers.CreateQuestion)        // Create question
+			r.Put("/{id}", handlers.UpdateQuestion)     // Update question
+		})
+	})
+
+	// Diagnostic System (all protected)
+	r.Route("/api/diagnostic-sessions", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Post("/", handlers.StartDiagnostic)                  // Start diagnostic session
+		r.Get("/{id}", handlers.GetSessionProgress)            // Get session progress
+		r.Post("/{id}/answer", handlers.SubmitAnswer)          // Submit answer
+		r.Post("/{id}/complete", handlers.CompleteDiagnostic)  // Complete diagnostic
+		r.Get("/{id}/results", handlers.GetDiagnosticResults)  // Get diagnostic results
+	})
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {

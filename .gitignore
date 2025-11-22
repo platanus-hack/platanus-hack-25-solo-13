@@ -47,3 +47,8 @@ lerna-debug.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Data Loader
+/data-loader/.env
+/data-loader/output/*.json
+!/data-loader/output/.gitkeep

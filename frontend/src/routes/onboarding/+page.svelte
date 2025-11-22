@@ -189,14 +189,14 @@
     const result = await createProfile(profileData);
 
     if (result.success) {
-      // Success animation
+      // Success animation and redirect to diagnostic test
       gsap.to('.onboarding-container', {
         duration: 0.5,
         scale: 0.95,
         opacity: 0,
         ease: 'power2.in',
         onComplete: () => {
-          goto('/');
+          goto('/diagnostico');
         }
       });
     } else {
@@ -211,7 +211,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950 flex items-center justify-center p-4">
-  <div class="onboarding-container bg-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 max-w-3xl w-full border border-white/10">
+  <div class="onboarding-container bg-canvas-900/40 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-3xl w-full border border-white/10">
     <!-- Header -->
     <div class="text-center mb-8">
       <h1 class="text-4xl font-bold text-white mb-2">¡Bienvenido a Lumera! 🎓</h1>
@@ -240,7 +240,7 @@
             <select
               id="curso"
               bind:value={cursoActual}
-              class="w-full px-6 py-4 bg-slate-950/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-lg"
+              class="w-full px-6 py-4 bg-canvas-950/50 border border-slate-700 rounded-xl text-white focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-lg"
             >
               <option value="">Selecciona tu curso</option>
               {#each cursosDisponibles as curso}
@@ -273,7 +273,7 @@
               id="profesion"
               type="text"
               bind:value={profesionSoñada}
-              class="w-full px-6 py-4 bg-slate-950/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-lg"
+              class="w-full px-6 py-4 bg-canvas-950/50 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-lumera-500 focus:ring-2 focus:ring-indigo-500/20 transition-all text-lg"
               placeholder="Ej: Desarrollador de Videojuegos"
             />
           </div>
@@ -353,7 +353,7 @@
       <button
         onclick={prevStep}
         disabled={currentStep === 1}
-        class="px-6 py-3 rounded-xl bg-slate-800 text-slate-300 font-semibold hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+        class="px-6 py-3 rounded-xl bg-canvas-800 text-slate-300 font-semibold hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
       >
         ← Anterior
       </button>
@@ -361,7 +361,7 @@
       {#if currentStep < totalSteps}
         <button
           onclick={nextStep}
-          class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-all shadow-lg hover:shadow-indigo-500/50"
+          class="px-6 py-3 rounded-xl bg-lumera-600 hover:bg-lumera-700 text-white font-semibold transition-all shadow-lg hover:shadow-indigo-500/50"
         >
           Siguiente →
         </button>
@@ -369,7 +369,7 @@
         <button
           onclick={handleSubmit}
           disabled={isLoading}
-          class="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-bold transition-all shadow-lg hover:shadow-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          class="px-8 py-3 rounded-xl bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-indigo-700 hover:to-cyan-700 text-white font-bold transition-all shadow-lg hover:shadow-indigo-500/50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {#if isLoading}
             <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

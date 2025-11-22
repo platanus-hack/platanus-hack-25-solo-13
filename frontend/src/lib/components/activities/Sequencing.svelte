@@ -217,7 +217,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-3xl mx-auto p-6 bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-3xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -266,12 +266,12 @@
           {isDragOver ? 'border-cyan-500 bg-cyan-500/10 scale-105' : 'border-slate-700'}
           {isCorrect ? 'border-green-500 bg-green-500/20' : ''}
           {isIncorrect ? 'border-red-500 bg-red-500/20' : ''}
-          {!hasSubmitted || allowMultipleAttempts ? 'cursor-move hover:border-slate-600 bg-slate-900/50' : 'cursor-not-allowed bg-slate-900/30'}
+          {!hasSubmitted || allowMultipleAttempts ? 'cursor-move hover:border-slate-600 bg-canvas-900/50' : 'cursor-not-allowed bg-canvas-900/30'}
         "
       >
         <!-- Número de posición -->
         {#if showNumbers}
-          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-slate-800 border border-slate-600 flex items-center justify-center">
+          <div class="flex-shrink-0 w-10 h-10 rounded-full bg-canvas-800 border border-slate-600 flex items-center justify-center">
             <span class="text-white font-bold">{index + 1}</span>
           </div>
         {/if}
@@ -288,7 +288,7 @@
               onclick={() => moveUp(index)}
               disabled={index === 0}
               class="
-                p-1 rounded bg-slate-800 border border-slate-600
+                p-1 rounded bg-canvas-800 border border-slate-600
                 hover:bg-slate-700 hover:border-cyan-500
                 disabled:opacity-30 disabled:cursor-not-allowed
                 transition-all duration-300
@@ -302,7 +302,7 @@
               onclick={() => moveDown(index)}
               disabled={index === currentOrder.length - 1}
               class="
-                p-1 rounded bg-slate-800 border border-slate-600
+                p-1 rounded bg-canvas-800 border border-slate-600
                 hover:bg-slate-700 hover:border-cyan-500
                 disabled:opacity-30 disabled:cursor-not-allowed
                 transition-all duration-300
@@ -334,7 +334,7 @@
         onclick={handleSubmit}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-cyan-500 to-blue-500
+          bg-gradient-to-r from-focus-500 to-blue-500
           text-white
           transition-all duration-300
           hover:shadow-lg hover:shadow-cyan-500/50
@@ -347,7 +347,7 @@
         onclick={handleTryAgain}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-slate-800 text-white
+          bg-canvas-800 text-white
           border border-slate-700
           transition-all duration-300
           hover:bg-slate-700
@@ -384,9 +384,9 @@
             {allCorrect ? '¡Perfecto! El orden es correcto' : `${results.filter(r => r).length} de ${items.length} en posición correcta`}
           </p>
           <div class="flex items-center gap-3 mt-2">
-            <div class="flex-1 bg-slate-900 rounded-full h-2 overflow-hidden">
+            <div class="flex-1 bg-canvas-900 rounded-full h-2 overflow-hidden">
               <div
-                class="h-full bg-gradient-to-r from-cyan-500 to-green-500 transition-all duration-500"
+                class="h-full bg-gradient-to-r from-focus-500 to-green-500 transition-all duration-500"
                 style="width: {score}%"
               ></div>
             </div>

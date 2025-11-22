@@ -1,1 +1,59 @@
 @import "tailwindcss";
+
+@theme {
+  /* Custom Lumera color palette */
+
+  /* Primary: Deep Academic Blue (replaces indigo) */
+  --color-lumera-50: #eef5ff;
+  --color-lumera-100: #d9e8ff;
+  --color-lumera-200: #bbd5ff;
+  --color-lumera-300: #8db7ff;
+  --color-lumera-400: #5a8fff;
+  --color-lumera-500: #2563eb;
+  --color-lumera-600: #1d4ed8;
+  --color-lumera-700: #1e40af;
+  --color-lumera-800: #1e3a8a;
+  --color-lumera-900: #1e3a8a;
+  --color-lumera-950: #172554;
+
+  /* Secondary: Warm Amber/Gold (academic achievement) */
+  --color-achievement-50: #fffbeb;
+  --color-achievement-100: #fef3c7;
+  --color-achievement-200: #fde68a;
+  --color-achievement-300: #fcd34d;
+  --color-achievement-400: #fbbf24;
+  --color-achievement-500: #f59e0b;
+  --color-achievement-600: #d97706;
+  --color-achievement-700: #b45309;
+  --color-achievement-800: #92400e;
+  --color-achievement-900: #78350f;
+
+  /* Accent: Teal (replaces cyan - more sophisticated) */
+  --color-focus-50: #f0fdfa;
+  --color-focus-100: #ccfbf1;
+  --color-focus-200: #99f6e4;
+  --color-focus-300: #5eead4;
+  --color-focus-400: #2dd4bf;
+  --color-focus-500: #14b8a6;
+  --color-focus-600: #0d9488;
+  --color-focus-700: #0f766e;
+  --color-focus-800: #115e59;
+  --color-focus-900: #134e4a;
+
+  /* Backgrounds: Warmer slate with hint of navy */
+  --color-canvas-50: #f8fafc;
+  --color-canvas-100: #f1f5f9;
+  --color-canvas-200: #e2e8f0;
+  --color-canvas-300: #cbd5e1;
+  --color-canvas-400: #94a3b8;
+  --color-canvas-500: #64748b;
+  --color-canvas-600: #475569;
+  --color-canvas-700: #334155;
+  --color-canvas-800: #1e293b;
+  --color-canvas-900: #0f172a;
+  --color-canvas-950: #020617;
+
+  /* Custom fonts */
+  --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-family-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}

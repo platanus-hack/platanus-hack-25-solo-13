@@ -2,12 +2,41 @@
   import { onMount } from 'svelte';
   import gsap from 'gsap';
 
+  /**
+   * TrueFalse - Componente de verdadero o falso
+   *
+   * @example
+   * <TrueFalse
+   *   statement="La fotosíntesis produce oxígeno."
+   *   correctAnswer={true}
+   *   explanation="Correcto. Las plantas liberan O₂ como subproducto."
+   *   bloomLevel="comprender"
+   *   materia="biología"
+   *   onAnswer={handleAnswer}
+   * />
+   */
+
   // Props
   let {
-    // Data del componente
+    /**
+     * Afirmación a evaluar
+     * @type {string}
+     * @required
+     */
     statement = "La capital de Chile es Santiago.",
-    correctAnswer = true, // true o false
-    explanation = "", // Explicación opcional que se muestra después de responder
+
+    /**
+     * Respuesta correcta
+     * @type {boolean}
+     * @required
+     */
+    correctAnswer = true,
+
+    /**
+     * Explicación mostrada después de responder
+     * @type {string}
+     */
+    explanation = "",
 
     // Metadata educativa
     bloomLevel = "recordar",
@@ -19,8 +48,30 @@
     allowMultipleAttempts = false,
     requireJustification = false, // Si requiere que el estudiante justifique su respuesta
 
-    // Callbacks
+    /**
+     * Callback cuando el usuario envía respuesta
+     * @type {function|null}
+     * @param {Object} data - Datos de la respuesta
+     * @param {number|null} data.oaId - ID del objetivo de aprendizaje
+     * @param {string} data.bloomLevel - Nivel de Bloom
+     * @param {string} data.materia - Materia/asignatura
+     * @param {boolean} data.userAnswer - Respuesta seleccionada (true/false)
+     * @param {boolean} data.isCorrect - Si la respuesta es correcta
+     * @param {number} data.attemptCount - Número de intentos
+     * @param {string} data.timestamp - ISO timestamp
+     * @param {string} [data.justification] - Justificación (si requireJustification=true)
+     */
     onAnswer = null,
+
+    /**
+     * Callback cuando se completa correctamente
+     * @type {function|null}
+     * @param {Object} data - Datos de completación
+     * @param {number|null} data.oaId - ID del objetivo de aprendizaje
+     * @param {string} data.bloomLevel - Nivel de Bloom
+     * @param {number} data.score - Siempre 1
+     * @param {number} data.attempts - Número de intentos hasta completar
+     */
     onComplete = null
   } = $props();
 
@@ -134,7 +185,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-2xl mx-auto p-6 bg-slate-950 rounded-3xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-2xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -218,7 +269,7 @@
         placeholder="Explica por qué crees que esta afirmación es verdadera o falsa..."
         class="
           w-full p-4 rounded-xl
-          bg-slate-900 border border-slate-700
+          bg-canvas-900 border border-slate-700
           text-white placeholder-slate-500
           focus:outline-none focus:ring-2 focus:ring-cyan-500
           disabled:opacity-50 disabled:cursor-not-allowed
@@ -235,7 +286,7 @@
         disabled={selectedAnswer === null || (requireJustification && !justification.trim())}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-cyan-500 to-blue-500
+          bg-gradient-to-r from-focus-500 to-blue-500
           text-white
           transition-all duration-300
           hover:shadow-lg hover:shadow-cyan-500/50
@@ -249,7 +300,7 @@
         onclick={handleTryAgain}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-slate-800 text-white
+          bg-canvas-800 text-white
           border border-slate-700
           transition-all duration-300
           hover:bg-slate-700
@@ -276,14 +327,14 @@
           </p>
 
           {#if showExplanation && explanation}
-            <div class="mt-3 p-3 bg-slate-900/50 rounded-lg">
+            <div class="mt-3 p-3 bg-canvas-900/50 rounded-lg">
               <p class="text-xs text-slate-400 mb-1 uppercase font-semibold">Explicación:</p>
               <p class="text-slate-300 text-sm">{explanation}</p>
             </div>
           {/if}
 
           {#if requireJustification && justification}
-            <div class="mt-3 p-3 bg-slate-900/50 rounded-lg">
+            <div class="mt-3 p-3 bg-canvas-900/50 rounded-lg">
               <p class="text-xs text-slate-400 mb-1 uppercase font-semibold">Tu justificación:</p>
               <p class="text-slate-300 text-sm italic">"{justification}"</p>
             </div>
