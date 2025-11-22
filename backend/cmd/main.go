@@ -181,6 +181,24 @@ func main() {
 		r.Get("/{id}/results", handlers.GetDiagnosticResults)  // Get diagnostic results
 	})
 
+	// Gamification System (all protected)
+	r.Route("/api/gamification", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Get("/stats", handlers.GetGamificationStats)     // Get user gamification stats
+		r.Get("/leaderboard", handlers.GetLeaderboard)     // Get leaderboard
+	})
+
+	// Customization System (all protected)
+	r.Route("/api/customization", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Get("/catalog", handlers.GetCustomizationCatalog)       // Get catalog with ownership status
+		r.Get("/inventory", handlers.GetInventory)                // Get user inventory
+		r.Get("/equipment", handlers.GetEquipment)                // Get equipped items
+		r.Post("/equip", handlers.EquipItem)                      // Equip item
+		r.Post("/purchase", handlers.PurchaseItem)                // Purchase item with coins
+		r.Get("/notifications", handlers.GetUnlockNotifications)  // Get unlock notifications
+	})
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {

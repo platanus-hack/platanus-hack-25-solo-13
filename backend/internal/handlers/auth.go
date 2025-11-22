@@ -89,6 +89,36 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Initialize gamification data for new user
+	gamification := models.UserGamification{
+		UserID: user.ID,
+		Level:  1,
+		XP:     0,
+		Coins:  100,
+	}
+	db.DB.Create(&gamification)
+
+	// Initialize equipment record
+	equipment := models.UserEquipment{
+		UserID: user.ID,
+	}
+	db.DB.Create(&equipment)
+
+	// Add default items to inventory (async to not block response)
+	go func() {
+		var defaultItems []models.CustomizationItem
+		db.DB.Where("is_default = ?", true).Find(&defaultItems)
+
+		for _, item := range defaultItems {
+			inventory := models.UserInventory{
+				UserID:          user.ID,
+				ItemID:          item.ID,
+				AcquisitionType: "default",
+			}
+			db.DB.Create(&inventory)
+		}
+	}()
+
 	// Generate JWT token
 	token, err := utils.GenerateToken(user.ID, user.Email, user.Role)
 	if err != nil {

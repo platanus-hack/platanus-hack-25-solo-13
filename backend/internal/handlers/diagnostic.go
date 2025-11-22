@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/platanus-hack-25/lumera_app/internal/db"
 	authmiddleware "github.com/platanus-hack-25/lumera_app/internal/middleware"
 	"github.com/platanus-hack-25/lumera_app/internal/models"
+	"github.com/platanus-hack-25/lumera_app/internal/services"
 	"gorm.io/datatypes"
 )
 
@@ -212,6 +214,32 @@ func CompleteDiagnostic(w http.ResponseWriter, r *http.Request) {
 	// TODO: Generate diagnostic_results based on answers
 	// This would analyze answers and create DiagnosticResult records
 	// which will trigger the auto-update of student_oa_progress
+
+	// Gamification events (async)
+	go func() {
+		// Award XP for completing diagnostic
+		gamificationService.AddXP(session.UserID, 100, "diagnostic_completed")
+
+		// Bonus coins for good performance
+		if session.PreguntasTotales > 0 {
+			scorePercent := (session.PreguntasCorrectas * 100) / session.PreguntasTotales
+			if scorePercent >= 80 {
+				gamificationService.AddCoins(session.UserID, 50, "diagnostic_excellent")
+			} else if scorePercent >= 60 {
+				gamificationService.AddCoins(session.UserID, 25, "diagnostic_good")
+			}
+
+			// Check for diagnostic achievement unlocks
+			unlockService.CheckAndUnlock(session.UserID, services.UnlockEvent{
+				Type: "diagnostic_achievement",
+				Key:  fmt.Sprintf("diagnostic_materia_%d_score_%d", session.MateriaID, scorePercent),
+				Data: map[string]interface{}{
+					"materia_id": session.MateriaID,
+					"score":      scorePercent,
+				},
+			})
+		}
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]interface{}{

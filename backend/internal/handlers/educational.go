@@ -2,12 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/platanus-hack-25/lumera_app/internal/db"
 	"github.com/platanus-hack-25/lumera_app/internal/models"
+	"github.com/platanus-hack-25/lumera_app/internal/services"
 )
 
 // ============================================================================
@@ -592,6 +594,50 @@ func RegisterProgress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	tx.Commit()
+
+	// Gamification and unlock events (after successful commit)
+	go func() {
+		// Update streak
+		gamificationService.UpdateStreak(req.UserID)
+
+		// Award XP based on estado
+		xpAmount := 0
+		switch req.Estado {
+		case "logrado":
+			xpAmount = 30
+		case "dominado":
+			xpAmount = 50
+		}
+		if xpAmount > 0 {
+			gamificationService.AddXP(req.UserID, xpAmount, "oa_progress")
+			gamificationService.AddCoins(req.UserID, xpAmount/5, "oa_progress")
+		}
+
+		// Check for unlocks if estado is "dominado" or "logrado"
+		if req.Estado == "dominado" || req.Estado == "logrado" {
+			// Get OA details for event
+			var oaBloom models.OABloomObjective
+			db.DB.Preload("OA").First(&oaBloom, req.OABloomObjectiveID)
+
+			// Trigger unlock check for OA completion
+			unlockService.CheckAndUnlock(req.UserID, services.UnlockEvent{
+				Type: "oa_complete",
+				Key:  fmt.Sprintf("oa_%d", oaBloom.OAID),
+				Data: map[string]interface{}{
+					"materia_id": oaBloom.OA.MateriaID,
+				},
+			})
+
+			// Trigger unlock check for Bloom mastery
+			unlockService.CheckAndUnlock(req.UserID, services.UnlockEvent{
+				Type: "bloom_mastery",
+				Key:  fmt.Sprintf("bloom_%d_oa_%d", oaBloom.BloomLevelID, oaBloom.OAID),
+				Data: map[string]interface{}{
+					"bloom_level": oaBloom.BloomLevelID,
+				},
+			})
+		}
+	}()
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
