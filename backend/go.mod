@@ -7,6 +7,7 @@ require (
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-jwt/jwt/v5 v5.3.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/swaggo/swag v1.16.6
 	golang.org/x/crypto v0.32.0
 	gorm.io/datatypes v1.2.7

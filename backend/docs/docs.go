@@ -140,6 +140,244 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/bloom-levels": {
+            "get": {
+                "description": "Retrieve all Bloom levels (seeded data, read-only)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get all Bloom taxonomy levels",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.BloomLevel"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/curso-materias": {
+            "post": {
+                "description": "Create a relationship between a course and a subject",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Assign a subject to a course",
+                "parameters": [
+                    {
+                        "description": "Assignment data (curso_id, materia_id, horas_semanales)",
+                        "name": "assignment",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.CursoMateria"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cursos": {
+            "get": {
+                "description": "Retrieve all courses with optional filters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get all courses",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "activo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Curso"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new course",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Create a new course",
+                "parameters": [
+                    {
+                        "description": "Course data",
+                        "name": "curso",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Curso"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Curso"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/cursos/{id}": {
+            "get": {
+                "description": "Retrieve a specific course with its materias",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get course by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Course ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Curso"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing course",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Update a course",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Course ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated course data",
+                        "name": "curso",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Curso"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Curso"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/api/health": {
             "get": {
                 "description": "Returns the health status of the API and database connection",
@@ -155,6 +393,344 @@ const docTemplate = `{
                         "description": "API health status",
                         "schema": {
                             "$ref": "#/definitions/handlers.HealthResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/materias": {
+            "get": {
+                "description": "Retrieve all subjects with optional filters",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get all subjects",
+                "parameters": [
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "activo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.Materia"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a new subject",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Create a new subject",
+                "parameters": [
+                    {
+                        "description": "Subject data",
+                        "name": "materia",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Materia"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.Materia"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/materias/{id}": {
+            "get": {
+                "description": "Retrieve a specific subject with its learning objectives",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get subject by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Subject ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Materia"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing subject",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Update a subject",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Subject ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated subject data",
+                        "name": "materia",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Materia"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Materia"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/objetivos-aprendizaje": {
+            "get": {
+                "description": "Retrieve all learning objectives with optional filtering by subject",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get all learning objectives",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Filter by subject ID",
+                        "name": "materia_id",
+                        "in": "query"
+                    },
+                    {
+                        "type": "boolean",
+                        "description": "Filter by active status",
+                        "name": "activo",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Create a complete OA with specific objectives for all 6 Bloom taxonomy levels",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Create a new learning objective with all Bloom levels",
+                "parameters": [
+                    {
+                        "description": "Complete OA data including all 6 Bloom objectives",
+                        "name": "oa",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.CreateOARequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/objetivos-aprendizaje/{id}": {
+            "get": {
+                "description": "Retrieve a specific learning objective with all Bloom-level details",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Get learning objective by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Learning Objective ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Update an existing learning objective (base fields only, use separate endpoint for Bloom objectives)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Educational"
+                ],
+                "summary": "Update a learning objective",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Learning Objective ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Updated OA data",
+                        "name": "oa",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -382,6 +958,131 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "string"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/progress": {
+            "post": {
+                "description": "Record a student's progress on a specific Bloom-level objective",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Progress"
+                ],
+                "summary": "Register student progress on an OA-Bloom objective",
+                "parameters": [
+                    {
+                        "description": "Progress data",
+                        "name": "progress",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handlers.RegisterProgressRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/models.StudentOAProgress"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/progress/{user_id}": {
+            "get": {
+                "description": "Retrieve all progress records for a specific student",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Progress"
+                ],
+                "summary": "Get student progress",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.StudentOAProgress"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/api/progress/{user_id}/history": {
+            "get": {
+                "description": "Retrieve complete history of progress changes for a student",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Progress"
+                ],
+                "summary": "Get student progress history",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "User ID",
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit number of records (default 100)",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.StudentOAHistory"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
                         }
                     }
                 }
@@ -658,6 +1359,56 @@ const docTemplate = `{
                 }
             }
         },
+        "handlers.CreateBloomObjective": {
+            "type": "object",
+            "properties": {
+                "bloom_level_id": {
+                    "type": "integer"
+                },
+                "complejidad_estimada": {
+                    "type": "integer"
+                },
+                "indicadores_logro": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "objetivo_especifico": {
+                    "type": "string"
+                },
+                "tipo_actividad_sugerida": {
+                    "type": "string"
+                }
+            }
+        },
+        "handlers.CreateOARequest": {
+            "type": "object",
+            "properties": {
+                "bloom_objectives": {
+                    "description": "All 6 levels",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/handlers.CreateBloomObjective"
+                    }
+                },
+                "codigo": {
+                    "type": "string"
+                },
+                "descripcion": {
+                    "type": "string"
+                },
+                "materia_id": {
+                    "type": "integer"
+                },
+                "orden": {
+                    "type": "integer"
+                },
+                "titulo": {
+                    "type": "string"
+                }
+            }
+        },
         "handlers.CreateProfileRequest": {
             "type": "object"
         },
@@ -683,6 +1434,37 @@ const docTemplate = `{
                 },
                 "password": {
                     "type": "string"
+                }
+            }
+        },
+        "handlers.RegisterProgressRequest": {
+            "type": "object",
+            "properties": {
+                "estado": {
+                    "description": "no_iniciado, en_proceso, logrado, dominado",
+                    "type": "string"
+                },
+                "notas": {
+                    "type": "string"
+                },
+                "oa_bloom_objective_id": {
+                    "type": "integer"
+                },
+                "porcentaje_logro": {
+                    "type": "integer"
+                },
+                "puntaje_maximo": {
+                    "type": "number"
+                },
+                "puntaje_obtenido": {
+                    "type": "number"
+                },
+                "tipo_evento": {
+                    "description": "evaluacion, practica, diagnostico, repaso",
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },
@@ -714,6 +1496,335 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "models.BloomLevel": {
+            "type": "object",
+            "properties": {
+                "color": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nivel": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "nombre_en": {
+                    "type": "string"
+                },
+                "verbos_accion": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "models.Curso": {
+            "type": "object",
+            "properties": {
+                "activo": {
+                    "type": "boolean"
+                },
+                "codigo": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "materias": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Materia"
+                    }
+                },
+                "nivel_educativo": {
+                    "type": "string"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.CursoMateria": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "curso": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Curso"
+                        }
+                    ]
+                },
+                "curso_id": {
+                    "type": "integer"
+                },
+                "horas_semanales": {
+                    "type": "integer"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "materia": {
+                    "$ref": "#/definitions/models.Materia"
+                },
+                "materia_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.Materia": {
+            "type": "object",
+            "properties": {
+                "activo": {
+                    "type": "boolean"
+                },
+                "codigo": {
+                    "type": "string"
+                },
+                "color": {
+                    "description": "Hex color for UI",
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "cursos": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Curso"
+                    }
+                },
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "oas": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.OABloomObjective": {
+            "type": "object",
+            "properties": {
+                "bloom_level": {
+                    "$ref": "#/definitions/models.BloomLevel"
+                },
+                "bloom_level_id": {
+                    "type": "integer"
+                },
+                "complejidad_estimada": {
+                    "description": "1-10",
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "indicadores_logro": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "oa": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.ObjetivoAprendizaje"
+                        }
+                    ]
+                },
+                "oa_id": {
+                    "type": "integer"
+                },
+                "objetivo_especifico": {
+                    "type": "string"
+                },
+                "tipo_actividad_sugerida": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.ObjetivoAprendizaje": {
+            "type": "object",
+            "properties": {
+                "activo": {
+                    "type": "boolean"
+                },
+                "bloom_objectives": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.OABloomObjective"
+                    }
+                },
+                "codigo": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "descripcion": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "materia": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.Materia"
+                        }
+                    ]
+                },
+                "materia_id": {
+                    "type": "integer"
+                },
+                "orden": {
+                    "type": "integer"
+                },
+                "titulo": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.StudentOAHistory": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "estado": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "notas": {
+                    "type": "string"
+                },
+                "oa_bloom_objective": {
+                    "$ref": "#/definitions/models.OABloomObjective"
+                },
+                "oa_bloom_objective_id": {
+                    "type": "integer"
+                },
+                "porcentaje_logro": {
+                    "type": "integer"
+                },
+                "puntaje_maximo": {
+                    "type": "number"
+                },
+                "puntaje_obtenido": {
+                    "type": "number"
+                },
+                "tipo_evento": {
+                    "description": "evaluacion, practica, diagnostico, repaso",
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    ]
+                },
+                "user_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "models.StudentOAProgress": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "estado": {
+                    "description": "no_iniciado, en_proceso, logrado, dominado",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "intentos": {
+                    "type": "integer"
+                },
+                "notas": {
+                    "type": "string"
+                },
+                "oa_bloom_objective": {
+                    "$ref": "#/definitions/models.OABloomObjective"
+                },
+                "oa_bloom_objective_id": {
+                    "type": "integer"
+                },
+                "porcentaje_logro": {
+                    "type": "integer"
+                },
+                "ultima_actividad_fecha": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "user": {
+                    "description": "Relationships",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    ]
+                },
+                "user_id": {
+                    "type": "integer"
                 }
             }
         },

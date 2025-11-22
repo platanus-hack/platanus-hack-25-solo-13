@@ -44,7 +44,13 @@
     const result = await auth.login(loginEmail, loginPassword);
 
     if (result.success) {
-      goto('/');
+      // Check if user has profile
+      const hasProfile = await auth.checkIfHasProfile();
+      if (hasProfile) {
+        goto('/');
+      } else {
+        goto('/onboarding');
+      }
     } else {
       errorMessage = result.error || 'Login failed';
       isLoading = false;
@@ -68,7 +74,8 @@
     const result = await auth.register(registerEmail, registerName, registerPassword);
 
     if (result.success) {
-      goto('/');
+      // New users don't have profile, redirect to onboarding
+      goto('/onboarding');
     } else {
       errorMessage = result.error || 'Registration failed';
       isLoading = false;

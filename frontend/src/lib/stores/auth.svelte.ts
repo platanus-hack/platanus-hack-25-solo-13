@@ -124,5 +124,23 @@ export const auth = {
       };
     }
     return { 'Content-Type': 'application/json' };
+  },
+
+  // Check if user has a profile
+  async checkIfHasProfile(): Promise<boolean> {
+    if (!authState.user?.id) {
+      return false;
+    }
+
+    try {
+      const response = await fetch(`/api/profiles/${authState.user.id}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders()
+      });
+
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
   }
 };

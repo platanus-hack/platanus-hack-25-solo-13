@@ -98,6 +98,62 @@ func main() {
 		r.Patch("/{user_id}", handlers.UpdateProfile)      // Update profile
 	})
 
+	// Educational routes - Cursos (Courses)
+	r.Route("/api/cursos", func(r chi.Router) {
+		r.Get("/", handlers.GetCursos)              // Public: List all courses
+		r.Get("/{id}", handlers.GetCurso)           // Public: Get course by ID
+
+		// Protected write operations
+		r.Group(func(r chi.Router) {
+			r.Use(authmiddleware.AuthMiddleware)
+			r.Post("/", handlers.CreateCurso)       // Create course
+			r.Put("/{id}", handlers.UpdateCurso)    // Update course
+		})
+	})
+
+	// Educational routes - Materias (Subjects)
+	r.Route("/api/materias", func(r chi.Router) {
+		r.Get("/", handlers.GetMaterias)            // Public: List all subjects
+		r.Get("/{id}", handlers.GetMateria)         // Public: Get subject by ID
+
+		// Protected write operations
+		r.Group(func(r chi.Router) {
+			r.Use(authmiddleware.AuthMiddleware)
+			r.Post("/", handlers.CreateMateria)     // Create subject
+			r.Put("/{id}", handlers.UpdateMateria)  // Update subject
+		})
+	})
+
+	// Educational routes - Curso-Materia assignments
+	r.Route("/api/curso-materias", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Post("/", handlers.AssignMateriaToCurso)  // Assign subject to course
+	})
+
+	// Educational routes - Bloom Levels (read-only)
+	r.Get("/api/bloom-levels", handlers.GetBloomLevels)
+
+	// Educational routes - Learning Objectives
+	r.Route("/api/objetivos-aprendizaje", func(r chi.Router) {
+		r.Get("/", handlers.GetObjetivosAprendizaje)        // Public: List all OAs
+		r.Get("/{id}", handlers.GetObjetivoAprendizaje)     // Public: Get OA by ID
+
+		// Protected write operations
+		r.Group(func(r chi.Router) {
+			r.Use(authmiddleware.AuthMiddleware)
+			r.Post("/", handlers.CreateObjetivoAprendizaje)    // Create OA with all 6 Bloom levels
+			r.Put("/{id}", handlers.UpdateObjetivoAprendizaje) // Update OA
+		})
+	})
+
+	// Progress tracking routes (all protected)
+	r.Route("/api/progress", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Post("/", handlers.RegisterProgress)                  // Register progress
+		r.Get("/{user_id}", handlers.GetStudentProgress)        // Get student progress
+		r.Get("/{user_id}/history", handlers.GetProgressHistory) // Get progress history
+	})
+
 	// Start server
 	port := os.Getenv("PORT")
 	if port == "" {

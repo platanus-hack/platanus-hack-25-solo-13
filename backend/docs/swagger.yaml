@@ -14,6 +14,39 @@ definitions:
       new_password:
         type: string
     type: object
+  handlers.CreateBloomObjective:
+    properties:
+      bloom_level_id:
+        type: integer
+      complejidad_estimada:
+        type: integer
+      indicadores_logro:
+        items:
+          type: string
+        type: array
+      objetivo_especifico:
+        type: string
+      tipo_actividad_sugerida:
+        type: string
+    type: object
+  handlers.CreateOARequest:
+    properties:
+      bloom_objectives:
+        description: All 6 levels
+        items:
+          $ref: '#/definitions/handlers.CreateBloomObjective'
+        type: array
+      codigo:
+        type: string
+      descripcion:
+        type: string
+      materia_id:
+        type: integer
+      orden:
+        type: integer
+      titulo:
+        type: string
+    type: object
   handlers.CreateProfileRequest:
     type: object
   handlers.HealthResponse:
@@ -31,6 +64,27 @@ definitions:
         type: string
       password:
         type: string
+    type: object
+  handlers.RegisterProgressRequest:
+    properties:
+      estado:
+        description: no_iniciado, en_proceso, logrado, dominado
+        type: string
+      notas:
+        type: string
+      oa_bloom_objective_id:
+        type: integer
+      porcentaje_logro:
+        type: integer
+      puntaje_maximo:
+        type: number
+      puntaje_obtenido:
+        type: number
+      tipo_evento:
+        description: evaluacion, practica, diagnostico, repaso
+        type: string
+      user_id:
+        type: integer
     type: object
   handlers.RegisterRequest:
     properties:
@@ -51,6 +105,218 @@ definitions:
         type: string
       name:
         type: string
+    type: object
+  models.BloomLevel:
+    properties:
+      color:
+        type: string
+      created_at:
+        type: string
+      descripcion:
+        type: string
+      id:
+        type: integer
+      nivel:
+        type: integer
+      nombre:
+        type: string
+      nombre_en:
+        type: string
+      verbos_accion:
+        items:
+          type: string
+        type: array
+    type: object
+  models.Curso:
+    properties:
+      activo:
+        type: boolean
+      codigo:
+        type: string
+      created_at:
+        type: string
+      descripcion:
+        type: string
+      id:
+        type: integer
+      materias:
+        description: Relationships
+        items:
+          $ref: '#/definitions/models.Materia'
+        type: array
+      nivel_educativo:
+        type: string
+      nombre:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.CursoMateria:
+    properties:
+      created_at:
+        type: string
+      curso:
+        allOf:
+        - $ref: '#/definitions/models.Curso'
+        description: Relationships
+      curso_id:
+        type: integer
+      horas_semanales:
+        type: integer
+      id:
+        type: integer
+      materia:
+        $ref: '#/definitions/models.Materia'
+      materia_id:
+        type: integer
+    type: object
+  models.Materia:
+    properties:
+      activo:
+        type: boolean
+      codigo:
+        type: string
+      color:
+        description: Hex color for UI
+        type: string
+      created_at:
+        type: string
+      cursos:
+        description: Relationships
+        items:
+          $ref: '#/definitions/models.Curso'
+        type: array
+      descripcion:
+        type: string
+      id:
+        type: integer
+      nombre:
+        type: string
+      oas:
+        items:
+          $ref: '#/definitions/models.ObjetivoAprendizaje'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  models.OABloomObjective:
+    properties:
+      bloom_level:
+        $ref: '#/definitions/models.BloomLevel'
+      bloom_level_id:
+        type: integer
+      complejidad_estimada:
+        description: 1-10
+        type: integer
+      created_at:
+        type: string
+      id:
+        type: integer
+      indicadores_logro:
+        items:
+          type: string
+        type: array
+      oa:
+        allOf:
+        - $ref: '#/definitions/models.ObjetivoAprendizaje'
+        description: Relationships
+      oa_id:
+        type: integer
+      objetivo_especifico:
+        type: string
+      tipo_actividad_sugerida:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.ObjetivoAprendizaje:
+    properties:
+      activo:
+        type: boolean
+      bloom_objectives:
+        items:
+          $ref: '#/definitions/models.OABloomObjective'
+        type: array
+      codigo:
+        type: string
+      created_at:
+        type: string
+      descripcion:
+        type: string
+      id:
+        type: integer
+      materia:
+        allOf:
+        - $ref: '#/definitions/models.Materia'
+        description: Relationships
+      materia_id:
+        type: integer
+      orden:
+        type: integer
+      titulo:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.StudentOAHistory:
+    properties:
+      created_at:
+        type: string
+      estado:
+        type: string
+      id:
+        type: integer
+      notas:
+        type: string
+      oa_bloom_objective:
+        $ref: '#/definitions/models.OABloomObjective'
+      oa_bloom_objective_id:
+        type: integer
+      porcentaje_logro:
+        type: integer
+      puntaje_maximo:
+        type: number
+      puntaje_obtenido:
+        type: number
+      tipo_evento:
+        description: evaluacion, practica, diagnostico, repaso
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Relationships
+      user_id:
+        type: integer
+    type: object
+  models.StudentOAProgress:
+    properties:
+      created_at:
+        type: string
+      estado:
+        description: no_iniciado, en_proceso, logrado, dominado
+        type: string
+      id:
+        type: integer
+      intentos:
+        type: integer
+      notas:
+        type: string
+      oa_bloom_objective:
+        $ref: '#/definitions/models.OABloomObjective'
+      oa_bloom_objective_id:
+        type: integer
+      porcentaje_logro:
+        type: integer
+      ultima_actividad_fecha:
+        type: string
+      updated_at:
+        type: string
+      user:
+        allOf:
+        - $ref: '#/definitions/models.User'
+        description: Relationships
+      user_id:
+        type: integer
     type: object
   models.User:
     properties:
@@ -158,6 +424,165 @@ paths:
       summary: Register a new user
       tags:
       - Authentication
+  /api/bloom-levels:
+    get:
+      description: Retrieve all Bloom levels (seeded data, read-only)
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.BloomLevel'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all Bloom taxonomy levels
+      tags:
+      - Educational
+  /api/curso-materias:
+    post:
+      consumes:
+      - application/json
+      description: Create a relationship between a course and a subject
+      parameters:
+      - description: Assignment data (curso_id, materia_id, horas_semanales)
+        in: body
+        name: assignment
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.CursoMateria'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Assign a subject to a course
+      tags:
+      - Educational
+  /api/cursos:
+    get:
+      description: Retrieve all courses with optional filters
+      parameters:
+      - description: Filter by active status
+        in: query
+        name: activo
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Curso'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all courses
+      tags:
+      - Educational
+    post:
+      consumes:
+      - application/json
+      description: Create a new course
+      parameters:
+      - description: Course data
+        in: body
+        name: curso
+        required: true
+        schema:
+          $ref: '#/definitions/models.Curso'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Curso'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new course
+      tags:
+      - Educational
+  /api/cursos/{id}:
+    get:
+      description: Retrieve a specific course with its materias
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Curso'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get course by ID
+      tags:
+      - Educational
+    put:
+      consumes:
+      - application/json
+      description: Update an existing course
+      parameters:
+      - description: Course ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated course data
+        in: body
+        name: curso
+        required: true
+        schema:
+          $ref: '#/definitions/models.Curso'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Curso'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a course
+      tags:
+      - Educational
   /api/health:
     get:
       description: Returns the health status of the API and database connection
@@ -171,6 +596,234 @@ paths:
       summary: Health check endpoint
       tags:
       - Health
+  /api/materias:
+    get:
+      description: Retrieve all subjects with optional filters
+      parameters:
+      - description: Filter by active status
+        in: query
+        name: activo
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Materia'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all subjects
+      tags:
+      - Educational
+    post:
+      consumes:
+      - application/json
+      description: Create a new subject
+      parameters:
+      - description: Subject data
+        in: body
+        name: materia
+        required: true
+        schema:
+          $ref: '#/definitions/models.Materia'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Materia'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new subject
+      tags:
+      - Educational
+  /api/materias/{id}:
+    get:
+      description: Retrieve a specific subject with its learning objectives
+      parameters:
+      - description: Subject ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Materia'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get subject by ID
+      tags:
+      - Educational
+    put:
+      consumes:
+      - application/json
+      description: Update an existing subject
+      parameters:
+      - description: Subject ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated subject data
+        in: body
+        name: materia
+        required: true
+        schema:
+          $ref: '#/definitions/models.Materia'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Materia'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a subject
+      tags:
+      - Educational
+  /api/objetivos-aprendizaje:
+    get:
+      description: Retrieve all learning objectives with optional filtering by subject
+      parameters:
+      - description: Filter by subject ID
+        in: query
+        name: materia_id
+        type: integer
+      - description: Filter by active status
+        in: query
+        name: activo
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ObjetivoAprendizaje'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get all learning objectives
+      tags:
+      - Educational
+    post:
+      consumes:
+      - application/json
+      description: Create a complete OA with specific objectives for all 6 Bloom taxonomy
+        levels
+      parameters:
+      - description: Complete OA data including all 6 Bloom objectives
+        in: body
+        name: oa
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateOARequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.ObjetivoAprendizaje'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Create a new learning objective with all Bloom levels
+      tags:
+      - Educational
+  /api/objetivos-aprendizaje/{id}:
+    get:
+      description: Retrieve a specific learning objective with all Bloom-level details
+      parameters:
+      - description: Learning Objective ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ObjetivoAprendizaje'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get learning objective by ID
+      tags:
+      - Educational
+    put:
+      consumes:
+      - application/json
+      description: Update an existing learning objective (base fields only, use separate
+        endpoint for Bloom objectives)
+      parameters:
+      - description: Learning Objective ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated OA data
+        in: body
+        name: oa
+        required: true
+        schema:
+          $ref: '#/definitions/models.ObjetivoAprendizaje'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ObjetivoAprendizaje'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Update a learning objective
+      tags:
+      - Educational
   /api/profiles:
     post:
       consumes:
@@ -317,6 +970,89 @@ paths:
       summary: Export all profiles for ML
       tags:
       - Profiles
+  /api/progress:
+    post:
+      consumes:
+      - application/json
+      description: Record a student's progress on a specific Bloom-level objective
+      parameters:
+      - description: Progress data
+        in: body
+        name: progress
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.RegisterProgressRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.StudentOAProgress'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register student progress on an OA-Bloom objective
+      tags:
+      - Progress
+  /api/progress/{user_id}:
+    get:
+      description: Retrieve all progress records for a specific student
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StudentOAProgress'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get student progress
+      tags:
+      - Progress
+  /api/progress/{user_id}/history:
+    get:
+      description: Retrieve complete history of progress changes for a student
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Limit number of records (default 100)
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.StudentOAHistory'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get student progress history
+      tags:
+      - Progress
   /api/users/change-password:
     post:
       consumes:
