@@ -19,7 +19,7 @@
   import TrueFalse from '$lib/components/activities/TrueFalse.svelte';
   import FillBlanks from '$lib/components/activities/FillBlanks.svelte';
   import DragDropMatching from '$lib/components/activities/DragDropMatching.svelte';
-  import CompareContrast from '$lib/components/activities/CompareContrast.svelte';
+  import ComparisonTable from '$lib/components/activities/ComparisonTable.svelte';
   import ConceptMapBuilder from '$lib/components/activities/ConceptMapBuilder.svelte';
   import CriteriaEvaluation from '$lib/components/activities/CriteriaEvaluation.svelte';
   import OpenEndedResponse from '$lib/components/activities/OpenEndedResponse.svelte';
@@ -257,10 +257,30 @@
     isCorrect = data.isCorrect;
     isLoading = true;
 
+    console.log('[Diagnostic] Data received from component:', JSON.stringify(data, null, 2));
+
     // Determine user answer based on question type
     let userAnswer: any;
     if (data.selectedOption !== undefined) {
-      userAnswer = { selected: data.selectedOption }; // Backend expects 'selected' field
+      // MultipleChoice sends index (0,1,2,3), convert to letter (A,B,C,D)
+      const letters = ['A', 'B', 'C', 'D', 'E', 'F'];
+      userAnswer = { selected: letters[data.selectedOption] };
+      console.log('[Diagnostic] MultipleChoice transformed:', { index: data.selectedOption, letter: letters[data.selectedOption] });
+    } else if (data.userAnswers !== undefined) {
+      // FillBlanks component sends userAnswers, backend expects blanks
+      // Convert to string keys for backend
+      const blanksMap: Record<string, string> = {};
+      for (const [key, value] of Object.entries(data.userAnswers)) {
+        blanksMap[String(key)] = String(value);
+      }
+      userAnswer = { blanks: blanksMap };
+      console.log('[Diagnostic] FillBlanks transformed:', JSON.stringify({ userAnswers: data.userAnswers, blanksMap, userAnswer }, null, 2));
+    } else if (data.userAnswer !== undefined) {
+      // TrueFalse component sends userAnswer (boolean), backend expects answer field
+      userAnswer = { answer: data.userAnswer };
+    } else if (data.userTable !== undefined) {
+      // ComparisonTable component sends userTable
+      userAnswer = { tabla: data.userTable };
     } else if (data.answer !== undefined) {
       userAnswer = data.answer; // Send answer object directly (e.g., { matches: {...} })
     } else {
@@ -270,7 +290,8 @@
     console.log('[Diagnostic] Submitting answer:', {
       sessionId: session.id,
       questionId: currentQuestion.id,
-      userAnswer
+      userAnswer,
+      userAnswerJSON: JSON.stringify(userAnswer)
     });
 
     // Submit answer to backend
@@ -370,7 +391,7 @@
   function transformarPreguntaTrueFalse(question: DiagnosticQuestion) {
     const questionData = question.question_data;
     return {
-      pregunta: questionData.pregunta || questionData.question || '',
+      pregunta: questionData.afirmacion || questionData.pregunta || questionData.statement || '',
       respuestaCorrecta: questionData.respuesta_correcta || questionData.correct_answer || false,
       explicacion: questionData.explicacion || questionData.explanation || ''
     };
@@ -378,11 +399,25 @@
 
   function transformarPreguntaFillBlanks(question: DiagnosticQuestion) {
     const questionData = question.question_data;
+
+    // Transform [BLANK_X] format to ___X___ format
+    let texto = questionData.texto || questionData.text || '';
+    texto = texto.replace(/\[BLANK_(\d+)\]/g, '___$1___');
+
+    // Create blanks array from the text (extract blank numbers)
+    const blankMatches = [...texto.matchAll(/___(\d+)___/g)];
+    const blanks = blankMatches.map(match => ({
+      id: parseInt(match[1]),
+      answer: '', // Will be validated by backend
+      caseSensitive: false
+    }));
+
     return {
-      texto: questionData.texto || questionData.text || '',
-      blancos: questionData.blancos || questionData.blanks || [],
-      respuestasCorrectas: questionData.respuestas_correctas || questionData.correct_answers || [],
-      explicacion: questionData.explicacion || questionData.explanation || ''
+      text: texto,
+      blanks: blanks,
+      showWordBank: false,
+      showHints: false,
+      allowMultipleAttempts: false
     };
   }
 
@@ -443,11 +478,11 @@
     const questionData = question.question_data;
     return {
       title: questionData.titulo || questionData.title || 'Compara y contrasta',
-      itemA: questionData.itemA || questionData.item_a || { name: 'Item A', color: 'cyan' },
-      itemB: questionData.itemB || questionData.item_b || { name: 'Item B', color: 'purple' },
-      characteristics: questionData.caracteristicas || questionData.characteristics || [],
-      showFeedback: false,
-      allowMultipleAttempts: false
+      instruction: questionData.instruccion || questionData.instruction || 'Completa la tabla comparativa',
+      concepts: questionData.conceptos || questionData.concepts || [],
+      criteria: questionData.criterios || questionData.criteria || [],
+      allowMultipleAttempts: false,
+      showFeedback: false
     };
   }
 
@@ -506,6 +541,12 @@
       6: { label: 'Crear', color: 'text-purple-400', porcentaje: 100 }
     };
     return bloomMap[bloomLevel] || bloomMap[0];
+  }
+
+  function getBloomLevelStars(bloomLevel: number) {
+    const level = Math.floor(bloomLevel);
+    if (level === 0) return '—';
+    return '⭐'.repeat(Math.min(level, 6));
   }
 
   // Initialize on mount
@@ -568,7 +609,7 @@
         <div class="flex items-center justify-between text-xs mb-1.5">
           {#if showResults}
             <span class="text-green-400 font-medium">✓ Evaluación Completada</span>
-            <span class="text-slate-400">{getBloomLevelDisplay(averageBloomLevel).label} - {getBloomLevelDisplay(averageBloomLevel).porcentaje}%</span>
+            <span class="text-slate-400">{getBloomLevelStars(averageBloomLevel)} - {getBloomLevelDisplay(averageBloomLevel).porcentaje}%</span>
           {:else if currentQuestion}
             <span class="text-focus-400 font-medium">📚 {materiaInfo?.nombre}</span>
             <span class="text-slate-400">Pregunta {currentQuestionNumber} de {totalQuestions}</span>
@@ -725,19 +766,19 @@
               materia={materiaInfo?.nombre || ''}
               allowMultipleAttempts={false}
               showExplanation={false}
-              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+              onAnswer={(data) => handleAnswer(data)}
             />
           {:else if currentQuestion.tipo === 'fill_blanks'}
             {@const transformedQuestion = transformarPreguntaFillBlanks(currentQuestion)}
             <FillBlanks
-              text={transformedQuestion.texto}
-              blanks={transformedQuestion.blancos}
+              text={transformedQuestion.text}
+              blanks={transformedQuestion.blanks}
               bloomLevel="recordar"
               materia={materiaInfo?.nombre || ''}
               allowMultipleAttempts={false}
               showWordBank={false}
               showHints={false}
-              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+              onAnswer={(data) => handleAnswer(data)}
             />
           {:else if currentQuestion.tipo === 'drag_drop_matching'}
             {@const transformedQuestion = transformarPreguntaDragDropMatching(currentQuestion)}
@@ -793,17 +834,29 @@
             />
           {:else if currentQuestion.tipo === 'compare_contrast'}
             {@const transformedQuestion = transformarPreguntaCompareContrast(currentQuestion)}
-            <CompareContrast
+            <ComparisonTable
               title={transformedQuestion.title}
-              itemA={transformedQuestion.itemA}
-              itemB={transformedQuestion.itemB}
-              characteristics={transformedQuestion.characteristics}
+              instruction={transformedQuestion.instruction}
+              concepts={transformedQuestion.concepts}
+              criteria={transformedQuestion.criteria}
               bloomLevel="analizar"
               materia={materiaInfo?.nombre || ''}
-              showFeedback={transformedQuestion.showFeedback}
-              allowMultipleAttempts={transformedQuestion.allowMultipleAttempts}
-              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+              allowMultipleAttempts={false}
+              showFeedback={false}
+              onAnswer={(data) => handleAnswer(data)}
             />
+          {:else if currentQuestion.tipo === 'open_ended' || currentQuestion.tipo === 'concept_map'}
+            <!-- Tipo de pregunta no soportado en diagnóstico - se salta automáticamente -->
+            <div class="bg-yellow-500/10 border border-yellow-500/50 rounded-xl p-6 text-center">
+              <p class="text-yellow-400 mb-4">⚠️ Tipo de pregunta no disponible en modo diagnóstico</p>
+              <p class="text-slate-400 text-sm mb-4">Este tipo requiere evaluación manual. Se saltará automáticamente.</p>
+              <button
+                onclick={() => siguientePregunta()}
+                class="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-focus-500 to-blue-500 text-white transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50"
+              >
+                Continuar
+              </button>
+            </div>
           {:else if currentQuestion.tipo === 'criteria_evaluation'}
             {@const transformedQuestion = transformarPreguntaCriteriaEvaluation(currentQuestion)}
             <CriteriaEvaluation
@@ -870,9 +923,12 @@
           </div>
           <h2 class="text-3xl font-bold text-white mb-2">¡Evaluación Completada!</h2>
           <p class="text-xl text-slate-300 mb-4">
-            Nivel Promedio: <span class="{getBloomLevelDisplay(averageBloomLevel).color} font-bold">
-              {getBloomLevelDisplay(averageBloomLevel).label}
+            Nivel Alcanzado: <span class="text-4xl">
+              {getBloomLevelStars(averageBloomLevel)}
             </span>
+          </p>
+          <p class="text-sm text-slate-400">
+            {getBloomLevelDisplay(averageBloomLevel).label}
           </p>
           <p class="text-slate-400 mb-6">
             Respondiste {totalQuestions} preguntas de diferentes objetivos de aprendizaje
@@ -891,10 +947,13 @@
                   <p class="text-xs text-slate-400">{result.oa?.codigo}</p>
                 </div>
                 <div class="text-right">
-                  <div class="text-2xl font-bold {getBloomLevelDisplay(result.nivel_bloom_dominado).color}">
+                  <div class="text-3xl">
+                    {getBloomLevelStars(result.nivel_bloom_dominado)}
+                  </div>
+                  <div class="text-xs text-slate-500 mt-1">
                     {getBloomLevelDisplay(result.nivel_bloom_dominado).label}
                   </div>
-                  <div class="text-sm text-slate-400">
+                  <div class="text-sm text-slate-400 mt-1">
                     {result.preguntas_correctas}/{result.preguntas_respondidas} correctas
                   </div>
                 </div>

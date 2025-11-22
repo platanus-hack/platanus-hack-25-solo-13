@@ -104,8 +104,11 @@ See `scripts/db-queries.md` for more query examples.
 **IMPORTANT:** A deployment script automates the entire deployment process including migrations.
 
 ```bash
-# Full automated deployment (recommended)
+# Development deployment (dev servers with hot reload)
 ./scripts/deploy.sh
+
+# Production deployment (optimized builds with nginx)
+./scripts/deploy.sh --production
 
 # Development mode (skip git pull)
 ./scripts/deploy.sh --skip-git
@@ -116,6 +119,10 @@ See `scripts/db-queries.md` for more query examples.
 # View all options
 ./scripts/deploy.sh --help
 ```
+
+**Key differences:**
+- **Development mode** (`docker-compose.yml`): Uses dev servers (Air, Vite, Astro) with hot reload and volumes
+- **Production mode** (`docker-compose.prod.yml`): Uses optimized builds with nginx for landing/frontend, compiled Go binary for backend
 
 **What the script does automatically:**
 1. ✅ Updates code from git (optional with `--skip-git`)
@@ -143,15 +150,22 @@ ssh user@your-server.com
 git clone [repo] && cd lumera_app
 # or: git pull
 
-# Run deployment
-./scripts/deploy.sh
+# Run production deployment
+./scripts/deploy.sh --production
 
 # Script will:
 # - Pull latest code
+# - Build optimized Docker images (nginx + compiled binaries)
 # - Rebuild containers
 # - Run migrations (migrations 17-20 include seed data)
 # - Verify everything is working
 ```
+
+**⚠️ IMPORTANT:** Always use `--production` flag when deploying to servers. Using dev mode in production causes:
+- Constant page reloading and "?" appearing in URLs
+- Astro dev toolbar visible at the bottom
+- Slower performance and larger memory usage
+- Hot reload attempting to connect to dev servers
 
 **Migrations included in seed data:**
 - Migration 17: Cursos y Materias (1 curso, 2 materias)

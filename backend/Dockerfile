@@ -44,8 +44,14 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
+# Install migrate CLI for production migrations
+COPY --from=development /go/bin/migrate /usr/local/bin/migrate
+
 # Copy the binary from builder
 COPY --from=builder /app/main .
+
+# Copy migrations folder
+COPY --from=builder /app/migrations ./migrations
 
 # Expose port
 EXPOSE 8080

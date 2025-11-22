@@ -10,12 +10,13 @@
 # 4. Verifica estado del deployment
 #
 # Uso:
-#   ./scripts/deploy.sh [--skip-git] [--skip-build] [--skip-migrations]
+#   ./scripts/deploy.sh [--skip-git] [--skip-build] [--skip-migrations] [--production]
 #
 # Opciones:
 #   --skip-git         No hace git pull
 #   --skip-build       No reconstruye las imágenes Docker
 #   --skip-migrations  No ejecuta migraciones (no recomendado)
+#   --production       Usa docker-compose.prod.yml (build de producción)
 #   --env=<file>       Usa archivo de entorno específico (default: .env)
 # =============================================================================
 
@@ -33,6 +34,7 @@ SKIP_GIT=false
 SKIP_BUILD=false
 SKIP_MIGRATIONS=false
 ENV_FILE=".env"
+COMPOSE_FILE="docker-compose.yml"
 
 # Parse arguments
 for arg in "$@"; do
@@ -47,6 +49,10 @@ for arg in "$@"; do
             ;;
         --skip-migrations)
             SKIP_MIGRATIONS=true
+            shift
+            ;;
+        --production)
+            COMPOSE_FILE="docker-compose.prod.yml"
             shift
             ;;
         --env=*)
@@ -108,11 +114,11 @@ fi
 log_success "docker compose disponible"
 
 # Check if we're in the right directory
-if [ ! -f "docker-compose.yml" ]; then
-    log_error "No se encuentra docker-compose.yml. Ejecuta este script desde la raíz del proyecto."
+if [ ! -f "$COMPOSE_FILE" ]; then
+    log_error "No se encuentra $COMPOSE_FILE. Ejecuta este script desde la raíz del proyecto."
     exit 1
 fi
-log_success "Directorio correcto detectado"
+log_success "Directorio correcto detectado (usando $COMPOSE_FILE)"
 
 # Check environment file
 if [ ! -f "$ENV_FILE" ]; then
@@ -174,12 +180,12 @@ log_info "Paso 2/4: Construyendo y levantando contenedores..."
 
 # Stop existing containers
 log_info "Deteniendo contenedores existentes..."
-docker compose down
+docker compose -f "$COMPOSE_FILE" down
 
 # Build and start
 if [ "$SKIP_BUILD" = false ]; then
     log_info "Construyendo imágenes Docker..."
-    if docker compose up -d --build; then
+    if docker compose -f "$COMPOSE_FILE" up -d --build; then
         log_success "Contenedores levantados exitosamente"
     else
         log_error "Error al levantar contenedores"
@@ -187,7 +193,7 @@ if [ "$SKIP_BUILD" = false ]; then
     fi
 else
     log_warning "Saltando rebuild de imágenes (--skip-build)"
-    if docker compose up -d; then
+    if docker compose -f "$COMPOSE_FILE" up -d; then
         log_success "Contenedores levantados exitosamente"
     else
         log_error "Error al levantar contenedores"
@@ -200,9 +206,9 @@ log_info "Esperando a que los contenedores estén listos..."
 sleep 5
 
 # Check if containers are running
-if ! docker compose ps | grep -q "Up"; then
+if ! docker compose -f "$COMPOSE_FILE" ps | grep -q "Up"; then
     log_error "Los contenedores no están corriendo correctamente"
-    docker compose ps
+    docker compose -f "$COMPOSE_FILE" ps
     exit 1
 fi
 log_success "Todos los contenedores están corriendo"
@@ -233,28 +239,28 @@ if [ "$SKIP_MIGRATIONS" = false ]; then
 
     # Check current migration version
     log_info "Versión actual de migraciones:"
-    docker compose exec backend migrate \
-        -path=/app/migrations \
+    docker compose -f "$COMPOSE_FILE" exec backend migrate \
+        -path=/root/migrations \
         -database="$DB_URL" \
         version || log_warning "No se pudo obtener versión (puede ser primera ejecución)"
 
     # Run migrations
     log_info "Aplicando migraciones pendientes..."
-    if docker compose exec backend migrate \
-        -path=/app/migrations \
+    if docker compose -f "$COMPOSE_FILE" exec backend migrate \
+        -path=/root/migrations \
         -database="$DB_URL" \
         up; then
         log_success "Migraciones aplicadas exitosamente"
     else
         log_error "Error al aplicar migraciones"
-        log_info "Revisa los logs: docker compose logs backend"
+        log_info "Revisa los logs: docker compose -f $COMPOSE_FILE logs backend"
         exit 1
     fi
 
     # Show final migration version
     log_info "Versión final de migraciones:"
-    docker compose exec backend migrate \
-        -path=/app/migrations \
+    docker compose -f "$COMPOSE_FILE" exec backend migrate \
+        -path=/root/migrations \
         -database="$DB_URL" \
         version
 else
@@ -285,7 +291,7 @@ fi
 
 # Show running containers
 log_info "Contenedores activos:"
-docker compose ps
+docker compose -f "$COMPOSE_FILE" ps
 
 # =============================================================================
 # Deployment complete
@@ -301,16 +307,17 @@ echo "  • Frontend:       http://localhost:5173"
 echo "  • PostgreSQL:     localhost:5432"
 echo ""
 log_info "Comandos útiles:"
-echo "  • Ver logs:           docker compose logs -f"
-echo "  • Ver logs backend:   docker compose logs -f backend"
-echo "  • Ver logs frontend:  docker compose logs -f frontend"
-echo "  • Detener servicios:  docker compose down"
-echo "  • Estado servicios:   docker compose ps"
+echo "  • Ver logs:           docker compose -f $COMPOSE_FILE logs -f"
+echo "  • Ver logs backend:   docker compose -f $COMPOSE_FILE logs -f backend"
+echo "  • Ver logs frontend:  docker compose -f $COMPOSE_FILE logs -f frontend"
+echo "  • Ver logs landing:   docker compose -f $COMPOSE_FILE logs -f landing"
+echo "  • Detener servicios:  docker compose -f $COMPOSE_FILE down"
+echo "  • Estado servicios:   docker compose -f $COMPOSE_FILE ps"
 echo ""
 
 # Ask if user wants to see logs
 read -p "¿Deseas ver los logs del backend? (y/N): " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
-    docker compose logs -f backend
+    docker compose -f "$COMPOSE_FILE" logs -f backend
 fi

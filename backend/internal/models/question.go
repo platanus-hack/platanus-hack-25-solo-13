@@ -327,7 +327,20 @@ func (q *Question) validateMultipleChoiceAnswer(userAnswer datatypes.JSON) (bool
 	}
 
 	correctAnswer := validation["respuesta_correcta"]
-	isCorrect := userChoice == correctAnswer
+
+	// Convert both to strings for comparison
+	userStr := fmt.Sprint(userChoice)
+	correctStr := fmt.Sprint(correctAnswer)
+
+	// If user sent a number (0,1,2,3), convert to letter (A,B,C,D)
+	if userFloat, ok := userChoice.(float64); ok {
+		letters := []string{"A", "B", "C", "D", "E", "F"}
+		if int(userFloat) >= 0 && int(userFloat) < len(letters) {
+			userStr = letters[int(userFloat)]
+		}
+	}
+
+	isCorrect := userStr == correctStr
 
 	score := 0.0
 	if isCorrect {
@@ -354,7 +367,18 @@ func (q *Question) validateTrueFalseAnswer(userAnswer datatypes.JSON) (bool, flo
 		return false, 0, errors.New("answer must contain 'answer' field")
 	}
 
-	correctAnswer := validation["correct_answer"]
+	// Support multiple field names: 'correct_answer', 'respuesta_correcta', 'es_verdadero'
+	var correctAnswer interface{}
+	if ca, ok := validation["correct_answer"]; ok {
+		correctAnswer = ca
+	} else if rc, ok := validation["respuesta_correcta"]; ok {
+		correctAnswer = rc
+	} else if ev, ok := validation["es_verdadero"]; ok {
+		correctAnswer = ev
+	} else {
+		return false, 0, errors.New("validation_data must contain 'correct_answer', 'respuesta_correcta', or 'es_verdadero'")
+	}
+
 	isCorrect := userChoice == correctAnswer
 
 	score := 0.0
@@ -551,15 +575,30 @@ func (q *Question) validateFillBlanksAnswer(userAnswer datatypes.JSON) (bool, fl
 	}
 
 	// User answer format: { "blanks": { "1": "answer1", "2": "answer2" } }
-	// Validation format: { "correct_blanks": { "1": "answer1", "2": "answer2" }, "case_sensitive": false }
+	// Validation formats supported:
+	//   - { "correct_blanks": { "1": "answer1", "2": "answer2" }, "case_sensitive": false }
+	//   - { "respuestas_correctas": { "BLANK_1": ["answer1", "alt1"], "BLANK_2": ["answer2"] } }
 	userBlanks, ok := answer["blanks"].(map[string]interface{})
 	if !ok {
 		return false, 0, errors.New("answer must contain 'blanks' map")
 	}
 
-	correctBlanks, ok := validation["correct_blanks"].(map[string]interface{})
-	if !ok {
-		return false, 0, errors.New("validation_data must contain 'correct_blanks' map")
+	// Support both formats
+	var correctBlanks map[string]interface{}
+	if cb, ok := validation["correct_blanks"].(map[string]interface{}); ok {
+		correctBlanks = cb
+	} else if rc, ok := validation["respuestas_correctas"].(map[string]interface{}); ok {
+		// Convert BLANK_X to X format
+		correctBlanks = make(map[string]interface{})
+		for key, value := range rc {
+			// Extract number from BLANK_X
+			if strings.HasPrefix(key, "BLANK_") {
+				num := strings.TrimPrefix(key, "BLANK_")
+				correctBlanks[num] = value
+			}
+		}
+	} else {
+		return false, 0, errors.New("validation_data must contain 'correct_blanks' or 'respuestas_correctas'")
 	}
 
 	caseSensitive := false
@@ -573,17 +612,47 @@ func (q *Question) validateFillBlanksAnswer(userAnswer datatypes.JSON) (bool, fl
 	for blankID, correctAnswer := range correctBlanks {
 		if userAnswerVal, exists := userBlanks[blankID]; exists {
 			userStr := strings.TrimSpace(fmt.Sprint(userAnswerVal))
-			correctStr := strings.TrimSpace(fmt.Sprint(correctAnswer))
 
-			if !caseSensitive {
-				userStr = strings.ToLower(userStr)
-				correctStr = strings.ToLower(correctStr)
+			// Check if correctAnswer is an array of valid answers
+			isCorrectAnswer := false
+			if correctAnswerArray, ok := correctAnswer.([]interface{}); ok {
+				// Multiple valid answers
+				for _, validAnswer := range correctAnswerArray {
+					correctStr := strings.TrimSpace(fmt.Sprint(validAnswer))
+					if !caseSensitive {
+						if strings.EqualFold(userStr, correctStr) {
+							isCorrectAnswer = true
+							break
+						}
+					} else {
+						if userStr == correctStr {
+							isCorrectAnswer = true
+							break
+						}
+					}
+				}
+			} else {
+				// Single valid answer
+				correctStr := strings.TrimSpace(fmt.Sprint(correctAnswer))
+				if !caseSensitive {
+					if strings.EqualFold(userStr, correctStr) {
+						isCorrectAnswer = true
+					}
+				} else {
+					if userStr == correctStr {
+						isCorrectAnswer = true
+					}
+				}
 			}
 
-			if userStr == correctStr {
+			if isCorrectAnswer {
 				correctCount++
 			}
 		}
+	}
+
+	if totalCount == 0 {
+		return false, 0, errors.New("no correct blanks found in validation_data")
 	}
 
 	score := (float64(correctCount) / float64(totalCount)) * 100.0
@@ -604,16 +673,73 @@ func (q *Question) validateCompareContrastAnswer(userAnswer datatypes.JSON) (boo
 		return false, 0, err
 	}
 
-	// User answer format: { "classifications": { "0": "A", "1": "B", "2": "both" } }
-	// Validation format: { "correct_classifications": { "0": "A", "1": "B", "2": "both" } }
+	// Support two formats:
+	// 1. Old format: classifications (A/B/both)
+	// 2. New format: tabla (comparison table with concepts x criteria)
+
+	// Try tabla format first (new format)
+	if userTable, ok := answer["tabla"].(map[string]interface{}); ok {
+		// New format: comparison table
+		var correctTable map[string]interface{}
+		if ct, ok := validation["tabla_correcta"].(map[string]interface{}); ok {
+			correctTable = ct
+		} else {
+			return false, 0, errors.New("validation_data must contain 'tabla_correcta'")
+		}
+
+		correctCount := 0
+		totalCount := 0
+
+		// Compare each cell in the table
+		for concept, criteriaMap := range correctTable {
+			correctCriteria, ok := criteriaMap.(map[string]interface{})
+			if !ok {
+				continue
+			}
+
+			userCriteria, ok := userTable[concept].(map[string]interface{})
+			if !ok {
+				totalCount += len(correctCriteria)
+				continue
+			}
+
+			for criterion, correctValue := range correctCriteria {
+				totalCount++
+				userValue, exists := userCriteria[criterion]
+				if !exists {
+					continue
+				}
+
+				// Case-insensitive comparison with trimming
+				correctStr := strings.TrimSpace(strings.ToLower(fmt.Sprint(correctValue)))
+				userStr := strings.TrimSpace(strings.ToLower(fmt.Sprint(userValue)))
+
+				// Check if user answer contains key parts of correct answer
+				// or exact match
+				if correctStr == userStr || strings.Contains(userStr, correctStr) || strings.Contains(correctStr, userStr) {
+					correctCount++
+				}
+			}
+		}
+
+		if totalCount == 0 {
+			return false, 0, errors.New("no cells to validate")
+		}
+
+		score := (float64(correctCount) / float64(totalCount)) * 100.0
+		isCorrect := score >= 60.0
+		return isCorrect, score, nil
+	}
+
+	// Old format: classifications
 	userClassifications, ok := answer["classifications"].(map[string]interface{})
 	if !ok {
-		return false, 0, errors.New("answer must contain 'classifications' map")
+		return false, 0, errors.New("answer must contain 'tabla' or 'classifications'")
 	}
 
 	correctClassifications, ok := validation["correct_classifications"].(map[string]interface{})
 	if !ok {
-		return false, 0, errors.New("validation_data must contain 'correct_classifications' map")
+		return false, 0, errors.New("validation_data must contain 'correct_classifications'")
 	}
 
 	correctCount := 0
