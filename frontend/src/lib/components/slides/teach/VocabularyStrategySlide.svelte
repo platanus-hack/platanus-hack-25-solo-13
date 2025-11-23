@@ -34,7 +34,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -110,7 +110,7 @@
                   <div class="mt-4 space-y-2">
                     <p class="text-xs font-semibold uppercase text-canvas-400">Cómo aplicarla:</p>
                     {#each estrategia.pasos as paso, idx}
-                      <div class="flex items-start gap-2 p-3 bg-canvas-950 rounded-lg">
+                      <div class="flex items-start gap-2 p-3 bg-slate-950 rounded-lg">
                         <span class="text-sm font-bold {colors.text}">{idx + 1}.</span>
                         <p class="text-sm text-canvas-200">{paso}</p>
                       </div>
@@ -120,7 +120,7 @@
 
                 <!-- Ejemplo aplicado -->
                 {#if estrategia.ejemplo}
-                  <div class="mt-4 p-4 bg-canvas-950 rounded-lg border {colors.border}">
+                  <div class="mt-4 p-4 bg-slate-950 rounded-lg border {colors.border}">
                     <p class="text-xs font-semibold uppercase text-canvas-400 mb-2">
                       💡 Ejemplo con "{palabra || 'la palabra'}"
                     </p>
@@ -149,7 +149,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {#each familiasPalabras as familia}
-          <div class="p-4 bg-canvas-950 rounded-xl border border-canvas-700">
+          <div class="p-4 bg-slate-950 rounded-xl border border-canvas-700">
             <h4 class="text-lg font-bold text-purple-300 mb-3">
               {familia.raiz}
             </h4>
@@ -179,7 +179,7 @@
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         {#each consejos as consejo}
-          <div class="flex items-start gap-3 p-3 bg-canvas-950 rounded-lg">
+          <div class="flex items-start gap-3 p-3 bg-slate-950 rounded-lg">
             <span class="text-green-400">✓</span>
             <p class="text-sm text-canvas-300">
               {consejo}

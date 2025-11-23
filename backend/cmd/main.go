@@ -15,6 +15,7 @@ import (
 	"github.com/platanus-hack-25/lumera_app/internal/db"
 	"github.com/platanus-hack-25/lumera_app/internal/handlers"
 	authmiddleware "github.com/platanus-hack-25/lumera_app/internal/middleware"
+	"github.com/platanus-hack-25/lumera_app/internal/services"
 )
 
 // @title Lumera API
@@ -50,6 +51,12 @@ func main() {
 			log.Fatal("Failed to connect to database after retries")
 		}
 		break
+	}
+
+	// Initialize OpenAI for content generation
+	if err := services.InitOpenAI(); err != nil {
+		log.Printf("⚠ Warning: OpenAI initialization failed: %v", err)
+		log.Println("Learning plan generation will not be available")
 	}
 
 	// Initialize router
@@ -175,12 +182,23 @@ func main() {
 	// Diagnostic System (all protected)
 	r.Route("/api/diagnostic-sessions", func(r chi.Router) {
 		r.Use(authmiddleware.AuthMiddleware)
+		r.Get("/", handlers.GetDiagnosticSessions)             // List user's diagnostic sessions with filters
 		r.Post("/", handlers.StartDiagnostic)                  // Start diagnostic session
 		r.Get("/{id}", handlers.GetSessionProgress)            // Get session progress
 		r.Get("/{id}/next-question", handlers.GetNextQuestion) // Get next adaptive question
 		r.Post("/{id}/answer", handlers.SubmitAnswer)          // Submit answer
 		r.Post("/{id}/complete", handlers.CompleteDiagnostic)  // Complete diagnostic
 		r.Get("/{id}/results", handlers.GetDiagnosticResults)  // Get diagnostic results
+	})
+
+	// Practice System (all protected)
+	r.Route("/api/practice-sessions", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Get("/", handlers.GetPracticeSessions)                      // List user's practice sessions with filters
+		r.Post("/", handlers.StartPractice)                           // Start practice session
+		r.Get("/{id}/next-question", handlers.GetPracticeNextQuestion) // Get next adaptive question
+		r.Post("/{id}/answer", handlers.SubmitPracticeAnswer)          // Submit answer
+		r.Post("/{id}/complete", handlers.CompletePracticeSession)     // Complete practice session
 	})
 
 	// Gamification System (all protected)
@@ -199,6 +217,22 @@ func main() {
 		r.Post("/equip", handlers.EquipItem)                      // Equip item
 		r.Post("/purchase", handlers.PurchaseItem)                // Purchase item with coins
 		r.Get("/notifications", handlers.GetUnlockNotifications)  // Get unlock notifications
+	})
+
+	// Learning Plans System (all protected)
+	r.Route("/api/learning-plans", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+
+		// Generate endpoint with extended timeout (120s) for full content generation
+		r.With(middleware.Timeout(120 * time.Second)).Post("/generate", handlers.GenerateLearningPlanHandler)
+
+		r.Get("/{id}", handlers.GetLearningPlanByIDHandler)                                  // Get plan by ID
+		r.Get("/by-oa/{oa_bloom_objective_id}", handlers.GetLearningPlanByOAHandler)        // Get plan by OA
+		r.Post("/{plan_id}/components/{component_id}/generate-content", handlers.GenerateComponentContentHandler) // Generate component content (legacy, for individual components)
+
+		// Completion tracking
+		r.Post("/{id}/start", handlers.StartLearningPlanHandler)       // Mark plan as started
+		r.Post("/{id}/complete", handlers.CompleteLearningPlanHandler) // Mark plan as completed
 	})
 
 	// Static file server for avatars

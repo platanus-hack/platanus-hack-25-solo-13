@@ -60,7 +60,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-6xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-6xl mx-auto p-8 bg-slate-950 rounded-2xl border border-slate-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">

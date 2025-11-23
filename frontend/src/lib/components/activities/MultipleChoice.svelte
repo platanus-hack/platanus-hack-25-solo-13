@@ -186,7 +186,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-2xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-2xl mx-auto p-6 bg-canvas-900 rounded-2xl border border-slate-700 shadow-2xl"
 >
   <!-- Header con Bloom Level Badge -->
   <div class="flex items-center justify-between mb-6">
@@ -223,10 +223,10 @@
         class="
           w-full p-4 rounded-2xl text-left transition-all duration-300
           border-2
-          {isSelected && !hasSubmitted ? 'border-cyan-500 bg-cyan-500/10' : 'border-slate-700'}
+          {isSelected && !hasSubmitted ? 'border-teal-500 bg-teal-500/10' : 'border-slate-700'}
           {showAsCorrect ? 'border-green-500 bg-green-500/20' : ''}
           {showAsIncorrect ? 'border-red-500 bg-red-500/20' : ''}
-          {!hasSubmitted ? 'hover:border-slate-600 hover:bg-canvas-900/50 cursor-pointer' : ''}
+          {!hasSubmitted ? 'hover:border-slate-600 hover:bg-canvas-800/50 cursor-pointer' : ''}
           {hasSubmitted && !allowMultipleAttempts ? 'cursor-not-allowed opacity-75' : ''}
         "
       >
@@ -256,10 +256,10 @@
         disabled={selectedOption === null || selectedOption === undefined}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-focus-500 to-blue-500
-          text-white
+          bg-[#E1E1E1] hover:bg-[#CCCCCC]
+          text-canvas-900
           transition-all duration-300
-          hover:shadow-lg hover:shadow-cyan-500/50
+          shadow-lg hover:shadow-xl
           disabled:opacity-50 disabled:cursor-not-allowed
         "
       >

@@ -42,7 +42,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -103,7 +103,7 @@
         <p class="text-lg text-canvas-200 mb-4">
           {categoria.definicion}
         </p>
-        <div class="p-4 bg-canvas-950 rounded-lg border {colors.border}">
+        <div class="p-4 bg-slate-950 rounded-lg border {colors.border}">
           <p class="text-sm text-canvas-300">
             <span class="font-semibold {colors.text}">Función:</span> {categoria.funcion}
           </p>
@@ -118,7 +118,7 @@
 
         <div class="space-y-4">
           {#each categoria.conectores as conector}
-            <div class="p-4 bg-canvas-950 rounded-xl border {colors.border}">
+            <div class="p-4 bg-slate-950 rounded-xl border {colors.border}">
               <div class="flex items-center gap-3 mb-3">
                 <span class="px-4 py-2 {colors.badge} rounded-lg text-white font-bold">
                   {conector.palabra}
@@ -188,7 +188,7 @@
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {#each consejos as consejo}
-          <div class="flex items-start gap-3 p-3 bg-canvas-950 rounded-lg">
+          <div class="flex items-start gap-3 p-3 bg-slate-950 rounded-lg">
             <span class="text-xl">✓</span>
             <p class="text-sm text-canvas-300">
               {consejo}

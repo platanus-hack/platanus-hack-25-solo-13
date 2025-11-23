@@ -30,31 +30,20 @@
   import CurrentQuestModal from '$lib/components/dashboard/CurrentQuestModal.svelte';
   import LiveEventsModal from '$lib/components/dashboard/LiveEventsModal.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
-  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
+  import AppHeader from '$lib/components/common/AppHeader.svelte';
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
   import { materiasToSubjects, type Subject } from '$lib/constants/subjects';
   import { getEquipment, type CustomizationItem } from '$lib/api/customization';
 
   // Obtener parámetro de URL
-  let materiaSlug = $state('');
+  let materiaId = $state(0);
   let materiaInfo = $state<{ id: number; nombre: string; codigo: string } | null>(null);
 
-  // Fetch materia by slug/code from backend
-  async function fetchMateriaByCodigo(slug: string) {
+  // Fetch materia by ID from backend
+  async function fetchMateriaById(id: number) {
     try {
-      // Normalize slug to codigo (lyl -> LYL, mat -> MAT, etc)
-      const codigoMap: Record<string, string> = {
-        'lyl': 'LYL',
-        'lenguaje': 'LYL',
-        'lengua': 'LYL',
-        'mat': 'MAT',
-        'matematicas': 'MAT'
-      };
-
-      const codigo = codigoMap[slug.toLowerCase()] || slug.toUpperCase();
-
-      const response = await fetch('/api/materias', {
+      const response = await fetch(`/api/materias/${id}`, {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': auth.token ? `Bearer ${auth.token}` : ''
@@ -62,13 +51,10 @@
       });
 
       if (!response.ok) {
-        throw new Error('Error fetching materias');
+        throw new Error('Error fetching materia');
       }
 
-      const materias = await response.json();
-      const materia = materias.find((m: any) => m.codigo === codigo);
-
-      return materia || null;
+      return await response.json();
     } catch (error) {
       console.error('Error fetching materia:', error);
       return null;
@@ -185,11 +171,66 @@
     : 0);
 
   // Initialize diagnostic
+  // Helper to get auth headers
+  function getAuthHeaders() {
+    const token = auth.token;
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': token ? `Bearer ${token}` : ''
+    };
+  }
+
+  // Check if user already has a completed diagnostic for this materia
+  async function checkExistingDiagnostic() {
+    if (!materiaInfo) return null;
+
+    try {
+      const response = await fetch(`/api/diagnostic-sessions?materia_id=${materiaInfo.id}&estado=completado`, {
+        headers: getAuthHeaders()
+      });
+
+      if (!response.ok) return null;
+
+      const sessions = await response.json();
+      // Return the most recent completed session
+      return sessions.length > 0 ? sessions[0] : null;
+    } catch (error) {
+      console.error('Error checking existing diagnostic:', error);
+      return null;
+    }
+  }
+
+  // Load existing diagnostic results
+  async function loadExistingDiagnostic(existingSession: any) {
+    session = existingSession;
+    averageBloomLevel = existingSession.estrategia?.average_bloom_level || 0;
+    totalQuestions = existingSession.preguntas_totales;
+
+    // Get detailed results
+    const resultsResponse = await getResults(existingSession.id);
+
+    if (resultsResponse.success) {
+      results = resultsResponse.results!;
+    }
+
+    showResults = true;
+    isLoading = false;
+  }
+
   async function initializeDiagnostic() {
     if (!materiaInfo) return;
 
     isLoading = true;
     errorMessage = '';
+
+    // Check if user already completed this diagnostic
+    const existingSession = await checkExistingDiagnostic();
+
+    if (existingSession) {
+      // Load existing results
+      await loadExistingDiagnostic(existingSession);
+      return;
+    }
 
     // Start diagnostic session
     const sessionResult = await startDiagnosticSession(materiaInfo.id);
@@ -555,11 +596,11 @@
     loadEquippedAvatar();
 
     const unsubscribe = page.subscribe(($page) => {
-      materiaSlug = $page.params.materiaId || '';
+      materiaId = parseInt($page.params.materiaId || '0');
     });
 
     // Fetch materia from backend
-    materiaInfo = await fetchMateriaByCodigo(materiaSlug);
+    materiaInfo = await fetchMateriaById(materiaId);
 
     if (!materiaInfo) {
       errorMessage = 'Materia no reconocida. Por favor verifica la URL.';
@@ -582,36 +623,26 @@
 </svelte:head>
 
 <!-- Main Layout -->
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+<div class="min-h-screen bg-canvas-950">
   <!-- Header -->
-  <header class="sticky top-0 z-50 border-b border-white/5 bg-canvas-950/90 backdrop-blur-md">
-    <div class="px-6 py-3 flex items-center justify-between gap-4">
-      <!-- Left: Profile -->
-      <button
-        onclick={() => isPlayerProfileOpen = true}
-        class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-canvas-800/40 transition-all group"
-      >
-        <AvatarDisplay
-          {currentAvatar}
-          {initials}
-          size="small"
-        />
-        <div class="text-left hidden md:block">
-          <div class="text-sm font-semibold text-white group-hover:text-lumera-400 transition-colors">
-            {student.name}
-          </div>
-          <div class="text-xs text-slate-400">{student.grade}</div>
-        </div>
-      </button>
-
-      <!-- Center: Progress (replaces XP bar during evaluation) -->
+  <AppHeader
+    {currentAvatar}
+    onProfileClick={() => isPlayerProfileOpen = true}
+    onQuestClick={() => isCurrentQuestOpen = true}
+    onMissionsClick={() => isMissionBoardOpen = true}
+    onActivityClick={() => isActivityModalOpen = true}
+    onLiveEventsClick={() => isLiveEventsOpen = true}
+    onProgressClick={() => isProgressPanelOpen = true}
+  >
+    {#snippet centerContent()}
+      <!-- Progress Bar for Diagnostic in Header -->
       <div class="flex-1 max-w-md">
         <div class="flex items-center justify-between text-xs mb-1.5">
           {#if showResults}
             <span class="text-green-400 font-medium">✓ Evaluación Completada</span>
             <span class="text-slate-400">{getBloomLevelStars(averageBloomLevel)} - {getBloomLevelDisplay(averageBloomLevel).porcentaje}%</span>
           {:else if currentQuestion}
-            <span class="text-focus-400 font-medium">📚 {materiaInfo?.nombre}</span>
+            <span class="text-cyan-400 font-medium">📚 {materiaInfo?.nombre}</span>
             <span class="text-slate-400">Pregunta {currentQuestionNumber} de {totalQuestions}</span>
           {:else}
             <span class="text-slate-400">Cargando...</span>
@@ -622,104 +653,16 @@
           {#if showResults}
             <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style="width: 100%"></div>
           {:else}
-            <div class="h-full bg-gradient-to-r from-focus-500 to-blue-500 transition-all duration-500" style="width: {progreso}%"></div>
+            <div class="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500" style="width: {progreso}%"></div>
           {/if}
         </div>
       </div>
-
-      <!-- Right: Navigation Icons -->
-      <div class="flex items-center gap-2">
-        <!-- Quest Button -->
-        <button
-          onclick={() => isCurrentQuestOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Quest Actual"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </button>
-
-        <!-- Mission Board Button -->
-        <button
-          onclick={() => isMissionBoardOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Mission Board"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          {#if dashboardStore.activeMissionCount > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.activeMissionCount}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Activity Button -->
-        <button
-          onclick={() => isActivityModalOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Actividad Reciente"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          {#if dashboardStore.activities.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-rose-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.activities.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Events Button -->
-        <button
-          onclick={() => isLiveEventsOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Live Events"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-          </svg>
-          {#if dashboardStore.events.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-amber-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.events.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Progress Button -->
-        <button
-          onclick={() => isProgressPanelOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Tu Progreso"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          {#if dashboardStore.subjects.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-lumera-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.subjects.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Logout Button -->
-        <button
-          onclick={() => auth.logout()}
-          class="relative p-2 rounded-lg hover:bg-red-900/60 transition-all duration-200 group"
-          title="Logout"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </header>
+    {/snippet}
+  </AppHeader>
 
   <!-- Main Content -->
   <main class="px-6 py-8 max-w-4xl mx-auto">
+
     <!-- Error Message -->
     {#if errorMessage}
       <div class="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl">
@@ -742,7 +685,7 @@
 
     <!-- Question Display -->
     {#if !showResults && currentQuestion && !isLoading}
-      <div class="bg-canvas-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
+      <div class="bg-canvas-900 backdrop-blur-xl rounded-2xl border border-slate-700 p-8">
         {#key currentQuestion.id}
           {#if currentQuestion.tipo === 'multiple_choice'}
             {@const transformedQuestion = transformarPreguntaMultipleChoice(currentQuestion)}
@@ -852,7 +795,7 @@
               <p class="text-slate-400 text-sm mb-4">Este tipo requiere evaluación manual. Se saltará automáticamente.</p>
               <button
                 onclick={() => siguientePregunta()}
-                class="px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-focus-500 to-blue-500 text-white transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/50"
+                class="px-6 py-3 rounded-xl font-semibold bg-[#E1E1E1] hover:bg-[#CCCCCC] text-canvas-900 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 Continuar
               </button>
@@ -917,7 +860,7 @@
     {#if showResults}
       <div class="space-y-6">
         <!-- Overall Result -->
-        <div class="bg-canvas-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-8 text-center">
+        <div class="bg-canvas-900 backdrop-blur-xl rounded-2xl border border-slate-700 p-8 text-center">
           <div class="text-6xl mb-4">
             {averageBloomLevel >= 5 ? '🏆' : averageBloomLevel >= 3 ? '🎯' : '📚'}
           </div>
@@ -940,7 +883,7 @@
           <h3 class="text-xl font-bold text-white">Resultados por Objetivo de Aprendizaje</h3>
 
           {#each results as result}
-            <div class="bg-canvas-900/40 backdrop-blur-xl rounded-xl border border-white/10 p-6">
+            <div class="bg-canvas-800 backdrop-blur-xl rounded-xl border border-slate-700 p-6">
               <div class="flex items-center justify-between mb-3">
                 <div>
                   <h4 class="font-semibold text-white">{result.oa?.titulo || `OA ${result.oa_id}`}</h4>
@@ -960,9 +903,9 @@
               </div>
 
               <!-- Progress Bar -->
-              <div class="h-2 w-full bg-canvas-950 rounded-full overflow-hidden mb-3">
+              <div class="h-2 w-full bg-black/40 rounded-full overflow-hidden mb-3 border border-black/50">
                 <div
-                  class="h-full bg-gradient-to-r from-lumera-500 to-focus-500 transition-all duration-500"
+                  class="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500"
                   style="width: {result.porcentaje_aciertos}%"
                 ></div>
               </div>
@@ -979,7 +922,7 @@
         <div class="flex gap-4 justify-center pt-4">
           <button
             onclick={() => goto('/')}
-            class="px-8 py-3 rounded-xl bg-canvas-800 hover:bg-canvas-700 text-white font-semibold transition-all"
+            class="px-8 py-3 rounded-xl bg-[#E1E1E1] hover:bg-[#CCCCCC] text-canvas-900 font-semibold transition-all shadow-lg hover:shadow-xl"
           >
             Volver al Dashboard
           </button>

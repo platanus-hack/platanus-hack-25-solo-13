@@ -217,7 +217,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-3xl mx-auto p-6 bg-canvas-950 rounded-2xl border border-slate-800 shadow-2xl"
+  class="w-full max-w-3xl mx-auto p-6 bg-canvas-900 rounded-2xl border border-slate-700 shadow-2xl"
 >
   <!-- Header -->
   <div class="flex items-center justify-between mb-6">
@@ -334,10 +334,10 @@
         onclick={handleSubmit}
         class="
           flex-1 px-6 py-3 rounded-xl font-semibold
-          bg-gradient-to-r from-focus-500 to-blue-500
-          text-white
+          bg-[#E1E1E1] hover:bg-[#CCCCCC]
+          text-canvas-900
           transition-all duration-300
-          hover:shadow-lg hover:shadow-cyan-500/50
+          shadow-lg hover:shadow-xl
         "
       >
         Verificar Orden
@@ -384,9 +384,9 @@
             {allCorrect ? '¡Perfecto! El orden es correcto' : `${results.filter(r => r).length} de ${items.length} en posición correcta`}
           </p>
           <div class="flex items-center gap-3 mt-2">
-            <div class="flex-1 bg-canvas-900 rounded-full h-2 overflow-hidden">
+            <div class="flex-1 bg-black/40 rounded-full h-2 overflow-hidden border border-black/50">
               <div
-                class="h-full bg-gradient-to-r from-focus-500 to-green-500 transition-all duration-500"
+                class="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500"
                 style="width: {score}%"
               ></div>
             </div>

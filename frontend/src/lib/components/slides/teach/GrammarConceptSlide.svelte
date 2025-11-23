@@ -44,7 +44,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -144,7 +144,7 @@
                 Ejemplos:
               </p>
               {#each tipo.ejemplos as ejemplo}
-                <div class="p-4 bg-canvas-950 rounded-lg border {colors.border}">
+                <div class="p-4 bg-slate-950 rounded-lg border {colors.border}">
                   <p class="text-lg text-white mb-2 font-medium">
                     "{ejemplo.oracion}"
                   </p>
@@ -182,7 +182,7 @@
       </h3>
       <div class="space-y-3">
         {#each reglas as regla, index}
-          <div class="flex items-start gap-3 p-4 bg-canvas-950 rounded-lg">
+          <div class="flex items-start gap-3 p-4 bg-slate-950 rounded-lg">
             <div class="w-8 h-8 rounded-full bg-blue-500/20 border-2 border-blue-500 flex items-center justify-center flex-shrink-0">
               <span class="text-sm font-bold text-blue-300">
                 {index + 1}
@@ -212,7 +212,7 @@
       </h3>
       <div class="space-y-4">
         {#each erroresComunes as error}
-          <div class="p-4 bg-canvas-950 rounded-lg border border-red-500/30">
+          <div class="p-4 bg-slate-950 rounded-lg border border-red-500/30">
             <div class="flex items-start gap-3 mb-2">
               <span class="text-red-400">✗</span>
               <p class="text-canvas-200 font-medium">

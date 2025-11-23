@@ -3,7 +3,8 @@
     id: string;
     label: string;
     description: string;
-    icon: string;
+    iconPath: string;
+    disabled?: boolean;
   }
 
   interface Props {
@@ -15,7 +16,9 @@
 
   let { cards, selected = $bindable(''), onSelect, multiSelect = false }: Props = $props();
 
-  function handleSelect(cardId: string) {
+  function handleSelect(cardId: string, isDisabled: boolean) {
+    if (isDisabled) return;
+
     if (multiSelect) {
       const currentSelected = Array.isArray(selected) ? selected : [];
       if (currentSelected.includes(cardId)) {
@@ -44,26 +47,61 @@
 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
   {#each cards as card}
     {@const selected = isSelected(card.id)}
+    {@const isDisabled = card.disabled || false}
     <button
       type="button"
+      disabled={isDisabled}
       class="p-6 rounded-2xl border-2 transition-all duration-300 text-left relative overflow-hidden {
-        selected
-          ? 'bg-gradient-to-br from-indigo-600/30 to-focus-600/20 border-lumera-500 scale-105 shadow-xl shadow-indigo-500/30'
-          : 'bg-canvas-900/40 border-slate-700 hover:border-slate-600 hover:bg-canvas-800/60 hover:scale-102'
+        isDisabled
+          ? 'bg-canvas-900/30 border-canvas-800 opacity-60 cursor-not-allowed'
+          : selected
+          ? 'bg-[#E1E1E1] border-[#E1E1E1] scale-105 shadow-xl'
+          : 'bg-canvas-900/60 border-canvas-700 hover:border-canvas-600 hover:bg-canvas-800/60 hover:scale-102'
       }"
-      onclick={() => handleSelect(card.id)}
+      onclick={() => handleSelect(card.id, isDisabled)}
     >
-      {#if selected}
-        <div class="absolute top-3 right-3 w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold">
-          ✓
+      {#if isDisabled}
+        <div class="absolute top-3 right-3 px-3 py-1 bg-canvas-800 rounded-full border border-canvas-600">
+          <span class="text-xs font-semibold text-slate-400">Próximamente</span>
+        </div>
+      {:else if selected}
+        <div class="absolute top-3 right-3 w-7 h-7 rounded-full bg-canvas-900 flex items-center justify-center shadow-md">
+          <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+          </svg>
         </div>
       {/if}
 
-      <div class="text-4xl mb-3">{card.icon}</div>
-      <h3 class="text-lg font-semibold mb-2 {selected ? 'text-indigo-200' : 'text-slate-200'}">
+      <div class="flex items-center justify-center w-16 h-16 mb-4 rounded-xl {
+        isDisabled ? 'bg-canvas-800/40' :
+        selected ? 'bg-canvas-900/10' : 'bg-canvas-800/60'
+      }">
+        <svg
+          class="w-10 h-10 {
+            isDisabled ? 'text-slate-600' :
+            selected ? 'text-canvas-900' : 'text-slate-400'
+          } transition-colors duration-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d={card.iconPath} />
+        </svg>
+      </div>
+
+      <h3 class="text-lg font-bold mb-2 {
+        isDisabled ? 'text-slate-500' :
+        selected ? 'text-canvas-900' : 'text-slate-200'
+      }">
         {card.label}
       </h3>
-      <p class="text-sm {selected ? 'text-lumera-300/80' : 'text-slate-400'}">
+      <p class="text-sm {
+        isDisabled ? 'text-slate-600' :
+        selected ? 'text-canvas-800' : 'text-slate-400'
+      }">
         {card.description}
       </p>
     </button>

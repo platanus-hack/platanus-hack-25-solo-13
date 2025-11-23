@@ -10,16 +10,15 @@
     subjects: Subject[];
     userProfile: any;
     onSubjectClick: (subject: Subject) => void;
+    diagnosticLevels: Record<number, number>;
   }
 
-  let { isOpen, onClose, subjects, userProfile, onSubjectClick }: Props = $props();
+  let { isOpen, onClose, subjects, userProfile, onSubjectClick, diagnosticLevels }: Props = $props();
 
   // Get domain level for a subject
-  function getDomainLevel(subjectId: string): number {
-    if (!userProfile?.profile_data?.conocimiento_previo) {
-      return 0; // Not evaluated
-    }
-    return userProfile.profile_data.conocimiento_previo[subjectId]?.nivel || 0;
+  function getDomainLevel(materiaId?: number): number {
+    if (!materiaId) return 0;
+    return diagnosticLevels[materiaId] || 0;
   }
 
   // Close on Escape key
@@ -29,7 +28,7 @@
     }
   }
 
-  // Animate panel
+  // Animate panel and reload levels when opened
   $effect(() => {
     if (isOpen) {
       gsap.fromTo(
@@ -53,25 +52,25 @@
   // Calculate stats
   const totalSubjects = $derived(subjects.length);
   const evaluatedSubjects = $derived(
-    subjects.filter(s => getDomainLevel(s.id) > 0).length
+    subjects.filter(s => getDomainLevel(s.materiaId) > 0).length
   );
   const advancedSubjects = $derived(
-    subjects.filter(s => getDomainLevel(s.id) >= 3).length
+    subjects.filter(s => getDomainLevel(s.materiaId) >= 3).length
   );
 </script>
 
 {#if isOpen}
   <div class="progress-panel fixed inset-0 z-40 bg-canvas-950 overflow-y-auto">
     <!-- Header -->
-    <div class="sticky top-0 z-10 border-b border-white/10 bg-canvas-950/90 backdrop-blur-md">
+    <div class="sticky top-0 z-10 border-b border-slate-300 bg-canvas-950/90 backdrop-blur-md">
       <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <div>
-          <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
             <span>📊</span>
             <span>Tu Progreso Académico</span>
           </h2>
           {#if userProfile?.curso_actual}
-            <p class="text-sm text-slate-400 mt-1">
+            <p class="text-sm text-slate-600 mt-1">
               {userProfile.curso_actual} • {evaluatedSubjects}/{totalSubjects} materias evaluadas
             </p>
           {/if}
@@ -91,26 +90,26 @@
       <!-- Summary Stats -->
       {#if evaluatedSubjects > 0}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-3xl mx-auto">
-          <div class="bg-canvas-900/50 rounded-xl p-4 border border-slate-800">
+          <div class="bg-canvas-900 rounded-xl p-4 border border-slate-700">
             <div class="text-3xl font-bold text-white">{evaluatedSubjects}/{totalSubjects}</div>
-            <div class="text-sm text-slate-400 mt-1">Materias Evaluadas</div>
+            <div class="text-sm text-slate-300 mt-1">Materias Evaluadas</div>
           </div>
-          <div class="bg-canvas-900/50 rounded-xl p-4 border border-slate-800">
+          <div class="bg-canvas-900 rounded-xl p-4 border border-slate-700">
             <div class="text-3xl font-bold text-green-400">{advancedSubjects}</div>
-            <div class="text-sm text-slate-400 mt-1">Nivel Intermedio o Superior</div>
+            <div class="text-sm text-slate-300 mt-1">Nivel Intermedio o Superior</div>
           </div>
         </div>
       {/if}
 
       <!-- Subject Cards Grid -->
       <div>
-        <h3 class="text-lg font-semibold text-white mb-6 text-center">Todas las Materias</h3>
+        <h3 class="text-lg font-semibold text-slate-900 mb-6 text-center">Todas las Materias</h3>
         <div class="flex justify-center gap-8 flex-wrap max-w-4xl mx-auto">
           {#each subjects as subject}
             <div class="subject-card-panel w-80">
               <SubjectProgressCard
                 {subject}
-                domainLevel={getDomainLevel(subject.id)}
+                domainLevel={getDomainLevel(subject.materiaId)}
                 onClick={() => onSubjectClick(subject)}
               />
             </div>
@@ -122,16 +121,16 @@
       {#if subjects.length === 0}
         <div class="text-center py-12">
           <div class="text-6xl mb-4">📚</div>
-          <h3 class="text-xl font-semibold text-white mb-2">No hay materias disponibles</h3>
-          <p class="text-slate-400">
+          <h3 class="text-xl font-semibold text-slate-900 mb-2">No hay materias disponibles</h3>
+          <p class="text-slate-600">
             Completa tu perfil para ver tus materias
           </p>
         </div>
       {/if}
 
       <!-- Footer hint -->
-      <div class="mt-12 text-center text-sm text-slate-500">
-        <p>Presiona <kbd class="px-2 py-1 bg-canvas-800 rounded border border-slate-700">Esc</kbd> para cerrar</p>
+      <div class="mt-12 text-center text-sm text-slate-600">
+        <p>Presiona <kbd class="px-2 py-1 bg-canvas-900 text-white rounded border border-slate-700">Esc</kbd> para cerrar</p>
       </div>
     </div>
   </div>

@@ -40,20 +40,25 @@
   --color-focus-800: #115e59;
   --color-focus-900: #134e4a;
 
-  /* Backgrounds: Warmer slate with hint of navy */
-  --color-canvas-50: #f8fafc;
-  --color-canvas-100: #f1f5f9;
-  --color-canvas-200: #e2e8f0;
-  --color-canvas-300: #cbd5e1;
-  --color-canvas-400: #94a3b8;
-  --color-canvas-500: #64748b;
-  --color-canvas-600: #475569;
-  --color-canvas-700: #334155;
-  --color-canvas-800: #1e293b;
-  --color-canvas-900: #0f172a;
-  --color-canvas-950: #020617;
+  /* Backgrounds: High contrast dark theme */
+  --color-canvas-50: #E1E1E1;  /* Light content background */
+  --color-canvas-100: #CCCCCC;
+  --color-canvas-200: #B3B3B3;
+  --color-canvas-300: #999999;
+  --color-canvas-400: #808080;
+  --color-canvas-500: #666666;
+  --color-canvas-600: #4D4D4D;
+  --color-canvas-700: #333333;
+  --color-canvas-800: #262626;  /* Bars background */
+  --color-canvas-900: #211D1C;  /* Buttons/darker elements */
+  --color-canvas-950: #E1E1E1;  /* Main body background (light) */
 
   /* Custom fonts */
   --font-family-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-family-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+
+/* Set body background */
+body {
+  background-color: #E1E1E1;
 }

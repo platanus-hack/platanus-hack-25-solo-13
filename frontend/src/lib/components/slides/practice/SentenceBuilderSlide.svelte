@@ -137,7 +137,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -211,7 +211,7 @@
         </div>
 
         <!-- Oración como texto -->
-        <div class="mt-4 p-4 bg-canvas-950 rounded-lg border border-canvas-700">
+        <div class="mt-4 p-4 bg-slate-950 rounded-lg border border-canvas-700">
           <p class="text-xl text-white font-medium">
             "{oracionTexto}"
           </p>

@@ -42,7 +42,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -125,7 +125,7 @@
               </h4>
               <div class="space-y-3">
                 {#each estrategia.pasos as paso, idx}
-                  <div class="flex items-start gap-3 p-3 bg-canvas-950 rounded-lg border {colors.border}">
+                  <div class="flex items-start gap-3 p-3 bg-slate-950 rounded-lg border {colors.border}">
                     <div class="w-8 h-8 rounded-full {colors.bg} {colors.border} border-2 flex items-center justify-center flex-shrink-0">
                       <span class="text-sm font-bold {colors.text}">
                         {idx + 1}
@@ -181,7 +181,7 @@
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {#each tipsAdicionales as tip}
-          <div class="flex items-start gap-3 p-3 bg-canvas-950 rounded-lg">
+          <div class="flex items-start gap-3 p-3 bg-slate-950 rounded-lg">
             <span class="text-xl">✓</span>
             <p class="text-sm text-canvas-300">
               {tip}

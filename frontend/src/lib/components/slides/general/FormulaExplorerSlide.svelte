@@ -90,7 +90,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-6xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-6xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -180,7 +180,7 @@
                 bind:value={valoresCalculadora[variable.simbolo]}
                 step="0.01"
                 class="
-                  w-full px-4 py-3 bg-canvas-950 border-2 border-canvas-700 rounded-xl
+                  w-full px-4 py-3 bg-slate-950 border-2 border-canvas-700 rounded-xl
                   text-white font-mono text-lg
                   focus:outline-none focus:border-focus-500
                   transition-colors duration-300

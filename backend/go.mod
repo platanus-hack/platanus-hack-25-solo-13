@@ -35,6 +35,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/rogpeppe/go-internal v1.14.1 // indirect
+	github.com/sashabaranov/go-openai v1.41.2 // indirect
 	golang.org/x/mod v0.21.0 // indirect
 	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/sync v0.10.0 // indirect

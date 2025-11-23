@@ -72,7 +72,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -122,7 +122,7 @@
                 p-4 rounded-xl border-2 transition-all duration-300 cursor-pointer
                 {filtroDispositivo === dispositivo.tipo
                   ? `${colors.bg} ${colors.border} scale-105`
-                  : 'bg-canvas-950 border-canvas-700 hover:scale-102'}
+                  : 'bg-slate-950 border-canvas-700 hover:scale-102'}
               "
               onclick={() => filtroDispositivo = filtroDispositivo === dispositivo.tipo ? null : dispositivo.tipo}
             >
@@ -141,7 +141,7 @@
                     <div class="mt-3 space-y-2">
                       <p class="text-xs font-semibold uppercase text-canvas-500">Ejemplos en el texto:</p>
                       {#each dispositivo.ejemplos as ejemplo}
-                        <div class="p-2 bg-canvas-950/50 rounded-lg border {colors.border}">
+                        <div class="p-2 bg-slate-950/50 rounded-lg border {colors.border}">
                           <p class="text-sm text-white italic">"{ejemplo}"</p>
                         </div>
                       {/each}
@@ -189,7 +189,7 @@
                   bind:value={respuestasAnalisis[index]}
                   placeholder="Escribe tu análisis aquí..."
                   class="
-                    w-full px-4 py-3 bg-canvas-950 border-2 border-canvas-700 rounded-xl
+                    w-full px-4 py-3 bg-slate-950 border-2 border-canvas-700 rounded-xl
                     text-white placeholder-canvas-500
                     focus:outline-none focus:border-purple-500
                     transition-colors duration-300
@@ -255,7 +255,7 @@
               onclick={() => filtroDispositivo = filtroDispositivo === disp.tipo ? null : disp.tipo}
               class="
                 w-full text-left px-3 py-2 rounded-lg transition-all duration-300
-                {filtroDispositivo === disp.tipo ? `${colors.bg} ${colors.border} border-2` : 'bg-canvas-950 border border-canvas-700 hover:bg-canvas-800'}
+                {filtroDispositivo === disp.tipo ? `${colors.bg} ${colors.border} border-2` : 'bg-slate-950 border border-canvas-700 hover:bg-canvas-800'}
               "
             >
               <div class="flex items-center gap-2">
@@ -280,7 +280,7 @@
             bind:value={respuestaCreativa}
             placeholder="Escribe tu creación aquí..."
             class="
-              w-full px-4 py-3 bg-canvas-950 border-2 border-canvas-700 rounded-xl
+              w-full px-4 py-3 bg-slate-950 border-2 border-canvas-700 rounded-xl
               text-white placeholder-canvas-500
               focus:outline-none focus:border-purple-500
               transition-colors duration-300

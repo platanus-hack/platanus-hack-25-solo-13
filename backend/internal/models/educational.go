@@ -103,6 +103,7 @@ type ObjetivoAprendizaje struct {
 	Codigo      string    `json:"codigo" gorm:"size:20;not null;uniqueIndex:idx_materia_codigo"`
 	Titulo      string    `json:"titulo" gorm:"size:255;not null"`
 	Descripcion string    `json:"descripcion" gorm:"type:text"`
+	Categoria   string    `json:"categoria" gorm:"size:50;default:'General';index"`
 	Orden       *int      `json:"orden"`
 	Activo      bool      `json:"activo" gorm:"default:true"`
 	CreatedAt   time.Time `json:"created_at"`

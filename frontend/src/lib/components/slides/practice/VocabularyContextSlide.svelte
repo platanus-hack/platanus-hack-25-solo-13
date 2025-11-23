@@ -59,7 +59,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -159,7 +159,7 @@
 
           <div class="relative">
             <!-- Contexto actual -->
-            <div class="p-4 bg-canvas-950 rounded-lg border border-canvas-700 min-h-24 flex items-center">
+            <div class="p-4 bg-slate-950 rounded-lg border border-canvas-700 min-h-24 flex items-center">
               <p class="text-canvas-200 text-lg italic">
                 "{contextosEjemplo[contextoActual]}"
               </p>
@@ -311,7 +311,7 @@
               bind:value={respuestaQuiz}
               placeholder="Escribe tu oración aquí..."
               class="
-                w-full px-4 py-3 bg-canvas-950 border-2 border-canvas-700 rounded-xl
+                w-full px-4 py-3 bg-slate-950 border-2 border-canvas-700 rounded-xl
                 text-white placeholder-canvas-500
                 focus:outline-none focus:border-purple-500
                 transition-colors duration-300

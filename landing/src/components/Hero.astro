@@ -1,12 +1,16 @@
 ---
+const APP_URL = import.meta.env.PUBLIC_APP_URL || 'http://localhost:5173';
 ---
 
 <section class="relative overflow-hidden bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500 text-white py-20 px-4 sm:px-6 lg:px-8">
-  <div class="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+  <div class="absolute inset-0 opacity-10">
+    <div class="absolute top-20 left-20 w-72 h-72 bg-white rounded-full filter blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-20 right-20 w-72 h-72 bg-yellow-300 rounded-full filter blur-3xl animate-pulse" style="animation-delay: 1.5s;"></div>
+  </div>
   <div class="relative max-w-7xl mx-auto">
     <div class="text-center">
       <div class="inline-block mb-4 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-        ✨ +10.000 estudiantes ya están adentro
+        Plataforma educativa adaptativa
       </div>
       <h1 class="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 animate-fade-in">
         <span class="block text-yellow-300 text-2xl sm:text-3xl mb-2">tu educación,</span>
@@ -15,14 +19,14 @@
         </span>
       </h1>
       <p class="mt-6 max-w-2xl mx-auto text-xl sm:text-2xl text-white leading-relaxed font-medium">
-        aprende lo que <span class="text-yellow-300">te gusta</span>, como <span class="text-yellow-300">te gusta</span>, cuando quieras
+        aprende lo que <span class="text-yellow-300">necesitas</span>, como <span class="text-yellow-300">prefieres</span>, a tu ritmo
       </p>
       <p class="mt-3 max-w-xl mx-auto text-base text-cyan-100">
-        sin fome. 100% personalizado para ti 🎯
+        educación personalizada basada en tu nivel y objetivos
       </p>
       <div class="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
         <a
-          href="#comenzar"
+          href={APP_URL}
           class="group inline-flex items-center justify-center px-8 py-4 border border-transparent text-lg font-bold rounded-full text-emerald-700 bg-yellow-400 hover:bg-yellow-300 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105"
         >
           dale, pruébalo gratis
@@ -42,24 +46,20 @@
       </p>
     </div>
 
-    <!-- Floating elements decoration -->
+    <!-- Key features preview -->
     <div class="mt-16 relative">
-      <div class="flex justify-center items-center gap-4 sm:gap-8 flex-wrap">
-        <div class="bg-white/15 backdrop-blur-lg rounded-2xl p-5 shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-300 cursor-pointer">
-          <div class="text-5xl mb-1">🎯</div>
-          <p class="text-xs font-bold">100% tuyo</p>
+      <div class="flex justify-center items-center gap-4 sm:gap-6 flex-wrap max-w-3xl mx-auto">
+        <div class="bg-white/15 backdrop-blur-lg rounded-xl px-6 py-3 shadow-lg transform hover:scale-105 transition-all duration-300">
+          <p class="text-sm font-semibold">Diagnóstico adaptativo</p>
         </div>
-        <div class="bg-white/15 backdrop-blur-lg rounded-2xl p-5 shadow-2xl transform hover:scale-110 hover:-rotate-3 transition-all duration-300 cursor-pointer">
-          <div class="text-5xl mb-1">🎮</div>
-          <p class="text-xs font-bold">cero fome</p>
+        <div class="bg-white/15 backdrop-blur-lg rounded-xl px-6 py-3 shadow-lg transform hover:scale-105 transition-all duration-300">
+          <p class="text-sm font-semibold">Contenido personalizado</p>
         </div>
-        <div class="bg-white/15 backdrop-blur-lg rounded-2xl p-5 shadow-2xl transform hover:scale-110 hover:rotate-3 transition-all duration-300 cursor-pointer">
-          <div class="text-5xl mb-1">⚡</div>
-          <p class="text-xs font-bold">súper rápido</p>
+        <div class="bg-white/15 backdrop-blur-lg rounded-xl px-6 py-3 shadow-lg transform hover:scale-105 transition-all duration-300">
+          <p class="text-sm font-semibold">Seguimiento en tiempo real</p>
         </div>
-        <div class="bg-white/15 backdrop-blur-lg rounded-2xl p-5 shadow-2xl transform hover:scale-110 hover:-rotate-3 transition-all duration-300 cursor-pointer">
-          <div class="text-5xl mb-1">🔥</div>
-          <p class="text-xs font-bold">toda la malla</p>
+        <div class="bg-white/15 backdrop-blur-lg rounded-xl px-6 py-3 shadow-lg transform hover:scale-105 transition-all duration-300">
+          <p class="text-sm font-semibold">Malla curricular chilena</p>
         </div>
       </div>
     </div>

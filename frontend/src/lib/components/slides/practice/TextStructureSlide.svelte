@@ -84,7 +84,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -163,7 +163,7 @@
               {/if}
 
               {#if seccionSeleccionada === seccion}
-                <div class="mt-4 p-4 bg-canvas-950/50 rounded-lg border border-canvas-700">
+                <div class="mt-4 p-4 bg-slate-950/50 rounded-lg border border-canvas-700">
                   <p class="text-canvas-200 leading-relaxed">
                     {contenido.texto}
                   </p>
@@ -190,7 +190,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         {#each tipoActual.secciones as seccion}
           {@const colors = seccionColors[seccion] || seccionColors.desarrollo}
-          <div class="flex items-center gap-3 p-3 bg-canvas-950 rounded-lg border border-canvas-700">
+          <div class="flex items-center gap-3 p-3 bg-slate-950 rounded-lg border border-canvas-700">
             <div class="w-4 h-4 rounded-full {colors.border.replace('border', 'bg')}"></div>
             <div>
               <p class="text-sm font-semibold {colors.text} capitalize">
@@ -234,7 +234,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {#each Object.entries(estructurasTipos) as [tipo, config]}
-          <div class="p-4 bg-canvas-950 rounded-lg border border-canvas-700">
+          <div class="p-4 bg-slate-950 rounded-lg border border-canvas-700">
             <h4 class="text-sm font-bold text-white mb-2">{config.nombre}</h4>
             <ul class="space-y-1 text-xs text-canvas-400">
               {#each config.secciones as seccion}

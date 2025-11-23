@@ -140,7 +140,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -219,7 +219,7 @@
       </div>
 
       {#if selectedText}
-        <div class="mt-3 p-2 bg-canvas-950 rounded-lg border border-canvas-700">
+        <div class="mt-3 p-2 bg-slate-950 rounded-lg border border-canvas-700">
           <p class="text-xs text-canvas-400">
             Texto seleccionado: <span class="text-white font-semibold">"{selectedText.substring(0, 50)}{selectedText.length > 50 ? '...' : ''}"</span>
           </p>
@@ -275,7 +275,7 @@
                   </h4>
                   <div class="space-y-2">
                     {#each anns as ann}
-                      <div class="p-3 bg-canvas-950 rounded-lg border {highlightColors[tipo].border}">
+                      <div class="p-3 bg-slate-950 rounded-lg border {highlightColors[tipo].border}">
                         <p class="text-sm text-white font-medium mb-1">
                           "{ann.texto.substring(0, 40)}{ann.texto.length > 40 ? '...' : ''}"
                         </p>
@@ -305,7 +305,7 @@
   <!-- Modal para agregar nota -->
   {#if activeNote}
     <div class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div class="bg-canvas-950 rounded-2xl border border-canvas-700 p-6 max-w-lg w-full">
+      <div class="bg-slate-950 rounded-2xl border border-canvas-700 p-6 max-w-lg w-full">
         <h3 class="text-xl font-bold text-white mb-4">📝 Agregar Nota</h3>
 
         <div class="mb-4 p-3 bg-canvas-900 rounded-lg border border-canvas-700">

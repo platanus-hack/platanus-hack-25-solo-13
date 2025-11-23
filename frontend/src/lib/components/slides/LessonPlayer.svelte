@@ -13,6 +13,7 @@
   import VocabularyStrategySlide from './teach/VocabularyStrategySlide.svelte';
   import TextTypesGuideSlide from './teach/TextTypesGuideSlide.svelte';
   import LiteraryDeviceGuideSlide from './teach/LiteraryDeviceGuideSlide.svelte';
+  import ExplainAndExploreSlide from './teach/ExplainAndExploreSlide.svelte';
   // Componentes de Práctica (PRACTICE)
   import TextAnnotationSlide from './practice/TextAnnotationSlide.svelte';
   import SentenceBuilderSlide from './practice/SentenceBuilderSlide.svelte';
@@ -31,7 +32,8 @@
     },
     onComplete = null,
     onSlideChange = null,
-    showProgress = true
+    showProgress = true,
+    showHeader = true  // Nueva prop para controlar si se muestra el header
   } = $props();
 
   // Estados locales
@@ -59,6 +61,7 @@
     'VocabularyStrategySlide': VocabularyStrategySlide,
     'TextTypesGuideSlide': TextTypesGuideSlide,
     'LiteraryDeviceGuideSlide': LiteraryDeviceGuideSlide,
+    'ExplainAndExploreSlide': ExplainAndExploreSlide,
     // Práctica (PRACTICE)
     'TextAnnotationSlide': TextAnnotationSlide,
     'SentenceBuilderSlide': SentenceBuilderSlide,
@@ -138,54 +141,60 @@
   });
 </script>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-8">
-  <!-- Header de la lección -->
-  <div class="max-w-7xl mx-auto mb-8">
-    <div class="bg-slate-950 rounded-2xl border border-slate-800 p-6">
-      <div class="flex items-center justify-between flex-wrap gap-4">
-        <!-- Título -->
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold text-white mb-1">
+<div class="{showHeader ? 'min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-4 md:p-6' : ''}">
+  <!-- Header de la lección - Compacto -->
+  {#if showHeader}
+  <div class="max-w-7xl mx-auto mb-4">
+    <div class="bg-slate-950 rounded-xl border border-slate-800 p-4">
+      <div class="flex items-center justify-between gap-4">
+        <!-- Título y metadata -->
+        <div class="flex-1 min-w-0">
+          <h1 class="text-xl md:text-2xl font-bold text-white mb-1 truncate">
             {leccion.titulo}
           </h1>
-          <p class="text-sm text-slate-400">
-            {leccion.materia} • {leccion.slides.length} slides
-          </p>
+          <div class="flex items-center gap-3 text-xs text-slate-400">
+            <span class="flex items-center gap-1">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              {leccion.materia}
+            </span>
+            <span class="text-slate-600">•</span>
+            <span>{leccion.slides.length} componentes</span>
+          </div>
         </div>
 
-        <!-- Progress -->
+        <!-- Progress compacto -->
         {#if showProgress}
-          <div class="flex items-center gap-4">
-            <div class="text-right">
-              <p class="text-sm font-semibold text-slate-300">
-                Slide {currentSlideIndex + 1} de {leccion.slides.length}
-              </p>
-              <p class="text-xs text-slate-500">
-                {progressPercentage.toFixed(0)}% completado
+          <div class="hidden md:flex items-center gap-3">
+            <!-- Stats numéricos -->
+            <div class="text-right pr-3 border-r border-slate-700">
+              <p class="text-xs text-slate-500">Progreso</p>
+              <p class="text-lg font-bold text-white">
+                {currentSlideIndex + 1}<span class="text-sm text-slate-500">/{leccion.slides.length}</span>
               </p>
             </div>
-            <div class="w-32 h-32 relative">
-              <!-- Círculo de progreso -->
-              <svg class="transform -rotate-90" width="128" height="128">
-                <!-- Fondo -->
+
+            <!-- Círculo de progreso más pequeño -->
+            <div class="w-16 h-16 relative flex-shrink-0">
+              <svg class="transform -rotate-90" width="64" height="64">
                 <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
+                  cx="32"
+                  cy="32"
+                  r="28"
                   stroke="rgb(30 41 59)"
-                  stroke-width="8"
+                  stroke-width="4"
                   fill="none"
                 />
-                <!-- Progreso -->
                 <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
+                  cx="32"
+                  cy="32"
+                  r="28"
                   stroke="url(#gradient)"
-                  stroke-width="8"
+                  stroke-width="4"
                   fill="none"
-                  stroke-dasharray="351.858"
-                  stroke-dashoffset={351.858 * (1 - progressPercentage / 100)}
+                  stroke-dasharray="175.929"
+                  stroke-dashoffset={175.929 * (1 - progressPercentage / 100)}
                   class="transition-all duration-500"
                   stroke-linecap="round"
                 />
@@ -197,7 +206,7 @@
                 </defs>
               </svg>
               <div class="absolute inset-0 flex items-center justify-center">
-                <span class="text-2xl font-bold text-white">
+                <span class="text-sm font-bold text-white">
                   {progressPercentage.toFixed(0)}%
                 </span>
               </div>
@@ -206,10 +215,10 @@
         {/if}
       </div>
 
-      <!-- Barra de progreso lineal (mobile) -->
+      <!-- Barra de progreso lineal (todos los tamaños) -->
       {#if showProgress}
-        <div class="mt-4 md:hidden">
-          <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div class="mt-3">
+          <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div
               class="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-500"
               style="width: {progressPercentage}%"
@@ -219,6 +228,7 @@
       {/if}
     </div>
   </div>
+  {/if}
 
   <!-- Slide actual -->
   <div class="max-w-7xl mx-auto">
@@ -252,6 +262,7 @@
   </div>
 
   <!-- Footer con navegación de teclado -->
+  {#if showHeader}
   <div class="max-w-7xl mx-auto mt-8">
     <div class="bg-slate-950 rounded-2xl border border-slate-800 p-4">
       <div class="flex items-center justify-center gap-8 text-xs text-slate-500">
@@ -270,6 +281,7 @@
       </div>
     </div>
   </div>
+  {/if}
 </div>
 
 <style>

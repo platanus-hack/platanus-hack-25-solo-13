@@ -41,7 +41,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -101,11 +101,11 @@
           {tipo.definicion}
         </p>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="p-4 bg-canvas-950 rounded-lg border {colors.border}">
+          <div class="p-4 bg-slate-950 rounded-lg border {colors.border}">
             <p class="text-xs font-semibold uppercase text-canvas-400 mb-2">Propósito</p>
             <p class="text-canvas-200">{tipo.proposito}</p>
           </div>
-          <div class="p-4 bg-canvas-950 rounded-lg border {colors.border}">
+          <div class="p-4 bg-slate-950 rounded-lg border {colors.border}">
             <p class="text-xs font-semibold uppercase text-canvas-400 mb-2">Contexto de uso</p>
             <p class="text-canvas-200">{tipo.contexto}</p>
           </div>
@@ -124,7 +124,7 @@
                 <div class="w-10 h-10 rounded-full {colors.badge} flex items-center justify-center flex-shrink-0">
                   <span class="text-white font-bold">{idx + 1}</span>
                 </div>
-                <div class="flex-1 p-4 bg-canvas-950 rounded-lg border {colors.border}">
+                <div class="flex-1 p-4 bg-slate-950 rounded-lg border {colors.border}">
                   <h5 class="text-lg font-bold {colors.text} mb-2">
                     {seccion.nombre}
                   </h5>
@@ -151,7 +151,7 @@
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             {#each tipo.caracteristicas as caracteristica}
-              <div class="flex items-start gap-2 p-3 bg-canvas-950 rounded-lg">
+              <div class="flex items-start gap-2 p-3 bg-slate-950 rounded-lg">
                 <span class="{colors.text}">•</span>
                 <p class="text-canvas-200">{caracteristica}</p>
               </div>

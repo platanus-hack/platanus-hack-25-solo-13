@@ -16,10 +16,10 @@
 
 <button
   onclick={onClick}
-  class="w-full text-center p-8 rounded-2xl bg-canvas-900/60 border border-slate-800 flex flex-col items-center hover:bg-canvas-800/60 hover:border-slate-700 transition-all duration-200 hover:scale-[1.02] group"
+  class="w-full text-center p-8 rounded-2xl bg-canvas-900 border border-slate-700 flex flex-col items-center hover:bg-canvas-800 hover:border-slate-600 transition-all duration-200 hover:scale-[1.02] group"
 >
   <!-- Icon -->
-  <div class="h-28 w-28 rounded-2xl bg-gradient-to-br {subject.color} flex items-center justify-center text-6xl mb-6 group-hover:scale-105 transition-transform shadow-lg">
+  <div class="h-28 w-28 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-6xl mb-6 group-hover:scale-105 transition-transform shadow-lg border border-slate-600">
     {subject.icon}
   </div>
 
@@ -39,9 +39,9 @@
       <span>Progreso</span>
       <span>{percentage}%</span>
     </div>
-    <div class="h-3 w-full bg-canvas-950 rounded-full overflow-hidden">
+    <div class="h-3 w-full bg-black/40 rounded-full overflow-hidden border border-black/50">
       <div
-        class="h-full bg-gradient-to-r {levelInfo.color} transition-all duration-500"
+        class="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500"
         style="width: {percentage}%"
       ></div>
     </div>

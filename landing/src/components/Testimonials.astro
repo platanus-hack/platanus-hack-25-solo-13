@@ -1,133 +1,78 @@
 ---
-const testimonials = [
+const faqs = [
   {
-    name: 'Martina',
-    age: 16,
-    location: 'Santiago',
-    avatar: '👩🏻',
-    rating: 5,
-    text: 'literal me salvó en matemáticas. ahora hasta me gusta estudiar jajaja',
-    highlight: 'desde 3.2 a 6.1 en un semestre'
+    question: '¿Cómo funciona el diagnóstico adaptativo?',
+    answer: 'Al comenzar, realizas una evaluación inicial que mide tu nivel en diferentes áreas. El sistema ajusta automáticamente el contenido según tus respuestas, asegurando que empieces en el punto adecuado para ti.'
   },
   {
-    name: 'Diego',
-    age: 15,
-    location: 'Valparaíso',
-    avatar: '👨🏽',
-    rating: 5,
-    text: 'es como un juego pero aprendes de verdad. re adictivo',
-    highlight: 'ya llevo 847 puntos'
+    question: '¿Qué materias están disponibles?',
+    answer: 'Ofrecemos contenido completo de Lenguaje y Matemáticas para enseñanza media, alineado con el currículum nacional chileno. Cada materia incluye todos los objetivos de aprendizaje del MINEDUC.'
   },
   {
-    name: 'Sofía',
-    age: 17,
-    location: 'Concepción',
-    avatar: '👩🏼',
-    rating: 5,
-    text: 'lo mejor es que me deja ir a mi ritmo. cero presión pero sí resultados',
-    highlight: 'PSU matemáticas: 720 pts'
+    question: '¿Puedo usar Lumera en mi teléfono?',
+    answer: 'Sí, Lumera funciona en cualquier dispositivo con navegador web: computador, tablet o smartphone. Tu progreso se sincroniza automáticamente entre todos tus dispositivos.'
   },
   {
-    name: 'Matías',
-    age: 14,
-    location: 'La Serena',
-    avatar: '👦🏻',
-    rating: 5,
-    text: 'mis papás no se la creían cuando vieron mis notas. 10/10',
-    highlight: 'promedio de 4.8 a 6.3'
+    question: '¿Cómo se personaliza el contenido?',
+    answer: 'El sistema analiza continuamente tu desempeño y adapta la dificultad, el tipo de ejercicios y las explicaciones según tu progreso. Si dominas un tema rápidamente, avanzas más rápido. Si necesitas más práctica, el sistema lo detecta y refuerza.'
   },
   {
-    name: 'Valentina',
-    age: 16,
-    location: 'Temuco',
-    avatar: '👩🏽',
-    rating: 5,
-    text: 'finalmente algo que no me da paja hacer. súper bien explicado todo',
-    highlight: '2 meses usándolo'
+    question: '¿Necesito crear una cuenta?',
+    answer: 'Sí, necesitas registrarte con un correo electrónico para guardar tu progreso y acceder a todas las funcionalidades. El registro es gratuito y toma menos de 2 minutos.'
   },
   {
-    name: 'Benjamín',
-    age: 17,
-    location: 'Antofagasta',
-    avatar: '👨🏻',
-    rating: 5,
-    text: 'se los juro que funciona. yo era malísimo en ciencias y ahora voy bien',
-    highlight: 'de 4.1 a 5.9 en química'
+    question: '¿Puedo ver mi progreso?',
+    answer: 'Absolutamente. Tienes acceso a dashboards detallados que muestran tu avance por materia, objetivos completados, áreas de fortaleza y aspectos que necesitan más trabajo.'
   }
 ];
 ---
 
 <section class="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-emerald-50">
-  <div class="max-w-7xl mx-auto">
+  <div class="max-w-4xl mx-auto">
     <div class="text-center mb-16">
-      <div class="inline-block mb-3 px-4 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-        💬 lo que dicen los que ya están
+      <div class="inline-block mb-3 px-4 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">
+        Preguntas frecuentes
       </div>
-      <h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4 lowercase">
-        no nos creas a <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600">nosotros</span>
+      <h2 class="text-4xl sm:text-5xl font-extrabold text-gray-900 mb-4">
+        ¿Tienes <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600">dudas?</span>
       </h2>
       <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-        creéles a ellos · estudiantes reales, resultados reales
+        Acá respondemos las consultas más comunes
       </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {testimonials.map((testimonial) => (
-        <div class="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200 transform hover:-translate-y-1">
-          <!-- Header estilo Instagram -->
-          <div class="flex items-center gap-3 mb-4">
-            <div class="text-4xl">{testimonial.avatar}</div>
-            <div class="flex-1">
-              <div class="flex items-center gap-2">
-                <h3 class="font-bold text-gray-900">{testimonial.name}</h3>
-                <span class="text-blue-500">✓</span>
-              </div>
-              <p class="text-sm text-gray-500">{testimonial.age} años · {testimonial.location}</p>
-            </div>
-          </div>
-
-          <!-- Rating -->
-          <div class="flex gap-1 mb-3">
-            {Array.from({ length: testimonial.rating }).map(() => (
-              <span class="text-yellow-400">⭐</span>
-            ))}
-          </div>
-
-          <!-- Texto -->
-          <p class="text-gray-700 mb-4 leading-relaxed">
-            "{testimonial.text}"
+    <div class="space-y-4">
+      {faqs.map((faq) => (
+        <details class="group bg-white rounded-xl p-6 shadow-md hover:shadow-lg transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200">
+          <summary class="flex justify-between items-center cursor-pointer list-none">
+            <h3 class="text-lg font-bold text-gray-900 pr-4">
+              {faq.question}
+            </h3>
+            <span class="text-emerald-600 text-xl transform group-open:rotate-45 transition-transform duration-200">
+              +
+            </span>
+          </summary>
+          <p class="mt-4 text-gray-700 leading-relaxed border-t border-gray-100 pt-4">
+            {faq.answer}
           </p>
-
-          <!-- Highlight badge -->
-          <div class="inline-block px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-full text-xs font-semibold">
-            🔥 {testimonial.highlight}
-          </div>
-        </div>
+        </details>
       ))}
     </div>
 
-    <!-- CTA social -->
-    <div class="mt-12 text-center">
-      <p class="text-gray-600 mb-4">
-        ¿quieres aparecer acá? comparte tu historia en redes
+    <!-- Additional help -->
+    <div class="mt-12 text-center bg-white rounded-2xl p-8 shadow-lg border-2 border-emerald-100">
+      <h3 class="text-2xl font-bold text-gray-900 mb-3">
+        ¿Necesitas más información?
+      </h3>
+      <p class="text-gray-600 mb-6">
+        Estamos acá para ayudarte. Contáctanos si tienes alguna consulta adicional.
       </p>
-      <div class="flex justify-center gap-4">
-        <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold rounded-full hover:shadow-lg transition-all duration-200">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-          </svg>
-          @lumera.chile
-        </a>
-        <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-black text-white font-semibold rounded-full hover:shadow-lg transition-all duration-200">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
-          </svg>
-          @lumera
-        </a>
-      </div>
-      <p class="text-sm text-gray-500 mt-3">
-        usa el hashtag <span class="font-semibold text-emerald-600">#LumeraChile</span>
-      </p>
+      <a
+        href="mailto:jon@than.cl"
+        class="inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-semibold rounded-full hover:shadow-lg transition-all duration-200 transform hover:scale-105"
+      >
+        Enviar consulta
+      </a>
     </div>
   </div>
 </section>

@@ -2,6 +2,7 @@ import type { Materia } from '$lib/api/courses';
 
 export interface Subject {
   id: string; // Código de la materia (MAT, LYL, etc.)
+  materiaId?: number; // ID numérico de la materia en la BD
   name: string;
   icon: string;
   color: string; // Tailwind gradient
@@ -95,6 +96,7 @@ function getSubjectIcon(codigo: string, nombre: string): string {
 export function materiaToSubject(materia: Materia): Subject {
   return {
     id: materia.codigo.toLowerCase(),
+    materiaId: materia.id,
     name: materia.nombre,
     icon: getSubjectIcon(materia.codigo, materia.nombre),
     color: hexToTailwindGradient(materia.color),
@@ -139,9 +141,9 @@ export const DOMAIN_LEVELS: Record<number, DomainLevelInfo> = {
   1: {
     level: DomainLevel.NOT_EVALUATED,
     label: 'Sin Dominio',
-    color: 'from-red-600 to-rose-600',
-    badgeColor: 'bg-red-600',
-    textColor: 'text-red-300'
+    color: 'from-slate-600 to-slate-700',
+    badgeColor: 'bg-slate-700',
+    textColor: 'text-slate-300'
   },
   2: {
     level: DomainLevel.BASIC,

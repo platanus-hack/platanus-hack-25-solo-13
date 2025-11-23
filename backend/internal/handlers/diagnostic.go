@@ -19,6 +19,68 @@ type StartDiagnosticRequest struct {
 	MateriaID uint `json:"materia_id"`
 }
 
+// GetDiagnosticSessions godoc
+// @Summary Get user's diagnostic sessions
+// @Description Get list of diagnostic sessions with optional filters
+// @Tags Diagnostic
+// @Produce json
+// @Param materia_id query int false "Filter by materia ID"
+// @Param estado query string false "Filter by estado (en_progreso, completado)"
+// @Success 200 {array} models.DiagnosticSession
+// @Failure 500 {string} string "Server error"
+// @Security BearerAuth
+// @Router /api/diagnostic-sessions [get]
+func GetDiagnosticSessions(w http.ResponseWriter, r *http.Request) {
+	userID, ok := authmiddleware.GetUserIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	query := db.DB.Where("user_id = ?", userID).Order("started_at DESC")
+
+	// Apply filters
+	if materiaID := r.URL.Query().Get("materia_id"); materiaID != "" {
+		query = query.Where("materia_id = ?", materiaID)
+	}
+
+	if estado := r.URL.Query().Get("estado"); estado != "" {
+		query = query.Where("estado = ?", estado)
+	}
+
+	var sessions []models.DiagnosticSession
+	if err := query.Find(&sessions).Error; err != nil {
+		http.Error(w, "Error fetching sessions", http.StatusInternalServerError)
+		return
+	}
+
+	// For completed sessions, calculate and add average_bloom_level to estrategia
+	for i := range sessions {
+		if sessions[i].Estado == "completado" {
+			var results []models.DiagnosticResult
+			if err := db.DB.Where("session_id = ?", sessions[i].ID).Find(&results).Error; err == nil && len(results) > 0 {
+				var totalBloom float64
+				for _, result := range results {
+					totalBloom += float64(result.NivelBloomDominado)
+				}
+				avgBloom := totalBloom / float64(len(results))
+
+				// Parse estrategia JSON and add average_bloom_level
+				var estrategiaMap map[string]interface{}
+				if err := json.Unmarshal(sessions[i].Estrategia, &estrategiaMap); err == nil {
+					estrategiaMap["average_bloom_level"] = avgBloom
+					if updatedJSON, err := json.Marshal(estrategiaMap); err == nil {
+						sessions[i].Estrategia = updatedJSON
+					}
+				}
+			}
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(sessions)
+}
+
 // StartDiagnostic godoc
 // @Summary Start a diagnostic session
 // @Description Create a new diagnostic session for a student

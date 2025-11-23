@@ -104,7 +104,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -207,7 +207,7 @@
 
             <!-- Explicación (si está respondido) -->
             {#if respuestasUsuario[index] && parrafo.explicacion}
-              <div class="mt-3 p-3 bg-canvas-950 rounded-lg border border-canvas-700">
+              <div class="mt-3 p-3 bg-slate-950 rounded-lg border border-canvas-700">
                 <p class="text-xs text-canvas-400 italic">
                   💡 {parrafo.explicacion}
                 </p>
@@ -315,7 +315,7 @@
       <!-- Lista de conectores -->
       <div class="flex flex-wrap gap-2">
         {#each conectoresFiltrados as conector}
-          <span class="px-4 py-2 bg-canvas-950 rounded-lg border border-canvas-700 text-canvas-200 font-medium">
+          <span class="px-4 py-2 bg-slate-950 rounded-lg border border-canvas-700 text-canvas-200 font-medium">
             {conector}
           </span>
         {/each}
@@ -335,7 +335,7 @@
         bind:value={respuestaCreativa}
         placeholder="Escribe tu párrafo aquí..."
         class="
-          w-full px-4 py-3 bg-canvas-950 border-2 border-canvas-700 rounded-xl
+          w-full px-4 py-3 bg-slate-950 border-2 border-canvas-700 rounded-xl
           text-white placeholder-canvas-500
           focus:outline-none focus:border-purple-500
           transition-colors duration-300

@@ -41,7 +41,7 @@
 
 <div
   bind:this={containerRef}
-  class="w-full max-w-7xl mx-auto p-8 bg-canvas-950 rounded-2xl border border-canvas-800 shadow-2xl"
+  class="w-full max-w-7xl mx-auto p-8 bg-slate-950 rounded-2xl border border-canvas-800 shadow-2xl"
 >
   <!-- Header -->
   <div class="mb-8">
@@ -100,7 +100,7 @@
         <p class="text-lg text-canvas-200 mb-4">
           {dispositivo.definicion}
         </p>
-        <div class="p-4 bg-canvas-950 rounded-lg border {colors.border}">
+        <div class="p-4 bg-slate-950 rounded-lg border {colors.border}">
           <p class="text-sm text-canvas-300">
             <span class="font-semibold {colors.text}">Efecto en el lector:</span> {dispositivo.efecto}
           </p>
@@ -115,7 +115,7 @@
           </h4>
           <div class="space-y-4">
             {#each dispositivo.ejemplos as ejemplo, idx}
-              <div class="p-4 bg-canvas-950 rounded-xl border {colors.border}">
+              <div class="p-4 bg-slate-950 rounded-xl border {colors.border}">
                 <div class="flex items-start gap-3 mb-3">
                   <div class="w-8 h-8 rounded-full {colors.badge} flex items-center justify-center flex-shrink-0">
                     <span class="text-white font-bold">{idx + 1}</span>
@@ -167,7 +167,7 @@
           </h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             {#each dispositivo.variantes as variante}
-              <div class="p-4 bg-canvas-950 rounded-lg border {colors.border}">
+              <div class="p-4 bg-slate-950 rounded-lg border {colors.border}">
                 <h5 class="font-bold {colors.text} mb-2">{variante.tipo}</h5>
                 <p class="text-sm text-canvas-200 mb-2">{variante.descripcion}</p>
                 {#if variante.ejemplo}
@@ -203,7 +203,7 @@
       </h3>
       <div class="space-y-4">
         {#each comparaciones as comparacion}
-          <div class="p-4 bg-canvas-950 rounded-xl border border-canvas-700">
+          <div class="p-4 bg-slate-950 rounded-xl border border-canvas-700">
             <h4 class="font-bold text-purple-300 mb-3">
               {comparacion.dispositivos.join(' vs ')}
             </h4>

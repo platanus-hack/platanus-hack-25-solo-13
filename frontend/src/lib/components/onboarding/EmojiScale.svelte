@@ -1,7 +1,7 @@
 <script lang="ts">
   interface ScaleOption {
     value: string;
-    emoji: string;
+    iconPath: string;
     label: string;
   }
 
@@ -26,15 +26,29 @@
       type="button"
       class="flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-300 min-w-[80px] {
         isSelected
-          ? 'bg-lumera-600/20 border-lumera-500 scale-110 shadow-lg shadow-indigo-500/30'
-          : 'bg-canvas-900/40 border-slate-700 hover:border-slate-600 hover:bg-canvas-800/60 hover:scale-105'
+          ? 'bg-[#E1E1E1] border-[#E1E1E1] scale-110 shadow-xl'
+          : 'bg-canvas-900/40 border-canvas-700 hover:border-canvas-600 hover:bg-canvas-800/60 hover:scale-105'
       }"
       onclick={() => handleSelect(option.value)}
     >
-      <div class="text-4xl mb-2 transition-transform duration-300 {isSelected ? 'scale-125' : ''}">
-        {option.emoji}
+      <div class="flex items-center justify-center w-12 h-12 mb-2 rounded-xl transition-all duration-300 {
+        isSelected ? 'bg-canvas-900/10 scale-110' : 'bg-canvas-800/60'
+      }">
+        <svg
+          class="w-8 h-8 transition-colors duration-300 {
+            isSelected ? 'text-canvas-900' : 'text-slate-400'
+          }"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d={option.iconPath} />
+        </svg>
       </div>
-      <div class="text-xs font-medium text-center {isSelected ? 'text-lumera-300' : 'text-slate-400'}">
+      <div class="text-xs font-medium text-center {isSelected ? 'text-canvas-900' : 'text-slate-400'}">
         {option.label}
       </div>
     </button>

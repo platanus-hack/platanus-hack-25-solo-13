@@ -1,11 +1,13 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import gsap from 'gsap';
   import { auth } from '$lib/stores/auth.svelte';
   import { dashboardStore } from '$lib/stores/dashboard.svelte';
+  import { customizationStore } from '$lib/stores/customization.svelte';
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
   import { materiasToSubjects, type Subject } from '$lib/constants/subjects';
-  import { getEquipment, type CustomizationItem } from '$lib/api/customization';
+  import type { CustomizationItem } from '$lib/api/customization';
   import SubjectDetailModal from '$lib/components/dashboard/SubjectDetailModal.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
   import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
@@ -13,7 +15,7 @@
   import CurrentQuestModal from '$lib/components/dashboard/CurrentQuestModal.svelte';
   import LiveEventsModal from '$lib/components/dashboard/LiveEventsModal.svelte';
   import PlayerProfilePanel from '$lib/components/dashboard/PlayerProfilePanel.svelte';
-  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
+  import AppHeader from '$lib/components/common/AppHeader.svelte';
 
   // State
   let activeTab = $state('daily');
@@ -27,7 +29,15 @@
   let isCurrentQuestOpen = $state(false);
   let isLiveEventsOpen = $state(false);
   let isPlayerProfileOpen = $state(false);
-  let currentAvatar = $state<CustomizationItem | null>(null);
+  let diagnosticLevels = $state<Record<number, number>>({});
+
+  // Mission Control Center State
+  let particles = $state<Array<{ x: number; y: number; vx: number; vy: number; size: number; color: string }>>([]);
+  let mouseX = $state(0);
+  let mouseY = $state(0);
+  let currentTimeOfDay = $state('mañana');
+  let currentGreeting = $state('Buenos días');
+  let mainContentRef: HTMLElement | null = null;
 
   // Get authenticated user
   const student = {
@@ -62,6 +72,69 @@
     }
   ];
 
+  // Get time-based greeting
+  function getTimeOfDay(): { greeting: string; period: string } {
+    const hour = new Date().getHours();
+    if (hour >= 5 && hour < 12) {
+      return { greeting: 'Buenos días', period: 'mañana' };
+    } else if (hour >= 12 && hour < 20) {
+      return { greeting: 'Buenas tardes', period: 'tarde' };
+    } else {
+      return { greeting: 'Buenas noches', period: 'noche' };
+    }
+  }
+
+  // Initialize particles
+  function initParticles() {
+    const particleColors = ['#3b82f6', '#14b8a6', '#f59e0b', '#8b5cf6'];
+    particles = Array.from({ length: 30 }, () => ({
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      size: Math.random() * 4 + 2,
+      color: particleColors[Math.floor(Math.random() * particleColors.length)]
+    }));
+  }
+
+  // Update particles position
+  function animateParticles() {
+    particles = particles.map(p => {
+      let newX = p.x + p.vx;
+      let newY = p.y + p.vy;
+
+      // Bounce off edges
+      if (newX < 0 || newX > 100) p.vx *= -1;
+      if (newY < 0 || newY > 100) p.vy *= -1;
+
+      // Mouse interaction - particles move away from mouse
+      const dx = newX - mouseX;
+      const dy = newY - mouseY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 15) {
+        const force = (15 - dist) / 15;
+        newX += (dx / dist) * force * 2;
+        newY += (dy / dist) * force * 2;
+      }
+
+      return {
+        ...p,
+        x: Math.max(0, Math.min(100, newX)),
+        y: Math.max(0, Math.min(100, newY))
+      };
+    });
+  }
+
+  // Handle mouse move for particle interaction
+  function handleMouseMove(e: MouseEvent) {
+    if (mainContentRef) {
+      const rect = mainContentRef.getBoundingClientRect();
+      mouseX = ((e.clientX - rect.left) / rect.width) * 100;
+      mouseY = ((e.clientY - rect.top) / rect.height) * 100;
+    }
+  }
+
   // Load user profile and subjects
   async function loadUserProfile() {
     if (auth.user?.id) {
@@ -81,47 +154,50 @@
     }
   }
 
-  // Load equipped avatar
-  async function loadEquippedAvatar() {
+  // Load completed diagnostics
+  async function loadDiagnosticLevels() {
     try {
-      console.log('Loading equipped avatar...');
-      const equipment = await getEquipment();
-      console.log('Equipment response:', equipment);
-      currentAvatar = equipment.equipped_avatar || null;
-      console.log('Current avatar set to:', currentAvatar);
+      const token = auth.token;
+      const response = await fetch('/api/diagnostic-sessions?estado=completado', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      });
+
+      if (!response.ok) return;
+
+      const sessions = await response.json();
+      const levels: Record<number, number> = {};
+
+      // For each completed session, get the average bloom level
+      for (const session of sessions) {
+        if (session.estrategia?.average_bloom_level) {
+          levels[session.materia_id] = Math.round(session.estrategia.average_bloom_level);
+        }
+      }
+
+      diagnosticLevels = levels;
+      console.log('Diagnostic levels loaded:', diagnosticLevels);
     } catch (err) {
-      console.error('Error loading avatar:', err);
+      console.error('Error loading diagnostic levels:', err);
     }
   }
 
   // Handle avatar change from profile panel
   function handleAvatarChanged(avatar: CustomizationItem) {
-    currentAvatar = avatar;
+    customizationStore.setAvatar(avatar);
   }
 
   // Get domain level for a subject
-  function getDomainLevel(subjectId: string): number {
-    if (!userProfile?.profile_data?.conocimiento_previo) {
-      return 0; // Not evaluated
-    }
-
-    // Map subject code to conocimiento_previo key
-    // MAT -> matematicas, LYL -> lectura
-    const subjectMap: Record<string, string> = {
-      'mat': 'matematicas',
-      'lyl': 'lectura',
-      'lenguaje': 'lectura',
-      'lengua': 'lectura'
-    };
-
-    const key = subjectMap[subjectId.toLowerCase()] || subjectId.toLowerCase();
-    return userProfile.profile_data.conocimiento_previo[key]?.nivel || 0;
+  function getDomainLevel(materiaId?: number): number {
+    if (!materiaId) return 0;
+    return diagnosticLevels[materiaId] || 0;
   }
 
   // Open subject detail modal
   function openSubjectDetail(subject: Subject) {
     selectedSubject = subject;
-    selectedDomainLevel = getDomainLevel(subject.id);
+    selectedDomainLevel = getDomainLevel(subject.materiaId);
     isModalOpen = true;
   }
 
@@ -134,7 +210,50 @@
   // Load profile on mount
   onMount(() => {
     loadUserProfile();
-    loadEquippedAvatar();
+    customizationStore.loadAvatar();
+    loadDiagnosticLevels();
+
+    // Initialize Mission Control Center
+    const timeData = getTimeOfDay();
+    currentGreeting = timeData.greeting;
+    currentTimeOfDay = timeData.period;
+
+    initParticles();
+
+    // Animate particles every 50ms
+    const particleInterval = setInterval(animateParticles, 50);
+
+    // Animate elements on mount
+    if (mainContentRef) {
+      gsap.from('.greeting-text', {
+        opacity: 0,
+        y: -20,
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+
+      gsap.from('.daily-focus-card', {
+        opacity: 0,
+        scale: 0.9,
+        duration: 0.6,
+        delay: 0.2,
+        ease: 'back.out(1.7)'
+      });
+
+      gsap.from('.floating-stat', {
+        opacity: 0,
+        y: 20,
+        duration: 0.5,
+        stagger: 0.1,
+        delay: 0.4,
+        ease: 'power2.out'
+      });
+    }
+
+    // Cleanup
+    return () => {
+      clearInterval(particleInterval);
+    };
   });
 
   function getSubjectColor(subject) {
@@ -154,155 +273,176 @@
   <title>Lumera App - Student Dashboard</title>
 </svelte:head>
 
-<div class="min-h-screen bg-canvas-950 text-slate-200 font-sans pb-10">
-  <!-- Top Player Bar -->
-  <header class="sticky top-0 z-50 border-b border-white/5 bg-canvas-950/90 backdrop-blur-md">
-    <div class="px-6 py-3 flex items-center justify-between gap-4">
-      <!-- Profile -->
-      <button
-        onclick={() => isPlayerProfileOpen = true}
-        class="flex items-center gap-3 hover:bg-canvas-800/40 rounded-xl p-2 -m-2 transition-colors group"
-      >
-        <div class="group-hover:scale-110 transition-transform">
-          <AvatarDisplay
-            {currentAvatar}
-            {initials}
-            size="small"
-          />
-        </div>
-        <div class="text-left">
-          <div class="flex items-center gap-2">
-            <h1 class="font-semibold text-white text-sm md:text-base">{student.name}</h1>
-            <span class="px-1.5 py-0.5 rounded bg-canvas-800 border border-canvas-700 text-xs text-slate-400">{student.grade}</span>
-          </div>
-          <div class="text-xs text-slate-400">{auth.user?.email || 'student@lumera.com'}</div>
-        </div>
-      </button>
-
-      <!-- Center - Badges -->
-      <div class="flex items-center gap-2">
-        <!-- Streak Badge -->
-        <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas-900/50 border border-slate-800">
-          <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2.25c-2.429 0-4.817.178-7.152.521C2.87 3.061 1.5 4.795 1.5 6.741v6.018c0 1.946 1.37 3.68 3.348 3.97.877.129 1.761.234 2.652.316V21a.75.75 0 001.28.53l4.184-4.183a.39.39 0 01.266-.112c2.006-.05 3.982-.22 5.922-.506 1.978-.29 3.348-2.023 3.348-3.97V6.741c0-1.947-1.37-3.68-3.348-3.97A49.145 49.145 0 0012 2.25zM8.25 8.625a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zm2.625 1.125a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" />
-          </svg>
-          <span class="text-xs font-bold text-white">{student.streak}</span>
-        </div>
-
-        {#each resources as res}
-          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-canvas-900/50 border border-slate-800">
-            {#if res.iconType === 'currency'}
-              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            {:else if res.iconType === 'bolt'}
-              <svg class="w-4 h-4 text-focus-500" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M11.25 5.337c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.036 1.007-1.875 2.25-1.875S15 2.34 15 3.375c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959 0 .332.278.598.61.578 1.91-.114 3.79-.342 5.632-.676a.75.75 0 01.878.645 49.17 49.17 0 01.376 5.452.657.657 0 01-.66.664c-.354 0-.675-.186-.958-.401a1.647 1.647 0 00-1.003-.349c-1.035 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401.31 0 .557.262.534.571a48.774 48.774 0 01-.595 4.845.75.75 0 01-.61.61c-1.82.317-3.673.533-5.555.642a.58.58 0 01-.611-.581c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.035-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959a.641.641 0 01-.658.643 49.118 49.118 0 01-4.708-.36.75.75 0 01-.645-.878c.293-1.614.504-3.257.629-4.924A.53.53 0 005.337 15c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401a.656.656 0 00.659-.663 47.703 47.703 0 00-.31-4.82.75.75 0 01.83-.832c1.343.155 2.703.254 4.077.294a.64.64 0 00.657-.642z" />
-              </svg>
-            {:else if res.iconType === 'chart'}
-              <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-              </svg>
-            {/if}
-            <span class="text-xs font-bold {res.color}">{res.value}</span>
-          </div>
-        {/each}
-      </div>
-
-      <!-- Right - Navigation Icons -->
-      <div class="flex items-center gap-2">
-        <!-- Quest Button -->
-        <button
-          onclick={() => isCurrentQuestOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Current Quest"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-          </svg>
-        </button>
-
-        <!-- Missions Button -->
-        <button
-          onclick={() => isMissionBoardOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Mission Board"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          {#if dashboardStore.activeMissionCount > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.activeMissionCount}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Activity Button -->
-        <button
-          onclick={() => isActivityModalOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Actividad Reciente"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          {#if dashboardStore.activities.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-rose-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.activities.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Events Button -->
-        <button
-          onclick={() => isLiveEventsOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Live Events"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-          </svg>
-          {#if dashboardStore.events.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-amber-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.events.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Progress Button -->
-        <button
-          onclick={() => isProgressPanelOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-800/60 transition-all duration-200 group"
-          title="Tu Progreso"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-slate-200 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          {#if dashboardStore.subjects.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-lumera-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.subjects.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Logout Button -->
-        <button
-          onclick={() => auth.logout()}
-          class="relative p-2 rounded-lg hover:bg-red-900/60 transition-all duration-200 group"
-          title="Logout"
-        >
-          <svg class="w-6 h-6 text-slate-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </header>
+<div class="min-h-screen bg-canvas-950 text-slate-800 font-sans pb-10">
+  <!-- App Header -->
+  <AppHeader
+    currentAvatar={customizationStore.currentAvatar}
+    isHomePage={true}
+    onProfileClick={() => isPlayerProfileOpen = true}
+    onQuestClick={() => isCurrentQuestOpen = true}
+    onMissionsClick={() => isMissionBoardOpen = true}
+    onActivityClick={() => isActivityModalOpen = true}
+    onLiveEventsClick={() => isLiveEventsOpen = true}
+    onProgressClick={async () => {
+      await loadDiagnosticLevels();
+      isProgressPanelOpen = true;
+    }}
+  />
 
   <!-- Main -->
-  <main class="px-6 py-8 max-w-7xl mx-auto">
-    <!-- Dashboard content area - currently empty, all content in modals -->
+  <main
+    bind:this={mainContentRef}
+    onmousemove={handleMouseMove}
+    class="relative px-6 py-8 max-w-7xl mx-auto min-h-[calc(100vh-120px)] overflow-hidden"
+  >
+    <!-- Particle System Background -->
+    <div class="absolute inset-0 pointer-events-none">
+      {#each particles as particle}
+        <div
+          class="absolute rounded-full opacity-40 blur-sm"
+          style="
+            left: {particle.x}%;
+            top: {particle.y}%;
+            width: {particle.size}px;
+            height: {particle.size}px;
+            background-color: {particle.color};
+            transition: all 0.05s linear;
+          "
+        ></div>
+      {/each}
+    </div>
+
+    <!-- Mission Control Center Content -->
+    <div class="relative z-10 flex flex-col items-center justify-center min-h-full pt-8 pb-12">
+
+      <!-- Dynamic Greeting -->
+      <div class="greeting-text text-center mb-8">
+        <div class="inline-block px-8 py-4 rounded-2xl bg-gradient-to-r {
+          currentTimeOfDay === 'mañana'
+            ? 'from-orange-500/20 via-yellow-500/20 to-blue-500/20'
+            : currentTimeOfDay === 'tarde'
+            ? 'from-blue-500/20 via-purple-500/20 to-pink-500/20'
+            : 'from-purple-500/20 via-blue-900/20 to-slate-800/20'
+        } border-2 border-white/10 backdrop-blur-sm">
+          <h2 class="text-3xl md:text-4xl font-bold text-white">
+            {currentGreeting}, {student.name}
+          </h2>
+        </div>
+      </div>
+
+      <!-- Daily Focus Card -->
+      <div class="daily-focus-card w-full max-w-2xl mb-8">
+        <div class="relative group">
+          <!-- Animated glow effect -->
+          <div class="absolute -inset-1 bg-gradient-to-r from-lumera-500 via-focus-500 to-purple-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+
+          <div class="relative bg-canvas-800/90 backdrop-blur-md rounded-3xl p-8 border-2 border-white/10">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-lumera-500 to-focus-500 flex items-center justify-center">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h3 class="text-2xl font-bold text-white">Tu Misión de Hoy</h3>
+            </div>
+
+            <div class="mb-6">
+              <p class="text-xl text-slate-200 mb-2">
+                Completa 10 preguntas de Comprensión Lectora
+              </p>
+              <p class="text-sm text-slate-400">
+                Recomendado para tu nivel actual
+              </p>
+            </div>
+
+            <div class="flex items-center gap-4 mb-6">
+              <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
+                <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
+                </svg>
+                <span class="text-sm font-semibold text-white">+50 XP</span>
+              </div>
+              <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
+                <svg class="w-5 h-5 text-focus-500" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M11.25 5.337c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.036 1.007-1.875 2.25-1.875S15 2.34 15 3.375c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959 0 .332.278.598.61.578 1.91-.114 3.79-.342 5.632-.676a.75.75 0 01.878.645 49.17 49.17 0 01.376 5.452.657.657 0 01-.66.664c-.354 0-.675-.186-.958-.401a1.647 1.647 0 00-1.003-.349c-1.035 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401.31 0 .557.262.534.571a48.774 48.774 0 01-.595 4.845.75.75 0 01-.61.61c-1.82.317-3.673.533-5.555.642a.58.58 0 01-.611-.581c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.035-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959a.641.641 0 01-.658.643 49.118 49.118 0 01-4.708-.36.75.75 0 01-.645-.878c.293-1.614.504-3.257.629-4.924A.53.53 0 005.337 15c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401a.656.656 0 00.659-.663 47.703 47.703 0 00-.31-4.82.75.75 0 01.83-.832c1.343.155 2.703.254 4.077.294a.64.64 0 00.657-.642z" />
+                </svg>
+                <span class="text-sm font-semibold text-white">2 Tokens</span>
+              </div>
+            </div>
+
+            <button
+              onclick={() => isMissionBoardOpen = true}
+              class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              COMENZAR AHORA
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Streak & Mini Stats Row -->
+      <div class="flex flex-wrap items-center justify-center gap-6 mb-8">
+        <!-- Streak Visualizer -->
+        <div class="floating-stat">
+          <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+            <div class="relative px-6 py-4 bg-canvas-800/90 backdrop-blur-md rounded-2xl border-2 border-orange-500/30 flex items-center gap-4">
+              <!-- Animated flame icon -->
+              <div class="relative">
+                <svg class="w-12 h-12 text-orange-500 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2.25c-2.429 0-4.817.178-7.152.521C2.87 3.061 1.5 4.795 1.5 6.741v6.018c0 1.946 1.37 3.68 3.348 3.97.877.129 1.761.234 2.652.316V21a.75.75 0 001.28.53l4.184-4.183a.39.39 0 01.266-.112c2.006-.05 3.982-.22 5.922-.506 1.978-.29 3.348-2.023 3.348-3.97V6.741c0-1.947-1.37-3.68-3.348-3.97A49.145 49.145 0 0012 2.25zM8.25 8.625a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25zm2.625 1.125a1.125 1.125 0 112.25 0 1.125 1.125 0 01-2.25 0zm4.875-1.125a1.125 1.125 0 100 2.25 1.125 1.125 0 000-2.25z" />
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm text-slate-400 font-medium">Racha Actual</p>
+                <p class="text-3xl font-bold text-white">{student.streak} días</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- XP Today -->
+        <div class="floating-stat">
+          <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+            <div class="relative px-6 py-4 bg-canvas-800/90 backdrop-blur-md rounded-2xl border-2 border-purple-500/30 flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center">
+                <svg class="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm text-slate-400 font-medium">XP Ganado Hoy</p>
+                <p class="text-3xl font-bold text-white">+{student.xp}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level Progress -->
+        <div class="floating-stat">
+          <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-focus-500 to-emerald-500 rounded-2xl blur opacity-25 group-hover:opacity-40 transition-opacity"></div>
+            <div class="relative px-6 py-4 bg-canvas-800/90 backdrop-blur-md rounded-2xl border-2 border-focus-500/30 flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-focus-500 to-emerald-500 flex items-center justify-center">
+                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div class="text-left">
+                <p class="text-sm text-slate-400 font-medium">Próximo Nivel</p>
+                <p class="text-3xl font-bold text-white">{100 - student.xp}%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </main>
 </div>
 
@@ -320,6 +460,7 @@
   onClose={() => isProgressPanelOpen = false}
   subjects={dashboardStore.subjects}
   {userProfile}
+  {diagnosticLevels}
   onSubjectClick={openSubjectDetail}
 />
 
