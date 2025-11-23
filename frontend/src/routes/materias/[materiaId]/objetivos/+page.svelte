@@ -25,6 +25,7 @@
   import OACategoryTabs from '$lib/components/objectives/OACategoryTabs.svelte';
   import OASearchBar from '$lib/components/objectives/OASearchBar.svelte';
   import OAList from '$lib/components/objectives/OAList.svelte';
+  import LearningPath from '$lib/components/objectives/LearningPath.svelte';
 
   // State
   let materiaId = $state(0);
@@ -51,6 +52,7 @@
   let diagnosticLevels = $state<Record<number, number>>({});
   let subjects = $state<any[]>([]);
   let activeTab = $state('daily');
+  let viewMode = $state<'list' | 'path'>('path'); // Default to path view
 
   // Student info for modals
   const student = {
@@ -76,9 +78,11 @@
       }
       const catStat = stats.get(cat);
       catStat.total++;
-      // TODO: Add actual completion logic based on progress
-      // For now, using placeholder logic
-      catStat.completed += Math.random() > 0.7 ? 1 : 0;
+
+      // Real completion logic: OA is completed if its plan is completed
+      if (plansData[oa.id]?.isCompleted) {
+        catStat.completed++;
+      }
     });
 
     return Array.from(stats.values());
@@ -95,16 +99,19 @@
     return Array.from(counts.entries()).map(([categoria, count]) => ({ categoria, count }));
   });
 
-  // Get completed OAs count (placeholder - TODO: implement real progress tracking)
-  const completedOAs = $derived(Math.floor(oas.length * 0.65)); // 65% completion placeholder
+  // Get completed OAs count - Real data from plansData
+  const completedOAs = $derived(
+    oas.filter(oa => plansData[oa.id]?.isCompleted).length
+  );
 
-  // Get recommended OA based on diagnostic level
+  // Get recommended OA based on diagnostic level and progress
   const recommendedOA = $derived(() => {
     if (oas.length === 0) return null;
 
-    // Find first OA with completion < 100%
-    // For now, return first OA as placeholder
-    return oas[0] || null;
+    // Find first OA without a plan or with incomplete plan
+    const incomplete = oas.find(oa => !plansData[oa.id]?.hasPlan || !plansData[oa.id]?.isCompleted);
+
+    return incomplete || oas[0]; // Fallback to first OA if all completed
   });
 
   // Get materia ID from URL
@@ -354,6 +361,11 @@
     handleGeneratePlan(oa);
   }
 
+  // Retake diagnostic
+  function handleRetakeDiagnostic() {
+    goto(`/diagnostico/${materiaId}?new=true`);
+  }
+
   // Handle avatar change
   function handleAvatarChanged(avatar: CustomizationItem) {
     customizationStore.setAvatar(avatar);
@@ -484,6 +496,7 @@
         categoryStats={categoryStats()}
         recommendedOA={recommendedOA()}
         onStartRecommended={handleStartRecommended}
+        onRetakeDiagnostic={handleRetakeDiagnostic}
       />
 
       <!-- Category Tabs -->
@@ -492,23 +505,75 @@
         onCategoryChange={(cat) => selectedCategory = cat}
       />
 
-      <!-- Search and Sort -->
-      <OASearchBar
-        onSearchChange={(query) => searchQuery = query}
-        onSortChange={(sort) => sortBy = sort}
-      />
+      <!-- Search, Sort, and View Toggle -->
+      <div class="flex items-center gap-4 mb-6">
+        <div class="flex-1">
+          <OASearchBar
+            onSearchChange={(query) => searchQuery = query}
+            onSortChange={(sort) => sortBy = sort}
+          />
+        </div>
 
-      <!-- OAs List -->
-      <OAList
-        oas={filteredOAs}
-        bloomLevels={bloomLevelData}
-        {progressData}
-        {plansData}
-        {generatingPlanFor}
-        onGeneratePlan={handleGeneratePlan}
-        onViewPlan={handleViewPlan}
-        onPractice={handlePractice}
-      />
+        <!-- View Mode Toggle -->
+        <div class="flex items-center gap-2 bg-canvas-800 rounded-xl p-1 border border-canvas-700">
+          <button
+            onclick={() => viewMode = 'path'}
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-all {
+              viewMode === 'path'
+                ? 'bg-lumera-500 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white'
+            }"
+          >
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              Camino
+            </div>
+          </button>
+          <button
+            onclick={() => viewMode = 'list'}
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-all {
+              viewMode === 'list'
+                ? 'bg-lumera-500 text-white shadow-lg'
+                : 'text-slate-400 hover:text-white'
+            }"
+          >
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+              </svg>
+              Lista
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- OAs Display (Path or List) -->
+      {#if viewMode === 'path'}
+        <LearningPath
+          oas={filteredOAs}
+          bloomLevels={bloomLevelData}
+          {progressData}
+          {plansData}
+          {generatingPlanFor}
+          {diagnosticLevel}
+          onGeneratePlan={handleGeneratePlan}
+          onViewPlan={handleViewPlan}
+          onPractice={handlePractice}
+        />
+      {:else}
+        <OAList
+          oas={filteredOAs}
+          bloomLevels={bloomLevelData}
+          {progressData}
+          {plansData}
+          {generatingPlanFor}
+          onGeneratePlan={handleGeneratePlan}
+          onViewPlan={handleViewPlan}
+          onPractice={handlePractice}
+        />
+      {/if}
     {/if}
   </main>
 </div>

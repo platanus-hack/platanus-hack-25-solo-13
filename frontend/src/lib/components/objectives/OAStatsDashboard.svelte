@@ -10,7 +10,8 @@
     bloomLevel = 0, // Student's diagnostic level (0-6)
     categoryStats = [],  // Array of { categoria, completed, total }
     recommendedOA = null,  // Next recommended OA object
-    onStartRecommended = null
+    onStartRecommended = null,
+    onRetakeDiagnostic = null  // Callback to retake diagnostic
   } = $props();
 
   const progressPercentage = totalOAs > 0 ? Math.round((completedOAs / totalOAs) * 100) : 0;
@@ -151,20 +152,38 @@
             </div>
           </div>
           <div class="bg-white/60 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/40">
-            <p class="{currentBloom.color} text-xs font-semibold">
-              {currentBloom.label}
-            </p>
-            <p class="text-xs text-slate-600 mt-0.5">
-              {#if currentBloom.stars === 0}
-                Completa una evaluación diagnóstica
-              {:else if currentBloom.stars <= 2}
-                Sigue practicando
-              {:else if currentBloom.stars <= 4}
-                Muy bien
-              {:else}
-                Excelente
+            <div class="flex items-center justify-between gap-3">
+              <div class="flex-1">
+                <p class="{currentBloom.color} text-xs font-semibold">
+                  {currentBloom.label}
+                </p>
+                <p class="text-xs text-slate-600 mt-0.5">
+                  {#if currentBloom.stars === 0}
+                    Completa una evaluación diagnóstica
+                  {:else if currentBloom.stars <= 2}
+                    Sigue practicando
+                  {:else if currentBloom.stars <= 4}
+                    Muy bien
+                  {:else}
+                    Excelente
+                  {/if}
+                </p>
+              </div>
+              {#if currentBloom.stars > 0 && onRetakeDiagnostic}
+                <button
+                  onclick={onRetakeDiagnostic}
+                  class="flex-shrink-0 px-2.5 py-1.5 bg-gradient-to-r {currentBloom.gradient} rounded-lg hover:opacity-90 transition-all flex items-center gap-1.5 group shadow-md hover:shadow-lg"
+                  title="Volver a hacer diagnóstico"
+                >
+                  <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  <span class="text-[10px] font-semibold text-white">
+                    Re-evaluar
+                  </span>
+                </button>
               {/if}
-            </p>
+            </div>
           </div>
         </div>
       </div>

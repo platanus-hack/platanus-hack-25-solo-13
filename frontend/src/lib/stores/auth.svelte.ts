@@ -1,5 +1,6 @@
 import { browser } from '$app/environment';
 import { goto } from '$app/navigation';
+import type { StudentProfile } from '$lib/api/profiles';
 
 interface User {
   id: number;
@@ -28,6 +29,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   gamificationStats: GamificationStats | null;
+  profile: StudentProfile | null;
 }
 
 // Create reactive auth state
@@ -35,7 +37,8 @@ let authState = $state<AuthState>({
   user: null,
   token: null,
   isAuthenticated: false,
-  gamificationStats: null
+  gamificationStats: null,
+  profile: null
 });
 
 // Initialize from localStorage on client
@@ -56,6 +59,7 @@ export const auth = {
   get token() { return authState.token; },
   get isAuthenticated() { return authState.isAuthenticated; },
   get gamificationStats() { return authState.gamificationStats; },
+  get profile() { return authState.profile; },
 
   // Register
   async register(email: string, name: string, password: string): Promise<{ success: boolean; error?: string }> {
@@ -174,6 +178,7 @@ export const auth = {
 
       if (response.ok) {
         const profile = await response.json();
+        authState.profile = profile;
         if (authState.user && profile.curso_actual) {
           authState.user.curso_actual = profile.curso_actual;
           // Update localStorage
@@ -185,6 +190,11 @@ export const auth = {
     } catch (error) {
       console.error('Error loading user profile:', error);
     }
+  },
+
+  // Alias for backwards compatibility
+  async loadProfile(): Promise<void> {
+    return this.loadUserProfile();
   },
 
   // Load gamification stats

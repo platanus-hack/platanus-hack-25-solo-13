@@ -2,9 +2,10 @@
   interface Props {
     selected: string[];
     onSelect: (interests: string[]) => void;
+    compact?: boolean;
   }
 
-  let { selected = $bindable([]), onSelect }: Props = $props();
+  let { selected = $bindable([]), onSelect, compact = false }: Props = $props();
 
   const availableInterests = [
     { id: 'tecnologia', label: 'Tecnología', iconPath: 'M9 3.75H6.912a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H15M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859M12 3v8.25m0 0l-3-3m3 3l3-3' },
@@ -31,21 +32,21 @@
   }
 </script>
 
-<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 {compact ? 'gap-2' : 'gap-3'}">
   {#each availableInterests as interest}
     {@const isSelected = selected.includes(interest.id)}
     <button
       type="button"
-      class="p-4 rounded-xl border-2 transition-all duration-300 text-center {
+      class="{compact ? 'p-2.5 rounded-lg' : 'p-4 rounded-xl'} border-2 transition-all duration-300 text-center {
         isSelected
           ? 'bg-[#E1E1E1] border-[#E1E1E1] scale-105 shadow-lg'
           : 'bg-canvas-900/60 border-canvas-700 hover:border-canvas-600 hover:bg-canvas-800/60'
       }"
       onclick={() => toggleInterest(interest.id)}
     >
-      <div class="flex justify-center mb-2">
+      <div class="flex justify-center {compact ? 'mb-1' : 'mb-2'}">
         <svg
-          class="w-10 h-10 {isSelected ? 'text-canvas-900' : 'text-slate-400'} transition-colors duration-300"
+          class="{compact ? 'w-7 h-7' : 'w-10 h-10'} {isSelected ? 'text-canvas-900' : 'text-slate-400'} transition-colors duration-300"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -56,15 +57,15 @@
           <path d={interest.iconPath} />
         </svg>
       </div>
-      <div class="text-sm font-semibold {isSelected ? 'text-canvas-900' : 'text-slate-300'}">
+      <div class="{compact ? 'text-xs' : 'text-sm'} font-semibold {isSelected ? 'text-canvas-900' : 'text-slate-300'}">
         {interest.label}
       </div>
       {#if isSelected}
-        <div class="mt-1 text-xs text-canvas-900 flex items-center justify-center gap-1">
-          <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+        <div class="{compact ? 'mt-0.5 text-[10px]' : 'mt-1 text-xs'} text-canvas-900 flex items-center justify-center gap-1">
+          <svg class="{compact ? 'w-2.5 h-2.5' : 'w-3 h-3'}" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
-          Seleccionado
+          {#if !compact}Seleccionado{/if}
         </div>
       {/if}
     </button>

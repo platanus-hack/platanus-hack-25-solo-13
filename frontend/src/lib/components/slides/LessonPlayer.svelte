@@ -89,6 +89,9 @@
       slideStartTime = Date.now();
       slideInteractions = [];
 
+      // Scroll to top smoothly
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
       if (onSlideChange) {
         onSlideChange({
           slideIndex: currentSlideIndex,
@@ -105,6 +108,9 @@
       currentSlideIndex--;
       slideStartTime = Date.now();
       slideInteractions = [];
+
+      // Scroll to top smoothly
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (onSlideChange) {
         onSlideChange({

@@ -226,13 +226,19 @@
     isLoading = true;
     errorMessage = '';
 
-    // Check if user already completed this diagnostic
-    const existingSession = await checkExistingDiagnostic();
+    // Check if user wants to start a new diagnostic (ignore existing one)
+    const urlParams = new URLSearchParams(window.location.search);
+    const isNewDiagnostic = urlParams.get('new') === 'true';
 
-    if (existingSession) {
-      // Load existing results
-      await loadExistingDiagnostic(existingSession);
-      return;
+    // Check if user already completed this diagnostic (only if not forcing new)
+    if (!isNewDiagnostic) {
+      const existingSession = await checkExistingDiagnostic();
+
+      if (existingSession) {
+        // Load existing results
+        await loadExistingDiagnostic(existingSession);
+        return;
+      }
     }
 
     // Start diagnostic session
@@ -248,6 +254,9 @@
 
     // Load first question
     await loadNextQuestion();
+
+    // Apply the first question immediately (no feedback to wait for)
+    applyNextQuestion();
 
     isLoading = false;
   }
@@ -714,11 +723,6 @@
         </div>
       </div>
     {/if}
-
-    <!-- DEBUG: Show feedback state -->
-    <div class="mb-4 p-2 bg-yellow-500/20 text-yellow-300 text-xs font-mono">
-      DEBUG: showFeedback={showFeedback} | isLoading={isLoading} | hasAnswered={hasAnswered}
-    </div>
 
     <!-- Question Display -->
     {#if !showResults && currentQuestion}
