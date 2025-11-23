@@ -40,12 +40,12 @@
 {#if isOpen && subject}
   <!-- Backdrop -->
   <div
-    class="fixed inset-0 bg-black/60 backdrop-blur-sm z-60 flex items-center justify-center p-4"
+    class="fixed inset-0 top-[72px] bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center pt-24 pb-8 px-4"
     onclick={onClose}
   >
     <!-- Modal -->
     <div
-      class="bg-canvas-900 rounded-2xl border border-slate-700 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+      class="bg-canvas-900 rounded-2xl border border-slate-700 max-w-2xl w-full min-h-[50vh] max-h-[80vh] overflow-y-auto shadow-2xl"
       onclick={(e) => e.stopPropagation()}
     >
       <!-- Header -->

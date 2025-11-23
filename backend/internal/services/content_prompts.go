@@ -4,6 +4,28 @@ import "fmt"
 
 // buildPlanStructurePrompt construye el prompt para generar la estructura del plan
 func buildPlanStructurePrompt(ctx OAContext) string {
+	// Build student profile section
+	profileSection := ""
+	if len(ctx.InteresesPersonales) > 0 || ctx.ProfesionSoñada != "" || ctx.FormatoPreferido != "" {
+		profileSection = "\nPERFIL DEL ESTUDIANTE:\n"
+		if len(ctx.InteresesPersonales) > 0 {
+			profileSection += fmt.Sprintf("- Intereses personales: %v\n", ctx.InteresesPersonales)
+		}
+		if ctx.ProfesionSoñada != "" {
+			profileSection += fmt.Sprintf("- Profesión soñada: %s\n", ctx.ProfesionSoñada)
+		}
+		if ctx.FormatoPreferido != "" {
+			profileSection += fmt.Sprintf("- Formato de aprendizaje preferido: %s\n", ctx.FormatoPreferido)
+		}
+		if len(ctx.TipoActividad) > 0 {
+			profileSection += fmt.Sprintf("- Actividades preferidas: %v\n", ctx.TipoActividad)
+		}
+		if ctx.CanalPreferido != "" {
+			profileSection += fmt.Sprintf("- Canal preferido: %s\n", ctx.CanalPreferido)
+		}
+		profileSection += "\nIMPORTANTE: Personaliza el contenido, ejemplos y aplicaciones para relacionarlos con los intereses del estudiante. Esto aumentará su motivación y facilitará la conexión con el material.\n"
+	}
+
 	return fmt.Sprintf(`CONTEXTO EDUCATIVO:
 - Materia: %s
 - Curso: %s
@@ -13,7 +35,7 @@ func buildPlanStructurePrompt(ctx OAContext) string {
 - Descripción del nivel de Bloom: %s
 - Objetivo Específico: %s
 - Indicadores de Logro: %v
-
+%s
 TAREA: Diseñar un plan de aprendizaje personalizado
 
 Debes generar un plan de aprendizaje que guíe al estudiante hacia el dominio del objetivo de aprendizaje usando SCAFFOLDING PEDAGÓGICO (andamiaje).
@@ -72,11 +94,27 @@ Responde ÚNICAMENTE con el JSON, sin texto adicional.`,
 		ctx.BloomDescripcion,
 		ctx.ObjetivoEspecifico,
 		ctx.IndicadoresLogro,
+		profileSection,
 	)
 }
 
 // buildComponentPrompt construye el prompt para ExplainAndExploreSlide con bloques tipados
 func buildComponentPrompt(componentType string, ctx OAContext, componentObjective string) string {
+	// Build student profile section
+	profileSection := ""
+	exampleGuidance := ""
+	if len(ctx.InteresesPersonales) > 0 || ctx.ProfesionSoñada != "" {
+		profileSection = "\nPERFIL DEL ESTUDIANTE:\n"
+		if len(ctx.InteresesPersonales) > 0 {
+			profileSection += fmt.Sprintf("- Intereses personales: %v\n", ctx.InteresesPersonales)
+			exampleGuidance = fmt.Sprintf("\nCuando crees EJEMPLOS, relaciona los conceptos con estos intereses: %v. Por ejemplo, si el tema es matemáticas y el estudiante le interesa el fútbol, usa ejemplos con estadísticas de jugadores o geometría de la cancha.\n", ctx.InteresesPersonales)
+		}
+		if ctx.ProfesionSoñada != "" {
+			profileSection += fmt.Sprintf("- Profesión soñada: %s\n", ctx.ProfesionSoñada)
+			exampleGuidance += fmt.Sprintf("Menciona cómo estos conceptos son útiles en la carrera de %s para aumentar relevancia y motivación.\n", ctx.ProfesionSoñada)
+		}
+	}
+
 	return fmt.Sprintf(`CONTEXTO EDUCATIVO:
 - Materia: %s (%s)
 - Curso: %s
@@ -87,7 +125,7 @@ func buildComponentPrompt(componentType string, ctx OAContext, componentObjectiv
 
 INDICADORES DE LOGRO:
 %v
-
+%s%s
 TAREA: Generar contenido educativo usando BLOQUES FLEXIBLES
 
 Debes crear contenido pedagógico que alterne entre explicaciones, ejemplos, definiciones y práctica según sea necesario.
@@ -212,6 +250,8 @@ Responde ÚNICAMENTE con el JSON, sin texto adicional.`,
 		ctx.BloomDescripcion,
 		componentObjective,
 		ctx.IndicadoresLogro,
+		profileSection,
+		exampleGuidance,
 		componentObjective,
 	)
 }

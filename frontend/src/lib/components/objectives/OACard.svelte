@@ -19,13 +19,13 @@
   // Local state
   let isExpanded = $state(false);
 
-  // Category icons mapping
-  const categoryIcons = {
-    'Lectura': '📖',
-    'Escritura': '✍️',
-    'Comunicación Oral': '💬',
-    'Investigación': '📝',
-    'General': '📚'
+  // Category icons mapping (using SVG components)
+  const categoryIconsSVG = {
+    'Lectura': `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`,
+    'Escritura': `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>`,
+    'Comunicación Oral': `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>`,
+    'Investigación': `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>`,
+    'General': `<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>`
   };
 
   // Bloom level labels and colors
@@ -71,8 +71,8 @@
     class="w-full px-6 py-4 flex items-start gap-4 text-left hover:bg-slate-50 transition-colors"
   >
     <!-- Category Icon -->
-    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-lumera-100 to-focus-100 border-2 {currentBloomLevel.border} flex items-center justify-center text-2xl">
-      {categoryIcons[oa.categoria] || categoryIcon}
+    <div class="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-lumera-100 to-focus-100 border-2 {currentBloomLevel.border} flex items-center justify-center text-slate-700">
+      {@html categoryIconsSVG[oa.categoria] || categoryIconsSVG['General']}
     </div>
 
     <!-- Content -->
@@ -82,12 +82,18 @@
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-2 mb-2">
             {#if isCompleted}
-              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-300">
-                ✓ Estudiado
+              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 border border-blue-300 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Estudiado
               </span>
             {:else if hasPlan}
-              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300">
-                ✓ Plan Activo
+              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-700 border border-green-300 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                </svg>
+                Plan Activo
               </span>
             {:else}
               <span class="px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-300">
@@ -121,9 +127,17 @@
 
       <!-- Bloom Level Badge -->
       <div class="flex items-center gap-2">
-        <div class="flex items-center gap-1 px-3 py-1 rounded-lg {currentBloomLevel.bg} border {currentBloomLevel.border}">
+        <div class="flex items-center gap-2 px-3 py-1 rounded-lg {currentBloomLevel.bg} border {currentBloomLevel.border}">
+          {#if currentBloomLevel.stars > 0}
+            <div class="flex gap-0.5">
+              {#each Array(currentBloomLevel.stars) as _, i}
+                <svg class="w-4 h-4 {currentBloomLevel.color}" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+              {/each}
+            </div>
+          {/if}
           <span class="{currentBloomLevel.color} text-sm font-semibold">
-            {'⭐'.repeat(currentBloomLevel.stars)}
             {#if currentBloomLevel.stars === 0}
               <span class="text-slate-500">No evaluado</span>
             {:else}

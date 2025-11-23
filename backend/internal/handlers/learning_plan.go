@@ -59,6 +59,26 @@ func GenerateLearningPlanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch student profile for personalization
+	var profile models.StudentProfile
+	var interesesPersonales []string
+	var profesionSoñada string
+	var formatoPreferido string
+	var tipoActividad []string
+	var canalPreferido string
+
+	if err := db.DB.Where("user_id = ?", userID).First(&profile).Error; err == nil {
+		// Parse profile_data JSONB field
+		var profileData models.ProfileDataStructure
+		if err := profile.ProfileData.Scan(&profileData); err == nil {
+			interesesPersonales = profileData.InteresesPersonales.Temas
+			profesionSoñada = profileData.InteresesPersonales.ProfesionSoñada
+			formatoPreferido = profileData.PreferenciasAprendizaje.FormatoPreferido
+			tipoActividad = profileData.PreferenciasAprendizaje.TipoActividad
+			canalPreferido = profileData.PreferenciasAprendizaje.CanalPreferido
+		}
+	}
+
 	// Construir contexto para OpenAI
 	oaContext := services.OAContext{
 		MateriaNombre:      oaBloomObjective.OA.Materia.Nombre,
@@ -71,6 +91,12 @@ func GenerateLearningPlanHandler(w http.ResponseWriter, r *http.Request) {
 		BloomDescripcion:   oaBloomObjective.BloomLevel.Descripcion,
 		ObjetivoEspecifico: oaBloomObjective.ObjetivoEspecifico,
 		IndicadoresLogro:   oaBloomObjective.IndicadoresLogro,
+		// Student personalization
+		InteresesPersonales: interesesPersonales,
+		ProfesionSoñada:     profesionSoñada,
+		FormatoPreferido:    formatoPreferido,
+		TipoActividad:       tipoActividad,
+		CanalPreferido:      canalPreferido,
 	}
 
 	// Generar estructura del plan con OpenAI
@@ -288,6 +314,26 @@ func GenerateComponentContentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Fetch student profile for personalization
+	var profile models.StudentProfile
+	var interesesPersonales []string
+	var profesionSoñada string
+	var formatoPreferido string
+	var tipoActividad []string
+	var canalPreferido string
+
+	if err := db.DB.Where("user_id = ?", userID).First(&profile).Error; err == nil {
+		// Parse profile_data JSONB field
+		var profileData models.ProfileDataStructure
+		if err := profile.ProfileData.Scan(&profileData); err == nil {
+			interesesPersonales = profileData.InteresesPersonales.Temas
+			profesionSoñada = profileData.InteresesPersonales.ProfesionSoñada
+			formatoPreferido = profileData.PreferenciasAprendizaje.FormatoPreferido
+			tipoActividad = profileData.PreferenciasAprendizaje.TipoActividad
+			canalPreferido = profileData.PreferenciasAprendizaje.CanalPreferido
+		}
+	}
+
 	// Construir contexto para OpenAI
 	oaContext := services.OAContext{
 		MateriaNombre:      oaBloomObjective.OA.Materia.Nombre,
@@ -300,6 +346,12 @@ func GenerateComponentContentHandler(w http.ResponseWriter, r *http.Request) {
 		BloomDescripcion:   oaBloomObjective.BloomLevel.Descripcion,
 		ObjetivoEspecifico: oaBloomObjective.ObjetivoEspecifico,
 		IndicadoresLogro:   oaBloomObjective.IndicadoresLogro,
+		// Student personalization
+		InteresesPersonales: interesesPersonales,
+		ProfesionSoñada:     profesionSoñada,
+		FormatoPreferido:    formatoPreferido,
+		TipoActividad:       tipoActividad,
+		CanalPreferido:      canalPreferido,
 	}
 
 	// Generar contenido

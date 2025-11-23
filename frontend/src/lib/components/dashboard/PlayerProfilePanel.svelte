@@ -6,6 +6,16 @@
   import { getEquipment } from '$lib/api/customization';
   import type { CustomizationItem } from '$lib/api/customization';
 
+  interface GamificationStats {
+    level: number;
+    xp: number;
+    xp_for_next_level: number;
+    xp_progress: number;
+    coins: number;
+    current_streak: number;
+    longest_streak: number;
+  }
+
   interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -15,10 +25,36 @@
     level: number;
     xp: number;
     initials: string;
+    gamificationStats?: GamificationStats | null;
     onAvatarChanged?: (avatar: CustomizationItem) => void;
   }
 
-  let { isOpen, onClose, userName, userEmail, userGrade, level, xp, initials, onAvatarChanged }: Props = $props();
+  let { isOpen, onClose, userName, userEmail, userGrade, level, xp, initials, gamificationStats, onAvatarChanged }: Props = $props();
+
+  // Calculate progress percentage for current level
+  const progressPercentage = $derived(() => {
+    if (!gamificationStats) {
+      // Fallback calculation if stats not available
+      const currentLevelXP = (level - 1) * (level - 1) * 100;
+      const nextLevelXP = level * level * 100;
+      const progress = xp - currentLevelXP;
+      const total = nextLevelXP - currentLevelXP;
+      return Math.min(100, Math.max(0, (progress / total) * 100));
+    }
+
+    // Use backend-calculated progress
+    const currentLevelXP = gamificationStats.xp - gamificationStats.xp_progress;
+    const total = gamificationStats.xp_for_next_level - currentLevelXP;
+    return Math.min(100, Math.max(0, (gamificationStats.xp_progress / total) * 100));
+  });
+
+  const xpText = $derived(() => {
+    if (!gamificationStats) {
+      const nextLevelXP = level * level * 100;
+      return `${xp} / ${nextLevelXP} XP`;
+    }
+    return `${gamificationStats.xp} / ${gamificationStats.xp_for_next_level} XP`;
+  });
   let backdropRef = $state<HTMLDivElement | null>(null);
   let panelRef = $state<HTMLDivElement | null>(null);
   let avatarSelectorOpen = $state(false);
@@ -138,15 +174,18 @@
           />
         </div>
 
-        <h3 class="text-2xl font-bold text-white mb-1">{userName}</h3>
-        <p class="text-sm text-slate-400 mb-2">{userEmail}</p>
-        <span class="inline-block px-3 py-1 rounded-full bg-canvas-800 border border-canvas-700 text-sm text-slate-300">
-          {userGrade}
-        </span>
+        <h3 class="text-2xl font-bold text-white mb-2">{userName}</h3>
+        <p class="text-sm text-slate-400 mb-3">{userEmail}</p>
+        <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-lumera-500/10 to-focus-500/10 border border-lumera-500/30">
+          <svg class="w-4 h-4 text-lumera-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+          </svg>
+          <span class="text-sm font-semibold text-lumera-300">{userGrade}</span>
+        </div>
       </div>
 
       <!-- Level Progress -->
-      <div class="-mt-2 pt-2">
+      <div class="pt-2">
         <div class="mb-3">
           <span class="text-sm font-semibold text-achievement-400">Level {level}</span>
         </div>
@@ -156,38 +195,13 @@
           <div class="h-3 w-full bg-canvas-900 rounded-full overflow-hidden border border-slate-700">
             <div
               class="h-full bg-gradient-to-r from-lumera-500 via-focus-500 to-achievement-400 transition-all duration-500 rounded-full"
-              style="width: {xp}%"
+              style="width: {progressPercentage()}%"
             ></div>
           </div>
           <div class="flex justify-end text-xs text-slate-500">
-            <span>1000 XP</span>
+            <span>{xpText()}</span>
           </div>
         </div>
-      </div>
-
-      <!-- Action Cards -->
-      <div class="grid grid-cols-3 gap-3 pt-4 border-t border-slate-800">
-        <button class="aspect-square rounded-xl bg-canvas-800/60 border border-slate-700 text-slate-200 hover:bg-canvas-700 hover:border-slate-600 transition-all flex flex-col items-center justify-center gap-2 p-4">
-          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <span class="text-xs font-medium text-center">Configuración</span>
-        </button>
-
-        <button class="aspect-square rounded-xl bg-canvas-800/60 border border-slate-700 text-slate-200 hover:bg-canvas-700 hover:border-slate-600 transition-all flex flex-col items-center justify-center gap-2 p-4">
-          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          <span class="text-xs font-medium text-center">Mi Aprendizaje</span>
-        </button>
-
-        <button class="aspect-square rounded-xl bg-canvas-800/60 border border-slate-700 text-slate-200 hover:bg-canvas-700 hover:border-slate-600 transition-all flex flex-col items-center justify-center gap-2 p-4">
-          <svg class="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
-          </svg>
-          <span class="text-xs font-medium text-center">Logros</span>
-        </button>
       </div>
     </div>
   </div>

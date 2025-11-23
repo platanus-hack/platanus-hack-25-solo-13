@@ -86,6 +86,8 @@
   let results = $state<DiagnosticResult[]>([]);
   let averageBloomLevel = $state(0);
   let errorMessage = $state('');
+  let showFeedback = $state(false);
+  let feedbackMessage = $state('');
 
   // Student data
   const student = {
@@ -250,10 +252,12 @@
   }
 
   // Load next question
+  let nextQuestionData = $state<DiagnosticQuestion | null>(null);
+
   async function loadNextQuestion() {
     if (!session) return;
 
-    isLoading = true;
+    // DON'T set isLoading here - we want to show feedback overlay
     errorMessage = '';
 
     console.log('[Diagnostic] Fetching next question for session:', session.id);
@@ -262,7 +266,6 @@
 
     if (!questionResult.success) {
       errorMessage = questionResult.error || 'No hay más preguntas disponibles';
-      isLoading = false;
       // If no more questions, complete the session
       if (currentQuestionNumber > 0) {
         await finalizeDiagnostic();
@@ -270,14 +273,25 @@
       return;
     }
 
-    currentQuestion = questionResult.question!;
+    // Store next question but don't update currentQuestion yet
+    // This will be updated after feedback is shown
+    nextQuestionData = questionResult.question!;
+
+    console.log('[Diagnostic] Next question loaded, waiting for feedback to finish');
+  }
+
+  function applyNextQuestion() {
+    if (!nextQuestionData) return;
+
+    currentQuestion = nextQuestionData;
     currentQuestionNumber = currentQuestion.question_number;
     totalQuestions = currentQuestion.total_questions;
     hasAnswered = false;
     isCorrect = false;
     isLoading = false;
+    nextQuestionData = null;
 
-    console.log('[Diagnostic] Current question loaded:', {
+    console.log('[Diagnostic] Applied next question:', {
       type: currentQuestion.tipo,
       number: currentQuestionNumber,
       total: totalQuestions,
@@ -344,28 +358,47 @@
 
     console.log('[Diagnostic] Answer result:', answerResult);
 
-    isLoading = false;
-
     if (!answerResult.success) {
+      isLoading = false;
       errorMessage = answerResult.error || 'Error al enviar la respuesta';
       console.error('[Diagnostic] Error submitting answer:', errorMessage);
       return;
     }
 
-    // Show feedback briefly before moving to next question
-    setTimeout(() => {
-      siguientePregunta();
-    }, 1500);
-  }
+    // Show success feedback BEFORE turning off loading
+    hasAnswered = true;
+    isCorrect = answerResult.result?.is_correct || false;
+    feedbackMessage = isCorrect ? '¡Correcto! ✓' : 'Respuesta enviada';
 
-  // Move to next question
-  async function siguientePregunta() {
+    console.log('[Diagnostic] Setting showFeedback = true');
+    showFeedback = true;
+
+    console.log('[Diagnostic] Setting isLoading = false');
+    isLoading = false;
+
+    console.log('[Diagnostic] Feedback state:', { showFeedback, isLoading, feedbackMessage });
+
+    // Load next question in background while showing feedback
     if (currentQuestionNumber >= totalQuestions) {
-      // Finished all questions, complete session
-      await finalizeDiagnostic();
+      console.log('[Diagnostic] Last question, will finalize after feedback');
+      // Last question - prepare to complete
+      setTimeout(async () => {
+        console.log('[Diagnostic] Hiding feedback and finalizing');
+        showFeedback = false;
+        hasAnswered = false;
+        await finalizeDiagnostic();
+      }, 1500);
     } else {
-      // Load next question
-      await loadNextQuestion();
+      console.log('[Diagnostic] Loading next question in background');
+      // Load next question in background
+      loadNextQuestion();
+
+      // Show feedback briefly, then apply next question
+      setTimeout(() => {
+        console.log('[Diagnostic] Hiding feedback and applying next question');
+        showFeedback = false;
+        applyNextQuestion();
+      }, 1500);
     }
   }
 
@@ -683,11 +716,51 @@
       </div>
     {/if}
 
+    <!-- DEBUG: Show feedback state -->
+    <div class="mb-4 p-2 bg-yellow-500/20 text-yellow-300 text-xs font-mono">
+      DEBUG: showFeedback={showFeedback} | isLoading={isLoading} | hasAnswered={hasAnswered}
+    </div>
+
     <!-- Question Display -->
-    {#if !showResults && currentQuestion && !isLoading}
-      <div class="bg-canvas-900 backdrop-blur-xl rounded-2xl border border-slate-700 p-8">
+    {#if !showResults && currentQuestion}
+      <div class="relative bg-canvas-900 backdrop-blur-xl rounded-2xl border border-slate-700 p-8">
+        <!-- Feedback Overlay -->
+        {#if showFeedback}
+          <div class="absolute inset-0 bg-red-500 rounded-2xl flex items-center justify-center z-[9999]">
+            <div class="text-center px-8 py-6 bg-canvas-900 rounded-xl border-2 {isCorrect ? 'border-green-500' : 'border-lumera-500'} shadow-2xl animate-in zoom-in-95 duration-300">
+              <div class="text-6xl mb-4">
+                {#if isCorrect}
+                  <svg class="w-20 h-20 mx-auto text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                {:else}
+                  <svg class="w-20 h-20 mx-auto text-lumera-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                {/if}
+              </div>
+              <p class="text-2xl font-bold {isCorrect ? 'text-green-400' : 'text-white'} mb-2">
+                {feedbackMessage}
+              </p>
+              <p class="text-sm text-slate-400">
+                Continuando a la siguiente pregunta...
+              </p>
+            </div>
+          </div>
+        {/if}
+
         {#key currentQuestion.id}
-          {#if currentQuestion.tipo === 'multiple_choice'}
+          {#if isLoading}
+            <div class="flex items-center justify-center py-20">
+              <div class="text-center">
+                <svg class="animate-spin h-12 w-12 mx-auto mb-4 text-lumera-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-slate-400">Enviando respuesta...</p>
+              </div>
+            </div>
+          {:else if currentQuestion.tipo === 'multiple_choice'}
             {@const transformedQuestion = transformarPreguntaMultipleChoice(currentQuestion)}
             <MultipleChoice
               question={transformedQuestion.question}
@@ -880,7 +953,7 @@
 
         <!-- Results by OA -->
         <div class="space-y-4">
-          <h3 class="text-xl font-bold text-white">Resultados por Objetivo de Aprendizaje</h3>
+          <h3 class="text-xl font-bold text-slate-900">Resultados por Objetivo de Aprendizaje</h3>
 
           {#each results as result}
             <div class="bg-canvas-800 backdrop-blur-xl rounded-xl border border-slate-700 p-6">

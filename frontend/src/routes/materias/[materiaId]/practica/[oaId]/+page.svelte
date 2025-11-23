@@ -18,7 +18,7 @@
   import DragDropMatching from '$lib/components/activities/DragDropMatching.svelte';
   import Sequencing from '$lib/components/activities/Sequencing.svelte';
   import ComparisonTable from '$lib/components/activities/ComparisonTable.svelte';
-  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
+  import AppHeader from '$lib/components/common/AppHeader.svelte';
   import { getEquipment } from '$lib/api/customization';
 
   // Route params
@@ -42,6 +42,9 @@
   let errorMessage = $state('');
   let currentAvatar = $state(null);
   let slideStartTime = $state(Date.now());
+  let showFeedback = $state(false);
+  let feedbackMessage = $state('');
+  let nextQuestionData = $state(null);
 
   // Student data
   const student = {
@@ -50,6 +53,14 @@
   };
 
   const initials = auth.user?.name ? auth.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'ST';
+
+  // Modal states for AppHeader
+  let isPlayerProfileOpen = $state(false);
+  let isQuestModalOpen = $state(false);
+  let isMissionsModalOpen = $state(false);
+  let isActivityPanelOpen = $state(false);
+  let isLiveEventsOpen = $state(false);
+  let isProgressPanelOpen = $state(false);
 
   const progreso = $derived(currentQuestionNumber > 0 && totalQuestions > 0
     ? Math.round((currentQuestionNumber / totalQuestions) * 100)
@@ -148,7 +159,37 @@
     isLoading = false;
   }
 
-  // Load next question
+  // Load next question in background without showing loading state
+  async function loadNextQuestionInBackground() {
+    if (!session) return;
+
+    const questionResult = await getNextPracticeQuestion(session.id);
+
+    if (!questionResult.success) {
+      errorMessage = questionResult.error || 'No hay más preguntas disponibles';
+      if (currentQuestionNumber > 0) {
+        await finalizePractice();
+      }
+      return;
+    }
+
+    // Store next question but don't update currentQuestion yet
+    nextQuestionData = questionResult.question;
+  }
+
+  // Apply the preloaded next question
+  function applyNextQuestion() {
+    if (!nextQuestionData) return;
+    currentQuestion = nextQuestionData;
+    currentQuestionNumber = currentQuestion.question_number;
+    totalQuestions = currentQuestion.total_questions;
+    hasAnswered = false;
+    isCorrect = false;
+    slideStartTime = Date.now();
+    nextQuestionData = null;
+  }
+
+  // Load next question (initial load with loading state)
   async function loadNextQuestion() {
     if (!session) return;
 
@@ -213,16 +254,30 @@
       tiempoSegundos
     );
 
-    isLoading = false;
-
     if (!answerResult.success) {
       errorMessage = answerResult.error || 'Error al enviar la respuesta';
+      isLoading = false;
       return;
     }
 
-    setTimeout(() => {
-      siguientePregunta();
-    }, 1500);
+    // Show success feedback BEFORE loading next question
+    feedbackMessage = isCorrect ? '¡Correcto!' : 'Respuesta enviada';
+    showFeedback = true;
+    isLoading = false;
+
+    // Load next question in background while showing feedback
+    if (currentQuestionNumber >= totalQuestions) {
+      setTimeout(async () => {
+        showFeedback = false;
+        await finalizePractice();
+      }, 2000);
+    } else {
+      loadNextQuestionInBackground();
+      setTimeout(() => {
+        showFeedback = false;
+        applyNextQuestion();
+      }, 2000);
+    }
   }
 
   // Move to next question
@@ -301,31 +356,27 @@
   <title>Práctica - {oaInfo?.titulo || 'Lumera App'}</title>
 </svelte:head>
 
-<div class="min-h-screen bg-gradient-to-br from-slate-950 via-indigo-950 to-slate-950">
+<div class="min-h-screen bg-canvas-950">
   <!-- Header -->
-  <header class="sticky top-0 z-50 border-b border-white/5 bg-canvas-950/90 backdrop-blur-md">
-    <div class="px-6 py-3 flex items-center justify-between gap-4">
-      <!-- Left: Profile -->
-      <div class="flex items-center gap-3 px-3 py-2">
-        <AvatarDisplay
-          {currentAvatar}
-          {initials}
-          size="small"
-        />
-        <div class="text-left hidden md:block">
-          <div class="text-sm font-semibold text-white">{student.name}</div>
-          <div class="text-xs text-slate-400">{student.grade}</div>
-        </div>
-      </div>
-
-      <!-- Center: Progress -->
+  <AppHeader
+    {currentAvatar}
+    onProfileClick={() => isPlayerProfileOpen = true}
+    onQuestClick={() => isQuestModalOpen = true}
+    onMissionsClick={() => isMissionsModalOpen = true}
+    onActivityClick={() => isActivityPanelOpen = true}
+    onLiveEventsClick={() => isLiveEventsOpen = true}
+    onProgressClick={() => isProgressPanelOpen = true}
+    showNavButtons={true}
+    isHomePage={false}
+  >
+    {#snippet centerContent()}
       <div class="flex-1 max-w-md">
         <div class="flex items-center justify-between text-xs mb-1.5">
           {#if showResults}
             <span class="text-green-400 font-medium">✓ Práctica Completada</span>
             <span class="text-slate-400">{getBloomLevelStars(results?.bloom_level_final || 0)}</span>
           {:else if currentQuestion}
-            <span class="text-focus-400 font-medium truncate">🎯 {oaInfo?.titulo || 'Práctica'}</span>
+            <span class="text-cyan-400 font-medium truncate">🎯 {oaInfo?.titulo || 'Práctica'}</span>
             <span class="text-slate-400 flex-shrink-0">{currentQuestionNumber}/{totalQuestions}</span>
           {:else}
             <span class="text-slate-400">Cargando...</span>
@@ -335,20 +386,12 @@
           {#if showResults}
             <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500" style="width: 100%"></div>
           {:else}
-            <div class="h-full bg-gradient-to-r from-focus-500 to-blue-500 transition-all duration-500" style="width: {progreso}%"></div>
+            <div class="h-full bg-gradient-to-r from-teal-500 to-cyan-500 transition-all duration-500" style="width: {progreso}%"></div>
           {/if}
         </div>
       </div>
-
-      <!-- Right: Exit button -->
-      <button
-        onclick={() => goto(`/materias/${materiaId}/objetivos`)}
-        class="px-4 py-2 rounded-lg bg-canvas-800 hover:bg-canvas-700 text-white transition-all"
-      >
-        Salir
-      </button>
-    </div>
-  </header>
+    {/snippet}
+  </AppHeader>
 
   <!-- Main Content -->
   <main class="px-6 py-8 max-w-4xl mx-auto">
@@ -373,15 +416,51 @@
     {/if}
 
     <!-- Question Display -->
-    {#if !showResults && currentQuestion && !isLoading}
-      <div class="bg-canvas-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-8">
-        <div class="text-center mb-6">
-          <p class="text-slate-400 text-sm">
-            Nivel actual:
-            <span class="{getBloomLevelDisplay(currentQuestion.current_bloom_level).color} font-semibold">
-              {getBloomLevelDisplay(currentQuestion.current_bloom_level).label}
-            </span>
-          </p>
+    {#if !showResults && currentQuestion}
+      <div class="bg-canvas-900 backdrop-blur-xl rounded-2xl border border-slate-700 p-8 relative overflow-hidden transition-all duration-300">
+        <!-- Feedback Overlay with smooth transitions -->
+        <div class="absolute inset-0 bg-canvas-950/90 backdrop-blur-lg rounded-2xl flex items-center justify-center z-50 transition-all duration-500 {showFeedback ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}">
+          <div class="text-center px-10 py-8 transform transition-all duration-500 delay-100 {showFeedback ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}">
+            <!-- Icon with animation -->
+            <div class="mb-6 transform transition-all duration-700 {showFeedback ? 'scale-100 rotate-0' : 'scale-0 rotate-45'}">
+              {#if isCorrect}
+                <div class="relative">
+                  <svg class="w-24 h-24 mx-auto text-green-400 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <!-- Glow effect -->
+                  <div class="absolute inset-0 blur-xl opacity-50 bg-green-400 rounded-full"></div>
+                </div>
+              {:else}
+                <div class="relative">
+                  <svg class="w-24 h-24 mx-auto text-lumera-400 drop-shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
+                  </svg>
+                  <!-- Glow effect -->
+                  <div class="absolute inset-0 blur-xl opacity-50 bg-lumera-400 rounded-full"></div>
+                </div>
+              {/if}
+            </div>
+
+            <!-- Message -->
+            <p class="text-3xl font-bold {isCorrect ? 'text-green-400' : 'text-lumera-400'} mb-3 drop-shadow-lg">
+              {feedbackMessage}
+            </p>
+            <p class="text-base text-slate-300">
+              {#if currentQuestionNumber >= totalQuestions}
+                Completando práctica...
+              {:else}
+                Cargando siguiente pregunta...
+              {/if}
+            </p>
+
+            <!-- Progress dots -->
+            <div class="flex gap-2 justify-center mt-6">
+              <div class="w-2 h-2 rounded-full bg-lumera-400 animate-pulse"></div>
+              <div class="w-2 h-2 rounded-full bg-lumera-400 animate-pulse delay-75"></div>
+              <div class="w-2 h-2 rounded-full bg-lumera-400 animate-pulse delay-150"></div>
+            </div>
+          </div>
         </div>
 
         {#key currentQuestion.id}
@@ -496,7 +575,7 @@
               <p class="text-sm text-slate-500">Este tipo de pregunta se saltará automáticamente</p>
               <button
                 onclick={() => siguientePregunta()}
-                class="mt-4 px-6 py-3 rounded-xl font-semibold bg-gradient-to-r from-focus-500 to-blue-500 text-white transition-all duration-300 hover:shadow-lg"
+                class="mt-4 px-6 py-3 rounded-xl font-semibold bg-[#E1E1E1] hover:bg-[#CCCCCC] text-canvas-900 transition-all duration-300 shadow-lg hover:shadow-xl"
               >
                 Continuar
               </button>
@@ -509,7 +588,7 @@
     <!-- Results Display -->
     {#if showResults && results}
       <div class="space-y-6">
-        <div class="bg-canvas-900/40 backdrop-blur-xl rounded-2xl border border-white/10 p-8 text-center">
+        <div class="bg-canvas-900 backdrop-blur-xl rounded-2xl border border-slate-700 p-8 text-center">
           <div class="text-6xl mb-4">
             {#if results.cambio_nivel > 0}
               🎉
@@ -539,7 +618,7 @@
             </div>
           </div>
 
-          <div class="mt-6 pt-6 border-t border-white/10">
+          <div class="mt-6 pt-6 border-t border-slate-700">
             <p class="text-lg text-slate-300">
               {results.resultado.preguntas_correctas} de {results.resultado.preguntas_totales} correctas
             </p>
@@ -559,7 +638,7 @@
           </button>
           <button
             onclick={() => window.location.reload()}
-            class="px-8 py-3 rounded-xl bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-semibold transition-all"
+            class="px-8 py-3 rounded-xl bg-[#E1E1E1] hover:bg-[#CCCCCC] text-canvas-900 font-semibold transition-all shadow-lg hover:shadow-xl"
           >
             Practicar de Nuevo
           </button>
@@ -568,3 +647,18 @@
     {/if}
   </main>
 </div>
+
+<style>
+  /* Smooth animation delays for progress dots */
+  .delay-75 {
+    animation-delay: 75ms;
+  }
+  .delay-150 {
+    animation-delay: 150ms;
+  }
+
+  /* Smooth transitions for all interactive elements */
+  :global(.bg-canvas-900) {
+    transition: all 0.3s ease-in-out;
+  }
+</style>

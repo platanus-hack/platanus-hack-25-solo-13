@@ -1,6 +1,7 @@
 <script>
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import gsap from 'gsap';
+	import { createTTSPlayer } from '$lib/utils/textToSpeech.svelte';
 
 	// Props esperadas desde el backend
 	let {
@@ -13,6 +14,9 @@
 
 	let bloqueRefs = [];
 
+	// TTS player instance
+	const ttsPlayer = createTTSPlayer();
+
 	onMount(() => {
 		// Animate blocks on mount with stagger
 		gsap.from(bloqueRefs, {
@@ -22,6 +26,11 @@
 			stagger: 0.1,
 			ease: 'power2.out'
 		});
+	});
+
+	onDestroy(() => {
+		// Cleanup TTS player
+		ttsPlayer.destroy();
 	});
 
 	// Obtener ícono según el estilo de nota
@@ -51,6 +60,11 @@
 				return 'bg-gray-50 border-gray-300 text-gray-900';
 		}
 	}
+
+	// Play audio for text content
+	function playAudio(text) {
+		ttsPlayer.play(text);
+	}
 </script>
 
 <div class="w-full max-w-4xl mx-auto p-6">
@@ -60,10 +74,34 @@
 	<!-- Renderizar bloques secuencialmente -->
 	<div class="space-y-6">
 		{#each bloques as bloque, i}
-			<div bind:this={bloqueRefs[i]}>
+			<div bind:this={bloqueRefs[i]} class="relative group">
 				<!-- BLOQUE TEXTO -->
 				{#if bloque.tipo === 'texto'}
-					<div class="prose prose-lg max-w-none">
+					<div class="prose prose-lg max-w-none relative">
+						<!-- Audio Button -->
+						<button
+							onclick={() => playAudio(bloque.contenido)}
+							disabled={ttsPlayer.isLoading}
+							class="absolute -top-3 -right-3 w-9 h-9 rounded-lg bg-white border-2 border-gray-300 text-gray-600 shadow-md hover:shadow-lg hover:border-purple-400 hover:text-purple-600 transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center z-10"
+							title="Escuchar en audio"
+							aria-label="Reproducir audio del texto"
+						>
+							{#if ttsPlayer.isLoading}
+								<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+									<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+									<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+								</svg>
+							{:else if ttsPlayer.isPlaying}
+								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+								</svg>
+							{:else}
+								<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+									<path d="M8 5v14l11-7z"/>
+								</svg>
+							{/if}
+						</button>
+
 						<p class="text-gray-700 leading-relaxed whitespace-pre-line">
 							{bloque.contenido}
 						</p>

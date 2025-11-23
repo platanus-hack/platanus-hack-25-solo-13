@@ -703,3 +703,77 @@ func GetProgressHistory(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(history)
 }
+
+// GetOAProgressByMateria godoc
+// @Summary Get student progress for all OAs in a materia
+// @Description Returns progress, bloom level, and estado for each OA in the materia
+// @Tags Progress
+// @Produce json
+// @Param materia_id path int true "Materia ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 500 {object} map[string]interface{}
+// @Router /api/materias/{materia_id}/oa-progress [get]
+func GetOAProgressByMateria(w http.ResponseWriter, r *http.Request) {
+	// Get user from context (set by auth middleware)
+	userID, ok := r.Context().Value("userID").(uint)
+	if !ok {
+		http.Error(w, `{"error":"user not authenticated"}`, http.StatusUnauthorized)
+		return
+	}
+
+	// Get materia ID from URL
+	materiaIDStr := chi.URLParam(r, "materia_id")
+	materiaID, err := strconv.ParseUint(materiaIDStr, 10, 32)
+	if err != nil {
+		http.Error(w, `{"error":"invalid materia_id"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Get all OAs for this materia
+	var oas []models.ObjetivoAprendizaje
+	if err := db.DB.Where("materia_id = ?", uint(materiaID)).Find(&oas).Error; err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Build result map: oa_id => { progress, bloomLevel, estado }
+	result := make(map[uint]map[string]interface{})
+
+	for _, oa := range oas {
+		// Get all bloom objectives for this OA
+		var bloomObjectives []models.OABloomObjective
+		if err := db.DB.Where("oa_id = ?", oa.ID).Find(&bloomObjectives).Error; err != nil {
+			continue
+		}
+
+		// Default values
+		maxProgress := 0
+		maxBloomLevel := 0
+		bestEstado := "no_iniciado"
+
+		// Check progress for each bloom level
+		for _, objective := range bloomObjectives {
+			var progress models.StudentOAProgress
+			err := db.DB.Where("user_id = ? AND oa_bloom_objective_id = ?", userID, objective.ID).First(&progress).Error
+
+			if err == nil {
+				// Found progress for this objective
+				if progress.PorcentajeLogro > maxProgress {
+					maxProgress = progress.PorcentajeLogro
+					maxBloomLevel = int(objective.BloomLevelID)
+					bestEstado = progress.Estado
+				}
+			}
+		}
+
+		// Add to result
+		result[oa.ID] = map[string]interface{}{
+			"progress":    maxProgress,
+			"bloomLevel":  maxBloomLevel,
+			"estado":      bestEstado,
+		}
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+}

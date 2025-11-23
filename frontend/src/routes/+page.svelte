@@ -30,6 +30,8 @@
   let isLiveEventsOpen = $state(false);
   let isPlayerProfileOpen = $state(false);
   let diagnosticLevels = $state<Record<number, number>>({});
+  let dailyRecommendation = $state<any>(null);
+  let isLoadingRecommendation = $state(false);
 
   // Mission Control Center State
   let particles = $state<Array<{ x: number; y: number; vx: number; vy: number; size: number; color: string }>>([]);
@@ -40,21 +42,30 @@
   let mainContentRef: HTMLElement | null = null;
 
   // Get authenticated user
-  const student = {
+  const student = $derived({
     name: auth.user?.name || 'Student',
     grade: '2° Medio',
-    level: 12,
-    xp: 75,
-    streak: 5
-  };
+    level: auth.gamificationStats?.level || 1,
+    xp: auth.gamificationStats?.xp || 0,
+    streak: auth.gamificationStats?.current_streak || 0,
+    coins: auth.gamificationStats?.coins || 100
+  });
 
   // Get initials for avatar
   const initials = auth.user?.name ? auth.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'ST';
 
-  const resources = [
+  // Calculate progress to next level
+  const levelProgress = $derived(() => {
+    if (!auth.gamificationStats) return 0;
+    const currentLevelStartXP = auth.gamificationStats.xp - auth.gamificationStats.xp_progress;
+    const totalXPForLevel = auth.gamificationStats.xp_for_next_level - currentLevelStartXP;
+    return Math.round((auth.gamificationStats.xp_progress / totalXPForLevel) * 100);
+  });
+
+  const resources = $derived([
     {
       name: 'Mastery Tokens',
-      value: 420,
+      value: student.coins,
       iconType: 'currency',
       color: 'text-white'
     },
@@ -70,7 +81,7 @@
       iconType: 'chart',
       color: 'text-white'
     }
-  ];
+  ]);
 
   // Get time-based greeting
   function getTimeOfDay(): { greeting: string; period: string } {
@@ -138,6 +149,9 @@
   // Load user profile and subjects
   async function loadUserProfile() {
     if (auth.user?.id) {
+      // Load profile into auth store for header
+      await auth.loadUserProfile();
+
       const result = await getProfile(auth.user.id);
       if (result.success && result.profile) {
         userProfile = result.profile;
@@ -183,6 +197,31 @@
     }
   }
 
+  // Load daily recommendation
+  async function loadDailyRecommendation() {
+    isLoadingRecommendation = true;
+    try {
+      const token = auth.token;
+      const response = await fetch('/api/recommendations/daily', {
+        headers: {
+          'Authorization': token ? `Bearer ${token}` : ''
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to load recommendation:', response.statusText);
+        return;
+      }
+
+      dailyRecommendation = await response.json();
+      console.log('Daily recommendation loaded:', dailyRecommendation);
+    } catch (err) {
+      console.error('Error loading daily recommendation:', err);
+    } finally {
+      isLoadingRecommendation = false;
+    }
+  }
+
   // Handle avatar change from profile panel
   function handleAvatarChanged(avatar: CustomizationItem) {
     customizationStore.setAvatar(avatar);
@@ -212,6 +251,8 @@
     loadUserProfile();
     customizationStore.loadAvatar();
     loadDiagnosticLevels();
+    loadDailyRecommendation();
+    auth.loadGamificationStats();
 
     // Initialize Mission Control Center
     const timeData = getTimeOfDay();
@@ -266,6 +307,17 @@
       'Challenge': 'bg-orange-500/10 text-orange-400'
     };
     return colors[subject] || 'bg-canvas-800 text-slate-400';
+  }
+
+  // Start practice from recommendation
+  async function startRecommendedPractice() {
+    if (!dailyRecommendation) return;
+
+    const materiaId = dailyRecommendation.oa.materia_id;
+    const oaId = dailyRecommendation.oa.id;
+
+    // Navigate to practice page
+    window.location.href = `/materias/${materiaId}/practica/${oaId}`;
   }
 </script>
 
@@ -346,40 +398,78 @@
               <h3 class="text-2xl font-bold text-white">Tu Misión de Hoy</h3>
             </div>
 
-            <div class="mb-6">
-              <p class="text-xl text-slate-200 mb-2">
-                Completa 10 preguntas de Comprensión Lectora
-              </p>
-              <p class="text-sm text-slate-400">
-                Recomendado para tu nivel actual
-              </p>
-            </div>
-
-            <div class="flex items-center gap-4 mb-6">
-              <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
-                <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
-                </svg>
-                <span class="text-sm font-semibold text-white">+50 XP</span>
+            {#if isLoadingRecommendation}
+              <div class="mb-6 animate-pulse">
+                <div class="h-6 bg-canvas-700 rounded w-3/4 mb-2"></div>
+                <div class="h-4 bg-canvas-700 rounded w-1/2"></div>
               </div>
-              <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
-                <svg class="w-5 h-5 text-focus-500" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11.25 5.337c0-.355-.186-.676-.401-.959a1.647 1.647 0 01-.349-1.003c0-1.036 1.007-1.875 2.25-1.875S15 2.34 15 3.375c0 .369-.128.713-.349 1.003-.215.283-.401.604-.401.959 0 .332.278.598.61.578 1.91-.114 3.79-.342 5.632-.676a.75.75 0 01.878.645 49.17 49.17 0 01.376 5.452.657.657 0 01-.66.664c-.354 0-.675-.186-.958-.401a1.647 1.647 0 00-1.003-.349c-1.035 0-1.875 1.007-1.875 2.25s.84 2.25 1.875 2.25c.369 0 .713-.128 1.003-.349.283-.215.604-.401.959-.401.31 0 .557.262.534.571a48.774 48.774 0 01-.595 4.845.75.75 0 01-.61.61c-1.82.317-3.673.533-5.555.642a.58.58 0 01-.611-.581c0-.355.186-.676.401-.959.221-.29.349-.634.349-1.003 0-1.035-1.007-1.875-2.25-1.875s-2.25.84-2.25 1.875c0 .369.128.713.349 1.003.215.283.401.604.401.959a.641.641 0 01-.658.643 49.118 49.118 0 01-4.708-.36.75.75 0 01-.645-.878c.293-1.614.504-3.257.629-4.924A.53.53 0 005.337 15c-.355 0-.676.186-.959.401-.29.221-.634.349-1.003.349-1.036 0-1.875-1.007-1.875-2.25s.84-2.25 1.875-2.25c.369 0 .713.128 1.003.349.283.215.604.401.959.401a.656.656 0 00.659-.663 47.703 47.703 0 00-.31-4.82.75.75 0 01.83-.832c1.343.155 2.703.254 4.077.294a.64.64 0 00.657-.642z" />
-                </svg>
-                <span class="text-sm font-semibold text-white">2 Tokens</span>
+            {:else if dailyRecommendation}
+              <div class="mb-6">
+                <p class="text-xl text-slate-200 mb-2">
+                  Completa {dailyRecommendation.numero_preguntas} preguntas de {dailyRecommendation.oa.titulo}
+                </p>
+                <p class="text-sm text-slate-400">
+                  {dailyRecommendation.reason}
+                </p>
+                <div class="mt-2 flex items-center gap-2">
+                  <span class="px-2 py-1 text-xs font-medium bg-lumera-500/20 text-lumera-300 rounded-lg border border-lumera-500/30">
+                    {dailyRecommendation.bloom_level.nombre}
+                  </span>
+                  <span class="px-2 py-1 text-xs font-medium bg-canvas-700 text-slate-300 rounded-lg">
+                    ~{dailyRecommendation.estimated_minutes} min
+                  </span>
+                </div>
               </div>
-            </div>
 
-            <button
-              onclick={() => isMissionBoardOpen = true}
-              class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
-            >
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              COMENZAR AHORA
-            </button>
+              <div class="flex items-center gap-4 mb-6">
+                <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
+                  <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
+                  </svg>
+                  <span class="text-sm font-semibold text-white">+{dailyRecommendation.xp_reward} XP</span>
+                </div>
+              </div>
+
+              <button
+                onclick={startRecommendedPractice}
+                class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                COMENZAR AHORA
+              </button>
+            {:else}
+              <div class="mb-6">
+                <p class="text-xl text-slate-200 mb-2">
+                  Completa 10 preguntas de Comprensión Lectora
+                </p>
+                <p class="text-sm text-slate-400">
+                  Recomendado para tu nivel actual
+                </p>
+              </div>
+
+              <div class="flex items-center gap-4 mb-6">
+                <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
+                  <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
+                  </svg>
+                  <span class="text-sm font-semibold text-white">+50 XP</span>
+                </div>
+              </div>
+
+              <button
+                onclick={() => isMissionBoardOpen = true}
+                class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                COMENZAR AHORA
+              </button>
+            {/if}
           </div>
         </div>
       </div>
@@ -435,7 +525,7 @@
               </div>
               <div class="text-left">
                 <p class="text-sm text-slate-400 font-medium">Próximo Nivel</p>
-                <p class="text-3xl font-bold text-white">{100 - student.xp}%</p>
+                <p class="text-3xl font-bold text-white">{levelProgress()}%</p>
               </div>
             </div>
           </div>
@@ -504,5 +594,6 @@
   level={student.level}
   xp={student.xp}
   {initials}
+  gamificationStats={auth.gamificationStats}
   onAvatarChanged={handleAvatarChanged}
 />

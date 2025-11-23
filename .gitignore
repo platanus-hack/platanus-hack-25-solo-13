@@ -15,6 +15,7 @@ go.work
 /backend/tmp/
 /backend/dist/
 /backend/bin/
+/backend/static/tts-cache/
 
 # Air (Go hot reload)
 tmp/

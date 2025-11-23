@@ -279,9 +279,8 @@
         case 'titulo':
           return a.titulo.localeCompare(b.titulo);
         case 'progreso':
-          // TODO: Sort by actual progress
-          const progressA = progressData()[a.id] || 0;
-          const progressB = progressData()[b.id] || 0;
+          const progressA = progressData[a.id] || 0;
+          const progressB = progressData[b.id] || 0;
           return progressB - progressA; // Descending order (highest progress first)
         default:
           return 0;
@@ -359,27 +358,51 @@
     customizationStore.setAvatar(avatar);
   }
 
-  // Placeholder data for progress (TODO: implement real progress tracking)
-  const progressData = $derived(() => {
-    const data: Record<number, number> = {};
-    oas.forEach(oa => {
-      // Placeholder: random progress between 0-100
-      data[oa.id] = Math.floor(Math.random() * 100);
-    });
-    return data;
-  });
+  // Real progress data from backend
+  let progressData = $state<Record<number, number>>({});
+  let bloomLevelData = $state<Record<number, number>>({});
 
   // Real plans data - check which OAs have learning plans
   let plansData = $state<Record<number, { hasPlan: boolean; isCompleted: boolean }>>({});
 
-  // Bloom levels for each OA (use diagnostic level as placeholder)
-  const bloomLevels = $derived(() => {
-    const data: Record<number, number> = {};
-    oas.forEach(oa => {
-      data[oa.id] = diagnosticLevel;
-    });
-    return data;
-  });
+  // Load real progress data from backend
+  async function loadProgressData() {
+    if (oas.length === 0) {
+      progressData = {};
+      bloomLevelData = {};
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/materias/${materiaId}/oa-progress`, {
+        headers: {
+          'Authorization': auth.token ? `Bearer ${auth.token}` : ''
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to load progress data');
+        return;
+      }
+
+      const data = await response.json();
+
+      // Transform response into progress and bloom level maps
+      const progress: Record<number, number> = {};
+      const bloom: Record<number, number> = {};
+
+      Object.keys(data).forEach(oaId => {
+        const id = parseInt(oaId);
+        progress[id] = data[oaId].progress || 0;
+        bloom[id] = data[oaId].bloomLevel || 0;
+      });
+
+      progressData = progress;
+      bloomLevelData = bloom;
+    } catch (error) {
+      console.error('Error loading progress data:', error);
+    }
+  }
 
   // Initialize
   onMount(async () => {
@@ -389,8 +412,9 @@
       await loadMateria();
       await loadDiagnosticLevel();
       await loadOAs();
-      // Load plans data after OAs and diagnostic level are loaded
+      // Load plans and progress data after OAs are loaded
       await loadPlansData();
+      await loadProgressData();
     } else {
       errorMessage = 'ID de materia inválido';
     }
@@ -401,7 +425,7 @@
   <title>{materiaInfo?.nombre || 'Objetivos de Aprendizaje'} - Lumera App</title>
 </svelte:head>
 
-<div class="min-h-screen bg-canvas-950 text-slate-900">
+<div class="min-h-screen bg-canvas-950 text-white">
   <!-- App Header -->
   <AppHeader
     currentAvatar={customizationStore.currentAvatar}
@@ -419,16 +443,16 @@
   <!-- Main Content -->
   <main class="max-w-7xl mx-auto px-6 py-8">
     <!-- Breadcrumb -->
-    <div class="flex items-center gap-2 text-sm text-slate-600 mb-6">
-      <a href="/" class="hover:text-lumera-600 transition-colors">Dashboard</a>
+    <div class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+      <a href="/" class="hover:text-lumera-400 transition-colors">Dashboard</a>
       <span>›</span>
-      <span class="text-slate-900 font-medium">{materiaInfo?.nombre || 'Cargando...'}</span>
+      <span class="text-white font-medium">{materiaInfo?.nombre || 'Cargando...'}</span>
       <span>›</span>
-      <span class="text-lumera-600">Objetivos de Aprendizaje</span>
+      <span class="text-lumera-400">Objetivos de Aprendizaje</span>
     </div>
 
     {#if errorMessage}
-      <div class="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-red-700 mb-6">
+      <div class="bg-red-500/20 border-2 border-red-500 rounded-xl p-4 text-red-300 mb-6">
         {errorMessage}
       </div>
     {/if}
@@ -440,7 +464,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <p class="text-slate-600">Cargando objetivos de aprendizaje...</p>
+          <p class="text-slate-400">Cargando objetivos de aprendizaje...</p>
         </div>
       </div>
     {:else}
@@ -468,7 +492,7 @@
       />
 
       <!-- Results Count -->
-      <div class="mb-4 text-sm text-slate-600">
+      <div class="mb-4 text-sm text-slate-400">
         Mostrando {filteredOAs.length} de {oas.length} objetivos
         {#if selectedCategory !== 'Todos'}
           <span class="font-semibold">en {selectedCategory}</span>
@@ -478,9 +502,9 @@
       <!-- OAs List -->
       <OAList
         oas={filteredOAs}
-        bloomLevels={bloomLevels()}
-        progressData={progressData()}
-        plansData={plansData}
+        bloomLevels={bloomLevelData}
+        {progressData}
+        {plansData}
         {generatingPlanFor}
         onGeneratePlan={handleGeneratePlan}
         onViewPlan={handleViewPlan}

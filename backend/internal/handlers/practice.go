@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/platanus-hack-25/lumera_app/internal/db"
 	authmiddleware "github.com/platanus-hack-25/lumera_app/internal/middleware"
 	"github.com/platanus-hack-25/lumera_app/internal/models"
+	"github.com/platanus-hack-25/lumera_app/internal/services"
 	"gorm.io/datatypes"
 )
 
@@ -394,9 +396,37 @@ func CompletePracticeSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update user's Bloom level for this OA if level changed
-	if finalBloomLevel != session.BloomLevelInicial {
-		updateUserOABloomLevel(session.UserID, session.OAID, finalBloomLevel)
+	// Update user's progress for this OA-Bloom objective
+	accuracy := float64(session.PreguntasCorrectas) / float64(session.PreguntasRespondidas) * 100
+	if err := updateUserProgress(session.UserID, session.OABloomObjectiveID, finalBloomLevel, accuracy, session.PreguntasCorrectas, session.PreguntasRespondidas); err != nil {
+		// Log error but don't fail the request
+		http.Error(w, "Failed to update progress: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Award XP and Coins for completing practice
+	xpEarned := session.PreguntasCorrectas * 5 // 5 XP per correct answer
+	coinsEarned := session.PreguntasCorrectas / 5 // 1 coin per 5 correct answers
+
+	gamificationService := services.NewGamificationService()
+
+	// Add XP
+	xpResult, xpErr := gamificationService.AddXP(session.UserID, xpEarned, "practice_session_complete")
+	if xpErr != nil {
+		// Log but don't fail
+		println("Error adding XP:", xpErr.Error())
+	}
+
+	// Add Coins
+	coinsErr := gamificationService.AddCoins(session.UserID, coinsEarned, "practice_session_complete")
+	if coinsErr != nil {
+		println("Error adding coins:", coinsErr.Error())
+	}
+
+	// Update Streak
+	streakResult, streakErr := gamificationService.UpdateStreak(session.UserID)
+	if streakErr != nil {
+		println("Error updating streak:", streakErr.Error())
 	}
 
 	response := map[string]interface{}{
@@ -405,6 +435,12 @@ func CompletePracticeSession(w http.ResponseWriter, r *http.Request) {
 		"bloom_level_final":   finalBloomLevel,
 		"cambio_nivel":        finalBloomLevel - session.BloomLevelInicial,
 		"resultado":           resultado,
+		"rewards": map[string]interface{}{
+			"xp_earned":      xpEarned,
+			"coins_earned":   coinsEarned,
+			"xp_result":      xpResult,
+			"streak_result":  streakResult,
+		},
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -463,12 +499,84 @@ func calculateFinalBloomLevel(
 	return finalLevel
 }
 
-// updateUserOABloomLevel updates or creates a user's Bloom level for a specific OA
-func updateUserOABloomLevel(userID uint, oaID uint, bloomLevel int) error {
-	// This would update a user_oa_bloom_levels table if it exists
-	// For now, we'll skip this as it might not be part of the schema yet
-	// TODO: Implement user OA Bloom level tracking
-	return nil
+// updateUserProgress updates or creates student progress for an OA-Bloom objective
+func updateUserProgress(userID uint, oaBloomObjectiveID uint, bloomLevel int, accuracy float64, correctas int, totales int) error {
+	// Determine state based on accuracy
+	var estado string
+	if accuracy >= 80 {
+		estado = "dominado"
+	} else if accuracy >= 60 {
+		estado = "logrado"
+	} else if totales > 0 {
+		estado = "en_proceso"
+	} else {
+		estado = "no_iniciado"
+	}
+
+	// Find or create progress record
+	var progress models.StudentOAProgress
+	result := db.DB.Where("user_id = ? AND oa_bloom_objective_id = ?", userID, oaBloomObjectiveID).First(&progress)
+
+	now := time.Now()
+	porcentajeLogro := int(accuracy)
+
+	if result.Error != nil {
+		// Create new progress record
+		progress = models.StudentOAProgress{
+			UserID:              userID,
+			OABloomObjectiveID:  oaBloomObjectiveID,
+			Estado:              estado,
+			PorcentajeLogro:     porcentajeLogro,
+			Intentos:            1,
+			UltimaActividadFecha: &now,
+		}
+		if err := db.DB.Create(&progress).Error; err != nil {
+			return err
+		}
+	} else {
+		// Update existing record - only if performance improved or state changed
+		shouldUpdate := false
+
+		// Update if accuracy improved
+		if porcentajeLogro > progress.PorcentajeLogro {
+			progress.PorcentajeLogro = porcentajeLogro
+			shouldUpdate = true
+		}
+
+		// Always update state if it changed
+		if estado != progress.Estado {
+			progress.Estado = estado
+			shouldUpdate = true
+		}
+
+		// Always increment attempts and update last activity
+		progress.Intentos++
+		progress.UltimaActividadFecha = &now
+		shouldUpdate = true
+
+		if shouldUpdate {
+			if err := db.DB.Save(&progress).Error; err != nil {
+				return err
+			}
+		}
+	}
+
+	// Create history record
+	puntajeObtenido := float64(correctas)
+	puntajeMaximo := float64(totales)
+
+	history := models.StudentOAHistory{
+		UserID:             userID,
+		OABloomObjectiveID: oaBloomObjectiveID,
+		Estado:             estado,
+		PorcentajeLogro:    &porcentajeLogro,
+		TipoEvento:         "practica",
+		PuntajeObtenido:    &puntajeObtenido,
+		PuntajeMaximo:      &puntajeMaximo,
+		Notas:              fmt.Sprintf("Bloom level %d - %d/%d correctas", bloomLevel, correctas, totales),
+	}
+
+	return db.DB.Create(&history).Error
 }
 
 // Helper functions

@@ -129,6 +129,7 @@ func main() {
 			r.Use(authmiddleware.AuthMiddleware)
 			r.Post("/", handlers.CreateMateria)     // Create subject
 			r.Put("/{id}", handlers.UpdateMateria)  // Update subject
+			r.Get("/{materia_id}/oa-progress", handlers.GetOAProgressByMateria) // Get OA progress for user
 		})
 	})
 
@@ -233,6 +234,18 @@ func main() {
 		// Completion tracking
 		r.Post("/{id}/start", handlers.StartLearningPlanHandler)       // Mark plan as started
 		r.Post("/{id}/complete", handlers.CompleteLearningPlanHandler) // Mark plan as completed
+	})
+
+	// Text-to-Speech System (all protected)
+	r.Route("/api/tts", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Post("/generate", handlers.GenerateTTSHandler) // Generate audio from text using ElevenLabs
+	})
+
+	// Recommendations System (all protected)
+	r.Route("/api/recommendations", func(r chi.Router) {
+		r.Use(authmiddleware.AuthMiddleware)
+		r.Get("/daily", handlers.GetDailyRecommendation) // Get personalized daily recommendation
 	})
 
 	// Static file server for avatars

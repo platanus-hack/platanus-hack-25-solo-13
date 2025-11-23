@@ -60,47 +60,9 @@
 </script>
 
 {#if isOpen}
-  <div class="progress-panel fixed inset-0 z-40 bg-canvas-950 overflow-y-auto">
-    <!-- Header -->
-    <div class="sticky top-0 z-10 border-b border-slate-300 bg-canvas-950/90 backdrop-blur-md">
-      <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <span>📊</span>
-            <span>Tu Progreso Académico</span>
-          </h2>
-          {#if userProfile?.curso_actual}
-            <p class="text-sm text-slate-600 mt-1">
-              {userProfile.curso_actual} • {evaluatedSubjects}/{totalSubjects} materias evaluadas
-            </p>
-          {/if}
-        </div>
-        <button
-          onclick={onClose}
-          class="h-10 w-10 rounded-full bg-canvas-900 hover:bg-canvas-800 border border-slate-700 hover:border-slate-600 flex items-center justify-center text-slate-400 hover:text-white transition-all"
-          title="Cerrar (Esc)"
-        >
-          ✕
-        </button>
-      </div>
-    </div>
-
+  <div class="progress-panel fixed inset-0 top-[72px] z-40 bg-canvas-950 overflow-y-auto">
     <!-- Content -->
     <div class="max-w-7xl mx-auto px-6 py-8">
-      <!-- Summary Stats -->
-      {#if evaluatedSubjects > 0}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-3xl mx-auto">
-          <div class="bg-canvas-900 rounded-xl p-4 border border-slate-700">
-            <div class="text-3xl font-bold text-white">{evaluatedSubjects}/{totalSubjects}</div>
-            <div class="text-sm text-slate-300 mt-1">Materias Evaluadas</div>
-          </div>
-          <div class="bg-canvas-900 rounded-xl p-4 border border-slate-700">
-            <div class="text-3xl font-bold text-green-400">{advancedSubjects}</div>
-            <div class="text-sm text-slate-300 mt-1">Nivel Intermedio o Superior</div>
-          </div>
-        </div>
-      {/if}
-
       <!-- Subject Cards Grid -->
       <div>
         <h3 class="text-lg font-semibold text-slate-900 mb-6 text-center">Todas las Materias</h3>
@@ -114,6 +76,22 @@
               />
             </div>
           {/each}
+
+          <!-- Mock: Matemáticas - Coming Soon -->
+          <div class="subject-card-panel w-80">
+            <SubjectProgressCard
+              subject={{
+                materiaId: 999,
+                name: 'Matemáticas',
+                description: 'Álgebra, geometría y cálculo',
+                icon: '🔢',
+                color: 'blue'
+              }}
+              domainLevel={0}
+              onClick={() => {}}
+              comingSoon={true}
+            />
+          </div>
         </div>
       </div>
 

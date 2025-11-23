@@ -113,21 +113,6 @@
   bind:this={containerRef}
   class="w-full max-w-6xl mx-auto p-6 bg-canvas-900 rounded-2xl border border-slate-700 shadow-2xl"
 >
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
-    <div class="flex items-center gap-3">
-      <span class="px-3 py-1 rounded-full text-xs font-semibold uppercase {currentBloomStyle.bg} {currentBloomStyle.border} {currentBloomStyle.text} border">
-        {bloomLevel}
-      </span>
-      <span class="px-3 py-1 rounded-full text-xs font-semibold bg-slate-500/20 text-slate-400 border border-slate-500">
-        {materia}
-      </span>
-    </div>
-    {#if attemptCount > 0}
-      <span class="text-xs text-slate-500">Intento {attemptCount}</span>
-    {/if}
-  </div>
-
   <!-- Título e instrucciones -->
   <div class="mb-6">
     <h3 class="text-xl font-semibold text-white mb-2">

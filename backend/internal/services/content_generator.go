@@ -88,6 +88,13 @@ type OAContext struct {
 	BloomDescripcion    string
 	ObjetivoEspecifico  string
 	IndicadoresLogro    []string
+
+	// Student profile personalization
+	InteresesPersonales  []string
+	ProfesionSoñada      string
+	FormatoPreferido     string
+	TipoActividad        []string
+	CanalPreferido       string
 }
 
 // GenerateLearningPlanStructure genera la estructura del plan de aprendizaje

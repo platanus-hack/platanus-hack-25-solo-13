@@ -33,6 +33,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-your_password_here}
       DB_NAME: ${DB_NAME:-hackathon}
       DB_PORT: 5432
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-24h}
     ports:
       - "8080:8080"
     volumes:
