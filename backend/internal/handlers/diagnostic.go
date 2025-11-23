@@ -282,9 +282,10 @@ func GetNextQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Find available question for this OABloomObjective
+	// Exclude question types that require manual validation (open_ended, concept_map)
 	var question models.Question
-	err = db.DB.Where("oa_bloom_objective_id = ? AND activa = ? AND (tipo_uso = ? OR tipo_uso = ?)",
-		oaBloomObjective.ID, true, "diagnostico", "all").
+	err = db.DB.Where("oa_bloom_objective_id = ? AND activa = ? AND (tipo_uso = ? OR tipo_uso = ?) AND tipo NOT IN (?)",
+		oaBloomObjective.ID, true, "diagnostico", "all", []string{"open_ended", "concept_map"}).
 		Order("RANDOM()").
 		First(&question).Error
 
