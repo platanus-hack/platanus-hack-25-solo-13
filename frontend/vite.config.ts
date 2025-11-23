@@ -26,7 +26,9 @@ server: {
 	proxy: {
 		'/api': {
 			target: 'http://backend:8080',
-			changeOrigin: true
+			changeOrigin: true,
+			timeout: 300000, // 5 minutes timeout for long-running operations like plan generation
+			proxyTimeout: 300000
 		}
 	}
 }

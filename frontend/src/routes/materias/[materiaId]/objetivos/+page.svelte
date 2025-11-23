@@ -26,6 +26,7 @@
   import OASearchBar from '$lib/components/objectives/OASearchBar.svelte';
   import OAList from '$lib/components/objectives/OAList.svelte';
   import LearningPath from '$lib/components/objectives/LearningPath.svelte';
+  import GeneratingPlanModal from '$lib/components/objectives/GeneratingPlanModal.svelte';
 
   // State
   let materiaId = $state(0);
@@ -40,6 +41,8 @@
   let diagnosticLevel = $state(0);
   let generatingPlanFor = $state<number | null>(null);
   let userProfile = $state(null);
+  let isGeneratingPlanModalOpen = $state(false);
+  let currentGeneratingOATitle = $state('');
 
   // Modal states for header navigation
   let isPlayerProfileOpen = $state(false);
@@ -307,6 +310,8 @@
     }
 
     generatingPlanFor = oa.id;
+    currentGeneratingOATitle = oa.titulo;
+    isGeneratingPlanModalOpen = true;
 
     try {
       // Get OA Bloom Objective ID based on user's level
@@ -333,10 +338,17 @@
         plansData = { ...plansData, [oa.id]: { hasPlan: true, isCompleted: false } };
       }
 
-      // Navigate to plan page
-      goto(`/materias/${materiaId}/planes/${plan.id}`);
+      // Close modal before navigating
+      isGeneratingPlanModalOpen = false;
+
+      // Small delay to allow modal close animation
+      setTimeout(() => {
+        // Navigate to plan page
+        goto(`/materias/${materiaId}/planes/${plan.id}`);
+      }, 300);
     } catch (error) {
       console.error('Error generating plan:', error);
+      isGeneratingPlanModalOpen = false;
       alert(error instanceof Error ? error.message : 'Error al generar el plan de aprendizaje');
     } finally {
       generatingPlanFor = null;
@@ -577,6 +589,13 @@
     {/if}
   </main>
 </div>
+
+<!-- Generating Plan Modal -->
+<GeneratingPlanModal
+  isOpen={isGeneratingPlanModalOpen}
+  oaTitle={currentGeneratingOATitle}
+  onClose={() => isGeneratingPlanModalOpen = false}
+/>
 
 <!-- Player Profile Panel -->
 <PlayerProfilePanel

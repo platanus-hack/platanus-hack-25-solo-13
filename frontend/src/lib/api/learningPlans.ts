@@ -119,6 +119,9 @@ export async function getPlanByOA(oaBloomObjectiveId: number): Promise<LearningP
 /**
  * Generate a new learning plan for a specific OA Bloom Objective
  * This will create the plan structure (without content yet)
+ *
+ * NOTE: Plan generation can take 2-3 minutes because it generates content with OpenAI
+ * We use AbortController with a 5 minute timeout to prevent browser timeout
  */
 export async function generatePlan(oaBloomObjectiveId: number): Promise<{
   success: boolean;
@@ -126,13 +129,20 @@ export async function generatePlan(oaBloomObjectiveId: number): Promise<{
   error?: string;
 }> {
   try {
+    // Create an AbortController with 5 minute timeout (300000ms)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000);
+
     const response = await fetch('/api/learning-plans/generate', {
       method: 'POST',
       headers: getAuthHeaders(),
       body: JSON.stringify({
         oa_bloom_objective_id: oaBloomObjectiveId
-      })
+      }),
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => null);
@@ -146,6 +156,15 @@ export async function generatePlan(oaBloomObjectiveId: number): Promise<{
     return { success: true, plan };
   } catch (error) {
     console.error('Error generating plan:', error);
+
+    // Handle abort/timeout specifically
+    if (error instanceof Error && error.name === 'AbortError') {
+      return {
+        success: false,
+        error: 'La generación del plan está tomando más tiempo del esperado. Por favor, recarga la página en unos minutos.'
+      };
+    }
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'

@@ -6,6 +6,7 @@
   import { dashboardStore } from '$lib/stores/dashboard.svelte';
   import { getPlanById, startLearningPlan, completeLearningPlan, type LearningPlan } from '$lib/api/learningPlans';
   import LessonPlayer from '$lib/components/slides/LessonPlayer.svelte';
+  import PlanNavigation from '$lib/components/learning/PlanNavigation.svelte';
   import PlayerProfilePanel from '$lib/components/dashboard/PlayerProfilePanel.svelte';
   import RecentActivityModal from '$lib/components/dashboard/RecentActivityModal.svelte';
   import MissionBoardModal from '$lib/components/dashboard/MissionBoardModal.svelte';
@@ -41,6 +42,7 @@
   // UI State
   let isLoading = $state(false);
   let errorMessage = $state('');
+  let isNavCollapsed = $state(false);
 
   // Student data
   const student = $derived({
@@ -55,6 +57,28 @@
     ? Math.round(((currentSlideIndex + 1) / totalSlides) * 100)
     : 0);
 
+  // Component type labels
+  const componentTypeLabels: Record<string, string> = {
+    'ConceptIntroSlide': 'Introducción al Concepto',
+    'ComparisonTableSlide': 'Tabla Comparativa',
+    'StepByStepProcessSlide': 'Proceso Paso a Paso',
+    'FormulaExplorerSlide': 'Explorador de Fórmulas',
+    'PracticePromptSlide': 'Ejercicio de Práctica',
+    'ReadingStrategySlide': 'Estrategia de Lectura',
+    'GrammarConceptSlide': 'Concepto Gramatical',
+    'ConnectorsGuideSlide': 'Guía de Conectores',
+    'VocabularyStrategySlide': 'Estrategia de Vocabulario',
+    'TextTypesGuideSlide': 'Guía de Tipos de Texto',
+    'LiteraryDeviceGuideSlide': 'Recursos Literarios',
+    'ExplainAndExploreSlide': 'Explicar y Explorar',
+    'TextAnnotationSlide': 'Anotación de Texto',
+    'SentenceBuilderSlide': 'Constructor de Oraciones',
+    'VocabularyContextSlide': 'Vocabulario en Contexto',
+    'TextStructureSlide': 'Estructura del Texto',
+    'ConnectorsWorkshopSlide': 'Taller de Conectores',
+    'LiteraryDevicesExplorerSlide': 'Explorador de Recursos Literarios'
+  };
+
   // Convert learning plan to lesson format
   const lesson = $derived(
     plan ? {
@@ -63,12 +87,14 @@
       materia: 'learning-plan',
       slides: [...(plan.components || [])]  // Crear copia del array
         .sort((a, b) => a.orden - b.orden)
-        .map(component => ({
+        .map((component, index) => ({
           orden: component.orden,
           tipo: component.tipo_componente,
+          tipo_componente: component.tipo_componente,
           props: component.contenido_props || {},
           componentId: component.id,
-          estado: component.estado
+          estado: component.estado,
+          titulo: componentTypeLabels[component.tipo_componente] || `Actividad ${index + 1}`
         }))
     } : null
   );
@@ -176,6 +202,12 @@
     console.log('Slide changed:', data);
   }
 
+  // Handle navigation from PlanNavigation
+  function handleNavigateToComponent(index: number) {
+    currentSlideIndex = index;
+    console.log('Navigated to component:', index);
+  }
+
   // Get domain level for a subject
   function getDomainLevel(subjectId: string): number {
     if (!userProfile?.profile_data?.conocimiento_previo) {
@@ -257,8 +289,19 @@
     {/snippet}
   </AppHeader>
 
+  <!-- Plan Navigation Sidebar -->
+  {#if lesson && lesson.slides && lesson.slides.length > 0}
+    <PlanNavigation
+      components={lesson.slides}
+      currentIndex={currentSlideIndex}
+      onNavigate={handleNavigateToComponent}
+      planTitle={plan?.titulo || 'Plan de Aprendizaje'}
+      bind:isCollapsed={isNavCollapsed}
+    />
+  {/if}
+
   <!-- Main Content -->
-  <main class="relative">
+  <main class="relative transition-all duration-300 {lesson && lesson.slides && lesson.slides.length > 0 ? (isNavCollapsed ? 'ml-16' : 'ml-80') : ''}">
     <!-- Error Message -->
     {#if errorMessage}
       <div class="max-w-4xl mx-auto px-6 pt-6">
@@ -287,6 +330,7 @@
         leccion={lesson}
         showProgress={false}
         showHeader={false}
+        initialSlideIndex={currentSlideIndex}
         onComplete={handlePlanComplete}
         onSlideChange={handleSlideChange}
       />

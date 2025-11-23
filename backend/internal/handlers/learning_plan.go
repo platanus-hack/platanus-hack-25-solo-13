@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -129,53 +130,75 @@ func GenerateLearningPlanHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Crear componentes y generar su contenido inmediatamente
-	var components []models.LearningPlanComponent
+	// Crear componentes y generar su contenido en paralelo
 	totalComponents := len(planStructure.Componentes)
+	components := make([]models.LearningPlanComponent, totalComponents)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	log.Printf("🚀 Starting parallel generation of %d components...", totalComponents)
 
 	for i, compStruct := range planStructure.Componentes {
-		component := models.LearningPlanComponent{
-			LearningPlanID:     plan.ID,
-			Orden:              i + 1,
-			TipoComponente:     compStruct.Tipo,
-			ObjetivoEspecifico: compStruct.ObjetivoEspecifico,
-			TiempoEstimadoMin:  compStruct.TiempoEstimadoMin,
-			Estado:             models.ComponentEstadoGenerando,
-		}
+		wg.Add(1)
+		go func(index int, cs services.ComponentStructure) {
+			defer wg.Done()
 
-		if err := db.DB.Create(&component).Error; err != nil {
-			log.Printf("Error creating component: %v", err)
-			continue
-		}
+			// Crear componente en DB
+			component := models.LearningPlanComponent{
+				LearningPlanID:     plan.ID,
+				Orden:              index + 1,
+				TipoComponente:     cs.Tipo,
+				ObjetivoEspecifico: cs.ObjetivoEspecifico,
+				TiempoEstimadoMin:  cs.TiempoEstimadoMin,
+				Estado:             models.ComponentEstadoGenerando,
+			}
 
-		// Generar contenido del componente inmediatamente
-		log.Printf("⏳ Generating content for component %d/%d (%s)...", i+1, totalComponents, compStruct.Tipo)
+			if err := db.DB.Create(&component).Error; err != nil {
+				log.Printf("❌ Error creating component %d: %v", index+1, err)
+				mu.Lock()
+				components[index] = component
+				mu.Unlock()
+				return
+			}
 
-		content, err := services.GenerateComponentContent(
-			component.TipoComponente,
-			oaContext,
-			component.ObjetivoEspecifico,
-		)
+			// Generar contenido del componente (ahora en paralelo)
+			log.Printf("⏳ [%d/%d] Generating content (%s)...", index+1, totalComponents, cs.Tipo)
 
-		if err != nil {
-			log.Printf("❌ Error generating content for component %d: %v", i+1, err)
-			component.Estado = models.ComponentEstadoError
-			component.ErrorMensaje = err.Error()
+			content, err := services.GenerateComponentContent(
+				component.TipoComponente,
+				oaContext,
+				component.ObjetivoEspecifico,
+			)
+
+			if err != nil {
+				log.Printf("❌ [%d/%d] Error generating content: %v", index+1, totalComponents, err)
+				component.Estado = models.ComponentEstadoError
+				component.ErrorMensaje = err.Error()
+				db.DB.Save(&component)
+				mu.Lock()
+				components[index] = component
+				mu.Unlock()
+				return
+			}
+
+			// Guardar contenido generado
+			contentJSON, _ := json.Marshal(content)
+			component.ContenidoProps = datatypes.JSON(contentJSON)
+			component.Estado = models.ComponentEstadoGenerado
+			component.ErrorMensaje = ""
 			db.DB.Save(&component)
-			components = append(components, component)
-			continue
-		}
 
-		// Guardar contenido generado
-		contentJSON, _ := json.Marshal(content)
-		component.ContenidoProps = datatypes.JSON(contentJSON)
-		component.Estado = models.ComponentEstadoGenerado
-		component.ErrorMensaje = ""
-		db.DB.Save(&component)
+			log.Printf("✅ [%d/%d] Content generated successfully", index+1, totalComponents)
 
-		log.Printf("✅ Content generated for component %d/%d", i+1, totalComponents)
-		components = append(components, component)
+			mu.Lock()
+			components[index] = component
+			mu.Unlock()
+		}(i, compStruct)
 	}
+
+	// Esperar a que todas las goroutines terminen
+	wg.Wait()
+	log.Printf("✅ All components generated in parallel")
 
 	// Actualizar estado del plan a generado (todo está listo)
 	plan.Estado = models.LearningPlanEstadoGenerado

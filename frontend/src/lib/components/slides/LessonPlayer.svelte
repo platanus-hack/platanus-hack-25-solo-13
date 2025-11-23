@@ -33,11 +33,19 @@
     onComplete = null,
     onSlideChange = null,
     showProgress = true,
-    showHeader = true  // Nueva prop para controlar si se muestra el header
+    showHeader = true,  // Nueva prop para controlar si se muestra el header
+    initialSlideIndex = 0  // Prop para controlar el índice del slide desde fuera
   } = $props();
 
   // Estados locales
-  let currentSlideIndex = $state(0);
+  let currentSlideIndex = $state(initialSlideIndex);
+
+  // Watch for external changes to slide index
+  $effect(() => {
+    if (initialSlideIndex !== currentSlideIndex) {
+      currentSlideIndex = initialSlideIndex;
+    }
+  });
   let slideStartTime = $state(Date.now());
   let slideInteractions = $state([]);
 
