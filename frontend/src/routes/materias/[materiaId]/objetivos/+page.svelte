@@ -42,11 +42,12 @@
 
   // Modal states for header navigation
   let isPlayerProfileOpen = $state(false);
-  let isCurrentQuestOpen = $state(false);
-  let isMissionBoardOpen = $state(false);
-  let isActivityModalOpen = $state(false);
-  let isLiveEventsOpen = $state(false);
   let isProgressPanelOpen = $state(false);
+  // Keep these for modals even though they're not in header anymore
+  let isActivityModalOpen = $state(false);
+  let isMissionBoardOpen = $state(false);
+  let isCurrentQuestOpen = $state(false);
+  let isLiveEventsOpen = $state(false);
   let diagnosticLevels = $state<Record<number, number>>({});
   let subjects = $state<any[]>([]);
   let activeTab = $state('daily');
@@ -374,14 +375,22 @@
     }
 
     try {
+      const headers = auth.getAuthHeaders();
+      console.log('Loading progress data...');
+      console.log('Auth token exists:', auth.token ? 'YES' : 'NO');
+      console.log('Headers:', headers);
+
       const response = await fetch(`/api/materias/${materiaId}/oa-progress`, {
-        headers: {
-          'Authorization': auth.token ? `Bearer ${auth.token}` : ''
-        }
+        headers: headers
       });
 
+      console.log('Progress response status:', response.status);
+
       if (!response.ok) {
-        console.error('Failed to load progress data');
+        const errorText = await response.text();
+        console.error('Failed to load progress:', response.status, errorText);
+        progressData = {};
+        bloomLevelData = {};
         return;
       }
 
@@ -430,14 +439,12 @@
   <AppHeader
     currentAvatar={customizationStore.currentAvatar}
     onProfileClick={() => isPlayerProfileOpen = true}
-    onQuestClick={() => isCurrentQuestOpen = true}
-    onMissionsClick={() => isMissionBoardOpen = true}
-    onActivityClick={() => isActivityModalOpen = true}
-    onLiveEventsClick={() => isLiveEventsOpen = true}
     onProgressClick={async () => {
       await loadDiagnosticLevels();
       isProgressPanelOpen = true;
     }}
+    showNavButtons={true}
+    isHomePage={false}
   />
 
   <!-- Main Content -->
@@ -490,14 +497,6 @@
         onSearchChange={(query) => searchQuery = query}
         onSortChange={(sort) => sortBy = sort}
       />
-
-      <!-- Results Count -->
-      <div class="mb-4 text-sm text-slate-400">
-        Mostrando {filteredOAs.length} de {oas.length} objetivos
-        {#if selectedCategory !== 'Todos'}
-          <span class="font-semibold">en {selectedCategory}</span>
-        {/if}
-      </div>
 
       <!-- OAs List -->
       <OAList

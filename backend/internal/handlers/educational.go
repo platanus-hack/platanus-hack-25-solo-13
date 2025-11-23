@@ -3,11 +3,13 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/platanus-hack-25/lumera_app/internal/db"
+	authmiddleware "github.com/platanus-hack-25/lumera_app/internal/middleware"
 	"github.com/platanus-hack-25/lumera_app/internal/models"
 	"github.com/platanus-hack-25/lumera_app/internal/services"
 )
@@ -715,7 +717,7 @@ func GetProgressHistory(w http.ResponseWriter, r *http.Request) {
 // @Router /api/materias/{materia_id}/oa-progress [get]
 func GetOAProgressByMateria(w http.ResponseWriter, r *http.Request) {
 	// Get user from context (set by auth middleware)
-	userID, ok := r.Context().Value("userID").(uint)
+	userID, ok := authmiddleware.GetUserIDFromContext(r.Context())
 	if !ok {
 		http.Error(w, `{"error":"user not authenticated"}`, http.StatusUnauthorized)
 		return
@@ -773,6 +775,9 @@ func GetOAProgressByMateria(w http.ResponseWriter, r *http.Request) {
 			"estado":      bestEstado,
 		}
 	}
+
+	// Debug log
+	log.Printf("OA Progress for user %d, materia %d: %+v\n", userID, materiaID, result)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)

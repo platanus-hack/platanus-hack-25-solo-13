@@ -88,6 +88,16 @@
   let attemptCount = $state(0);
   let containerRef = $state(null);
 
+  // Reset state when question changes
+  $effect(() => {
+    // Create a unique key from question text to detect changes
+    const questionKey = question;
+    selectedOption = null;
+    hasSubmitted = false;
+    isCorrect = false;
+    attemptCount = 0;
+  });
+
   // Colores por nivel de Bloom (alineados con Lumera)
   const bloomColors = {
     recordar: { bg: 'bg-red-500/20', border: 'border-red-500', text: 'text-red-400' },

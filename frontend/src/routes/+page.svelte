@@ -24,11 +24,12 @@
   let isModalOpen = $state(false);
   let selectedDomainLevel = $state(0);
   let isProgressPanelOpen = $state(false);
+  let isPlayerProfileOpen = $state(false);
+  // Keep these for modals even though they're not in header anymore
   let isActivityModalOpen = $state(false);
   let isMissionBoardOpen = $state(false);
   let isCurrentQuestOpen = $state(false);
   let isLiveEventsOpen = $state(false);
-  let isPlayerProfileOpen = $state(false);
   let diagnosticLevels = $state<Record<number, number>>({});
   let dailyRecommendation = $state<any>(null);
   let isLoadingRecommendation = $state(false);
@@ -331,10 +332,6 @@
     currentAvatar={customizationStore.currentAvatar}
     isHomePage={true}
     onProfileClick={() => isPlayerProfileOpen = true}
-    onQuestClick={() => isCurrentQuestOpen = true}
-    onMissionsClick={() => isMissionBoardOpen = true}
-    onActivityClick={() => isActivityModalOpen = true}
-    onLiveEventsClick={() => isLiveEventsOpen = true}
     onProgressClick={async () => {
       await loadDiagnosticLevels();
       isProgressPanelOpen = true;
@@ -382,94 +379,156 @@
         </div>
       </div>
 
-      <!-- Daily Focus Card -->
-      <div class="daily-focus-card w-full max-w-2xl mb-8">
-        <div class="relative group">
-          <!-- Animated glow effect -->
-          <div class="absolute -inset-1 bg-gradient-to-r from-lumera-500 via-focus-500 to-purple-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+      <!-- Cards Grid: Mission (2/3) + Subjects (1/3) -->
+      <div class="daily-focus-card w-full max-w-5xl mb-8">
+        <div class="grid grid-cols-3 gap-6">
+          <!-- Daily Focus Card (2/3 width) -->
+          <div class="col-span-2">
+            <div class="relative group h-full">
+              <!-- Animated glow effect -->
+              <div class="absolute -inset-1 bg-gradient-to-r from-lumera-500 via-focus-500 to-purple-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
 
-          <div class="relative bg-canvas-800/90 backdrop-blur-md rounded-3xl p-8 border-2 border-white/10">
-            <div class="flex items-center gap-3 mb-4">
-              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-lumera-500 to-focus-500 flex items-center justify-center">
-                <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+              <div class="relative bg-canvas-800/90 backdrop-blur-md rounded-3xl p-8 border-2 border-white/10 h-full">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-lumera-500 to-focus-500 flex items-center justify-center">
+                    <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <h3 class="text-2xl font-bold text-white">Tu Misión de Hoy</h3>
+                </div>
+
+                {#if isLoadingRecommendation}
+                  <div class="mb-6 animate-pulse">
+                    <div class="h-6 bg-canvas-700 rounded w-3/4 mb-2"></div>
+                    <div class="h-4 bg-canvas-700 rounded w-1/2"></div>
+                  </div>
+                {:else if dailyRecommendation}
+                  <div class="mb-6">
+                    <p class="text-xl text-slate-200 mb-2">
+                      Completa {dailyRecommendation.numero_preguntas} preguntas de {dailyRecommendation.oa.titulo}
+                    </p>
+                    <p class="text-sm text-slate-400">
+                      {dailyRecommendation.reason}
+                    </p>
+                    <div class="mt-2 flex items-center gap-2">
+                      <span class="px-2 py-1 text-xs font-medium bg-lumera-500/20 text-lumera-300 rounded-lg border border-lumera-500/30">
+                        {dailyRecommendation.bloom_level.nombre}
+                      </span>
+                      <span class="px-2 py-1 text-xs font-medium bg-canvas-700 text-slate-300 rounded-lg">
+                        ~{dailyRecommendation.estimated_minutes} min
+                      </span>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-4 mb-6">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
+                      <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
+                      </svg>
+                      <span class="text-sm font-semibold text-white">+{dailyRecommendation.xp_reward} XP</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onclick={startRecommendedPractice}
+                    class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    COMENZAR AHORA
+                  </button>
+                {:else}
+                  <div class="mb-6">
+                    <p class="text-xl text-slate-200 mb-2">
+                      Completa 10 preguntas de Comprensión Lectora
+                    </p>
+                    <p class="text-sm text-slate-400">
+                      Recomendado para tu nivel actual
+                    </p>
+                  </div>
+
+                  <div class="flex items-center gap-4 mb-6">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
+                      <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
+                      </svg>
+                      <span class="text-sm font-semibold text-white">+50 XP</span>
+                    </div>
+                  </div>
+
+                  <button
+                    onclick={() => isMissionBoardOpen = true}
+                    class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    COMENZAR AHORA
+                  </button>
+                {/if}
               </div>
-              <h3 class="text-2xl font-bold text-white">Tu Misión de Hoy</h3>
             </div>
+          </div>
 
-            {#if isLoadingRecommendation}
-              <div class="mb-6 animate-pulse">
-                <div class="h-6 bg-canvas-700 rounded w-3/4 mb-2"></div>
-                <div class="h-4 bg-canvas-700 rounded w-1/2"></div>
-              </div>
-            {:else if dailyRecommendation}
-              <div class="mb-6">
-                <p class="text-xl text-slate-200 mb-2">
-                  Completa {dailyRecommendation.numero_preguntas} preguntas de {dailyRecommendation.oa.titulo}
-                </p>
-                <p class="text-sm text-slate-400">
-                  {dailyRecommendation.reason}
-                </p>
-                <div class="mt-2 flex items-center gap-2">
-                  <span class="px-2 py-1 text-xs font-medium bg-lumera-500/20 text-lumera-300 rounded-lg border border-lumera-500/30">
-                    {dailyRecommendation.bloom_level.nombre}
-                  </span>
-                  <span class="px-2 py-1 text-xs font-medium bg-canvas-700 text-slate-300 rounded-lg">
-                    ~{dailyRecommendation.estimated_minutes} min
-                  </span>
+          <!-- Subjects Card (1/3 width) -->
+          <div class="col-span-1">
+            <div class="relative group h-full">
+              <!-- Animated glow effect -->
+              <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-3xl blur-lg opacity-30 group-hover:opacity-50 transition-opacity duration-300"></div>
+
+              <div class="relative bg-canvas-800/90 backdrop-blur-md rounded-3xl p-6 border-2 border-white/10 h-full flex flex-col">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
+                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                  </div>
+                  <h3 class="text-xl font-bold text-white">Mis Materias</h3>
+                </div>
+
+                <div class="flex-1 flex flex-col gap-3">
+                  {#if dashboardStore.subjects.length > 0}
+                    {#each dashboardStore.subjects as subject}
+                      <button
+                        onclick={() => window.location.href = `/materias/${subject.materiaId}/objetivos`}
+                        class="w-full px-4 py-3 bg-canvas-900/60 hover:bg-canvas-900/80 border border-canvas-700 hover:border-emerald-500/50 rounded-xl transition-all duration-300 hover:scale-105 flex items-center justify-between group"
+                      >
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 rounded-lg bg-gradient-to-br {subject.color} flex items-center justify-center">
+                            {#if subject.id === 'lyl' || subject.id === 'lenguaje' || subject.id === 'lengua'}
+                              <!-- Lengua y Literatura - Book icon -->
+                              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                              </svg>
+                            {:else if subject.id === 'mat' || subject.id === 'matematicas'}
+                              <!-- Matemáticas - Calculator icon -->
+                              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                            {:else}
+                              <!-- Default emoji for other subjects -->
+                              <span class="text-sm">{subject.icon}</span>
+                            {/if}
+                          </div>
+                          <span class="text-sm font-semibold text-white">{subject.name}</span>
+                        </div>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    {/each}
+                  {:else}
+                    <div class="flex-1 flex items-center justify-center">
+                      <p class="text-sm text-slate-400 text-center">Cargando materias...</p>
+                    </div>
+                  {/if}
                 </div>
               </div>
-
-              <div class="flex items-center gap-4 mb-6">
-                <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
-                  <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
-                  </svg>
-                  <span class="text-sm font-semibold text-white">+{dailyRecommendation.xp_reward} XP</span>
-                </div>
-              </div>
-
-              <button
-                onclick={startRecommendedPractice}
-                class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                COMENZAR AHORA
-              </button>
-            {:else}
-              <div class="mb-6">
-                <p class="text-xl text-slate-200 mb-2">
-                  Completa 10 preguntas de Comprensión Lectora
-                </p>
-                <p class="text-sm text-slate-400">
-                  Recomendado para tu nivel actual
-                </p>
-              </div>
-
-              <div class="flex items-center gap-4 mb-6">
-                <div class="flex items-center gap-2 px-4 py-2 bg-canvas-900/60 rounded-lg border border-canvas-700">
-                  <svg class="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
-                  </svg>
-                  <span class="text-sm font-semibold text-white">+50 XP</span>
-                </div>
-              </div>
-
-              <button
-                onclick={() => isMissionBoardOpen = true}
-                class="w-full px-6 py-4 bg-gradient-to-r from-lumera-600 to-focus-600 hover:from-lumera-500 hover:to-focus-500 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-lumera-500/30 flex items-center justify-center gap-2"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                COMENZAR AHORA
-              </button>
-            {/if}
+            </div>
           </div>
         </div>
       </div>

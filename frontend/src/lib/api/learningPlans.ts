@@ -101,16 +101,17 @@ export async function getPlanByOA(oaBloomObjectiveId: number): Promise<LearningP
     });
 
     if (response.status === 404) {
-      return null; // Plan doesn't exist yet
+      return null; // Plan doesn't exist yet - this is normal
     }
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch plan: ${response.statusText}`);
+      // Silently return null for other errors (401, 500, etc)
+      return null;
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Error fetching plan by OA:', error);
+    // Silently handle errors - plan doesn't exist or network issue
     return null;
   }
 }

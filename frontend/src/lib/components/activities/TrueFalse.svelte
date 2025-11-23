@@ -83,6 +83,17 @@
   let justification = $state("");
   let containerRef = $state(null);
 
+  // Reset state when statement changes (new question)
+  $effect(() => {
+    // Create a unique key from statement to detect changes
+    const questionKey = statement;
+    selectedAnswer = null;
+    hasSubmitted = false;
+    isCorrect = false;
+    attemptCount = 0;
+    justification = "";
+  });
+
   // Colores por nivel de Bloom
   const bloomColors = {
     recordar: { bg: 'bg-red-500/20', border: 'border-red-500', text: 'text-red-400' },

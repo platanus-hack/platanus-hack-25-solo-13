@@ -18,6 +18,9 @@
   import DragDropMatching from '$lib/components/activities/DragDropMatching.svelte';
   import Sequencing from '$lib/components/activities/Sequencing.svelte';
   import ComparisonTable from '$lib/components/activities/ComparisonTable.svelte';
+  import CriteriaEvaluation from '$lib/components/activities/CriteriaEvaluation.svelte';
+  import OpenEndedResponse from '$lib/components/activities/OpenEndedResponse.svelte';
+  import ConceptMapBuilder from '$lib/components/activities/ConceptMapBuilder.svelte';
   import AppHeader from '$lib/components/common/AppHeader.svelte';
   import { getEquipment } from '$lib/api/customization';
 
@@ -56,10 +59,6 @@
 
   // Modal states for AppHeader
   let isPlayerProfileOpen = $state(false);
-  let isQuestModalOpen = $state(false);
-  let isMissionsModalOpen = $state(false);
-  let isActivityPanelOpen = $state(false);
-  let isLiveEventsOpen = $state(false);
   let isProgressPanelOpen = $state(false);
 
   const progreso = $derived(currentQuestionNumber > 0 && totalQuestions > 0
@@ -221,7 +220,6 @@
     if (hasAnswered || !session || !currentQuestion) return;
 
     hasAnswered = true;
-    isCorrect = data.isCorrect;
     isLoading = true;
 
     const tiempoSegundos = Math.floor((Date.now() - slideStartTime) / 1000);
@@ -260,8 +258,11 @@
       return;
     }
 
+    // Get isCorrect from backend response
+    isCorrect = answerResult.result?.is_correct || false;
+
     // Show success feedback BEFORE loading next question
-    feedbackMessage = isCorrect ? '¡Correcto!' : 'Respuesta enviada';
+    feedbackMessage = isCorrect ? '¡Correcto!' : 'Incorrecto';
     showFeedback = true;
     isLoading = false;
 
@@ -361,10 +362,6 @@
   <AppHeader
     {currentAvatar}
     onProfileClick={() => isPlayerProfileOpen = true}
-    onQuestClick={() => isQuestModalOpen = true}
-    onMissionsClick={() => isMissionsModalOpen = true}
-    onActivityClick={() => isActivityPanelOpen = true}
-    onLiveEventsClick={() => isLiveEventsOpen = true}
     onProgressClick={() => isProgressPanelOpen = true}
     showNavButtons={true}
     isHomePage={false}
@@ -477,7 +474,7 @@
               showCorrectAnswer={false}
               showFeedback={false}
               allowMultipleAttempts={false}
-              onAnswer={(data) => handleAnswer({ isCorrect: true, selectedOption: data.userAnswer })}
+              onAnswer={(data) => handleAnswer({ selectedOption: data.userAnswer })}
             />
           {:else if currentQuestion.tipo === 'true_false'}
             <TrueFalse
@@ -568,6 +565,49 @@
               allowMultipleAttempts={false}
               showFeedback={false}
               onAnswer={(data) => handleAnswer(data)}
+            />
+          {:else if currentQuestion.tipo === 'criteria_evaluation'}
+            <CriteriaEvaluation
+              title={currentQuestion.question_data.titulo || currentQuestion.question_data.title || 'Evalúa según criterios'}
+              subject={currentQuestion.question_data.sujeto || currentQuestion.question_data.subject || ''}
+              description={currentQuestion.question_data.descripcion || currentQuestion.question_data.description || ''}
+              content={currentQuestion.question_data.contenido || currentQuestion.question_data.content || null}
+              criteria={currentQuestion.question_data.criterios || currentQuestion.question_data.criteria || []}
+              bloomLevel="evaluar"
+              materia={materiaInfo?.nombre || ''}
+              showFeedback={false}
+              allowMultipleAttempts={false}
+              showExpectedRatings={false}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
+            />
+          {:else if currentQuestion.tipo === 'open_ended'}
+            <OpenEndedResponse
+              prompt={currentQuestion.question_data.pregunta || currentQuestion.question_data.prompt || ''}
+              placeholder={currentQuestion.question_data.placeholder || 'Escribe tu respuesta aquí...'}
+              minWords={currentQuestion.question_data.min_palabras || currentQuestion.question_data.minWords || 0}
+              maxWords={currentQuestion.question_data.max_palabras || currentQuestion.question_data.maxWords || 0}
+              bloomLevel="analizar"
+              materia={materiaInfo?.nombre || ''}
+              showWordCount={true}
+              enableAiFeedback={false}
+              rubric={currentQuestion.question_data.rubrica || currentQuestion.question_data.rubric || []}
+              onSubmit={(data) => handleAnswer({ isCorrect: true, answer: data.response })}
+            />
+          {:else if currentQuestion.tipo === 'concept_map'}
+            <ConceptMapBuilder
+              title={currentQuestion.question_data.titulo || currentQuestion.question_data.title || 'Crea un mapa conceptual'}
+              topic={currentQuestion.question_data.tema || currentQuestion.question_data.topic || ''}
+              instructions={currentQuestion.question_data.instrucciones || currentQuestion.question_data.instructions || ''}
+              requiredConcepts={currentQuestion.question_data.conceptos_requeridos || currentQuestion.question_data.requiredConcepts || []}
+              suggestedConnections={currentQuestion.question_data.conexiones_sugeridas || currentQuestion.question_data.suggestedConnections || []}
+              minConcepts={currentQuestion.question_data.min_conceptos || currentQuestion.question_data.minConcepts || 3}
+              minConnections={currentQuestion.question_data.min_conexiones || currentQuestion.question_data.minConnections || 2}
+              bloomLevel="crear"
+              materia={materiaInfo?.nombre || ''}
+              showFeedback={false}
+              allowMultipleAttempts={false}
+              provideConcepts={false}
+              onAnswer={(data) => handleAnswer({ isCorrect: data.isCorrect })}
             />
           {:else}
             <div class="text-center p-8 bg-slate-800/50 rounded-xl">

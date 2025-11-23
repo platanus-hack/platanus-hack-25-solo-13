@@ -124,12 +124,14 @@ func main() {
 		r.Get("/", handlers.GetMaterias)            // Public: List all subjects
 		r.Get("/{id}", handlers.GetMateria)         // Public: Get subject by ID
 
+		// Get OA progress - needs auth
+		r.With(authmiddleware.AuthMiddleware).Get("/{materia_id}/oa-progress", handlers.GetOAProgressByMateria)
+
 		// Protected write operations
 		r.Group(func(r chi.Router) {
 			r.Use(authmiddleware.AuthMiddleware)
 			r.Post("/", handlers.CreateMateria)     // Create subject
 			r.Put("/{id}", handlers.UpdateMateria)  // Update subject
-			r.Get("/{materia_id}/oa-progress", handlers.GetOAProgressByMateria) // Get OA progress for user
 		})
 	})
 

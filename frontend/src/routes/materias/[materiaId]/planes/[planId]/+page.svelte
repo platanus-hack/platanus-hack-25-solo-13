@@ -12,7 +12,7 @@
   import CurrentQuestModal from '$lib/components/dashboard/CurrentQuestModal.svelte';
   import LiveEventsModal from '$lib/components/dashboard/LiveEventsModal.svelte';
   import ProgressPanel from '$lib/components/dashboard/ProgressPanel.svelte';
-  import AvatarDisplay from '$lib/components/common/AvatarDisplay.svelte';
+  import AppHeader from '$lib/components/common/AppHeader.svelte';
   import { getProfile } from '$lib/api/profiles';
   import { findCursoByName } from '$lib/api/courses';
   import { materiasToSubjects, type Subject } from '$lib/constants/subjects';
@@ -43,13 +43,10 @@
   let errorMessage = $state('');
 
   // Student data
-  const student = {
+  const student = $derived({
     name: auth.user?.name || 'Student',
-    grade: '2° Medio',
-    level: 12,
-    xp: 75,
-    streak: 5
-  };
+    grade: auth.user?.curso_actual || '2° Medio'
+  });
 
   const initials = auth.user?.name ? auth.user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'ST';
 
@@ -125,13 +122,24 @@
         throw new Error('Error al cargar el plan');
       }
 
-      plan = await response.json();
+      const planData = await response.json();
+
+      // Ensure components exist and is an array
+      if (!planData.components) {
+        planData.components = [];
+      }
+
+      plan = planData;
       totalSlides = plan?.components?.length || 0;
 
       // Mark plan as started if not already started
       if (plan && !plan.fecha_inicio) {
         const startResult = await startLearningPlan(planId);
         if (startResult.success && startResult.plan) {
+          // Ensure the returned plan also has components
+          if (!startResult.plan.components) {
+            startResult.plan.components = planData.components;
+          }
           plan = startResult.plan;
         }
       }
@@ -224,27 +232,14 @@
 <!-- Main Layout -->
 <div class="min-h-screen bg-canvas-950">
   <!-- Header -->
-  <header class="sticky top-0 z-50 border-b border-canvas-700/20 bg-canvas-800/95 backdrop-blur-md">
-    <div class="px-6 py-3 flex items-center justify-between gap-4">
-      <!-- Left: Profile -->
-      <button
-        onclick={() => isPlayerProfileOpen = true}
-        class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-canvas-900/60 transition-all group"
-      >
-        <AvatarDisplay
-          {currentAvatar}
-          {initials}
-          size="small"
-        />
-        <div class="text-left hidden md:block">
-          <div class="text-sm font-semibold text-white group-hover:text-lumera-400 transition-colors">
-            {student.name}
-          </div>
-          <div class="text-xs text-slate-400">{student.grade}</div>
-        </div>
-      </button>
-
-      <!-- Center: Progress (replaces XP/streak/coins) -->
+  <AppHeader
+    {currentAvatar}
+    onProfileClick={() => isPlayerProfileOpen = true}
+    onProgressClick={() => isProgressPanelOpen = true}
+    showNavButtons={true}
+    isHomePage={false}
+  >
+    {#snippet centerContent()}
       <div class="flex-1 max-w-md">
         <div class="flex items-center justify-between gap-2 text-xs mb-1.5">
           {#if plan}
@@ -259,97 +254,8 @@
           <div class="h-full bg-gradient-to-r from-lumera-500 to-focus-500 transition-all duration-500" style="width: {progreso}%"></div>
         </div>
       </div>
-
-      <!-- Right: Navigation Icons -->
-      <div class="flex items-center gap-2">
-        <!-- Quest Button -->
-        <button
-          onclick={() => isCurrentQuestOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-900/80 transition-all duration-200 group"
-          title="Quest Actual"
-        >
-          <svg class="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-        </button>
-
-        <!-- Mission Board Button -->
-        <button
-          onclick={() => isMissionBoardOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-900/80 transition-all duration-200 group"
-          title="Mission Board"
-        >
-          <svg class="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-          </svg>
-          {#if dashboardStore.activeMissionCount > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-purple-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.activeMissionCount}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Activity Button -->
-        <button
-          onclick={() => isActivityModalOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-900/80 transition-all duration-200 group"
-          title="Actividad Reciente"
-        >
-          <svg class="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-          </svg>
-          {#if dashboardStore.activities.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-rose-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.activities.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Events Button -->
-        <button
-          onclick={() => isLiveEventsOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-900/80 transition-all duration-200 group"
-          title="Live Events"
-        >
-          <svg class="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-          </svg>
-          {#if dashboardStore.events.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-amber-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.events.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Progress Button -->
-        <button
-          onclick={() => isProgressPanelOpen = true}
-          class="relative p-2 rounded-lg hover:bg-canvas-900/80 transition-all duration-200 group"
-          title="Tu Progreso"
-        >
-          <svg class="w-6 h-6 text-slate-300 group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-          </svg>
-          {#if dashboardStore.subjects.length > 0}
-            <span class="absolute -top-1 -right-1 text-xs font-bold bg-lumera-600 text-white px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
-              {dashboardStore.subjects.length}
-            </span>
-          {/if}
-        </button>
-
-        <!-- Close/Exit Button -->
-        <button
-          onclick={() => goto(`/materias/${materiaId}/objetivos`)}
-          class="relative p-2 rounded-lg hover:bg-red-900/60 transition-all duration-200 group"
-          title="Salir"
-        >
-          <svg class="w-6 h-6 text-slate-300 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </header>
+    {/snippet}
+  </AppHeader>
 
   <!-- Main Content -->
   <main class="relative">
@@ -376,7 +282,7 @@
     {/if}
 
     <!-- Lesson Player -->
-    {#if !isLoading && lesson}
+    {#if !isLoading && lesson && lesson.slides && lesson.slides.length > 0}
       <LessonPlayer
         leccion={lesson}
         showProgress={false}
@@ -384,6 +290,18 @@
         onComplete={handlePlanComplete}
         onSlideChange={handleSlideChange}
       />
+    {:else if !isLoading && plan && (!lesson?.slides || lesson.slides.length === 0)}
+      <div class="flex items-center justify-center py-20">
+        <div class="text-center">
+          <p class="text-slate-400 mb-4">No hay contenido disponible en este plan todavía.</p>
+          <button
+            onclick={() => goto(`/materias/${materiaId}/objetivos`)}
+            class="px-6 py-3 rounded-xl font-semibold bg-[#E1E1E1] hover:bg-[#CCCCCC] text-canvas-900 transition-all duration-300"
+          >
+            Volver a Objetivos
+          </button>
+        </div>
+      </div>
     {/if}
   </main>
 </div>

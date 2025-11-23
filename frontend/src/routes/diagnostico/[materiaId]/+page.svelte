@@ -70,6 +70,7 @@
   // Dashboard State
   let isPlayerProfileOpen = $state(false);
   let isProgressPanelOpen = $state(false);
+  // Keep these for modals even though they're not in header anymore
   let isActivityModalOpen = $state(false);
   let isMissionBoardOpen = $state(false);
   let isCurrentQuestOpen = $state(false);
@@ -661,11 +662,9 @@
   <AppHeader
     {currentAvatar}
     onProfileClick={() => isPlayerProfileOpen = true}
-    onQuestClick={() => isCurrentQuestOpen = true}
-    onMissionsClick={() => isMissionBoardOpen = true}
-    onActivityClick={() => isActivityModalOpen = true}
-    onLiveEventsClick={() => isLiveEventsOpen = true}
     onProgressClick={() => isProgressPanelOpen = true}
+    showNavButtons={true}
+    isHomePage={false}
   >
     {#snippet centerContent()}
       <!-- Progress Bar for Diagnostic in Header -->
